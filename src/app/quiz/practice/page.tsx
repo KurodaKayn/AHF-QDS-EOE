@@ -255,7 +255,7 @@ export default function PracticePage() {
           <span>ID: {currentQuestion.id.substring(0, 8)}</span>
           {currentQuestion.tags && currentQuestion.tags.length > 0 && (
             <div className="ml-auto flex items-center gap-1">
-              <FaTag className="text-gray-400" />
+              <FaTag className="text-gray-400 dark:text-gray-500" />
               {currentQuestion.tags.map(tag => (
                 <span key={tag} className={`px-2 py-0.5 text-xs rounded-full ${getTagColor(tag)}`}>
                   {tag}
@@ -274,11 +274,16 @@ export default function PracticePage() {
           {currentQuestion.type === QuestionType.SingleChoice && currentQuestion.options?.map((option, index) => (
             <button
               key={option.id}
-              onClick={() => handleAnswerChange(option.id)}
+              onClick={() => handleAnswerChange(option.id)} 
+              disabled={revealed[currentIndex]} // 答案揭晓后禁用按钮
               className={`w-full text-left p-3 rounded-md border transition-colors
-                ${userAnswers[currentIndex] === option.id
-                  ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600' 
-                  : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
+                ${revealed[currentIndex]
+                  ? (checkAnswer(currentQuestion, option.id) // 检查此选项是否为正确答案
+                      ? (userAnswers[currentIndex] === option.id ? 'bg-green-600 border-green-600 text-white dark:bg-green-700 dark:border-green-700' : 'bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:text-green-200') // 用户选了此正确选项 vs 未选此正确选项
+                      : (userAnswers[currentIndex] === option.id ? 'bg-red-500 border-red-500 text-white dark:bg-red-700 dark:border-red-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300')) // 用户选了此错误选项 vs 未选此错误选项
+                  : (userAnswers[currentIndex] === option.id 
+                      ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600' 
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300')
                 }`}
             >
               <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
@@ -289,6 +294,8 @@ export default function PracticePage() {
           {currentQuestion.type === QuestionType.MultipleChoice && currentQuestion.options?.map((option, index) => {
             const userAnswerArray = Array.isArray(userAnswers[currentIndex]) ? userAnswers[currentIndex] as string[] : [];
             const isSelected = userAnswerArray.includes(option.id);
+            const isCorrectOption = Array.isArray(currentQuestion.answer) && currentQuestion.answer.includes(option.id);
+
             return (
               <button
                 key={option.id}
@@ -300,10 +307,15 @@ export default function PracticePage() {
                     handleAnswerChange([...currentAnswers, option.id]);
                   }
                 }}
+                disabled={revealed[currentIndex]} // 答案揭晓后禁用按钮
                 className={`w-full text-left p-3 rounded-md border transition-colors
-                  ${isSelected 
-                    ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600' 
-                    : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
+                  ${revealed[currentIndex]
+                    ? (isCorrectOption
+                        ? (isSelected ? 'bg-green-600 border-green-600 text-white dark:bg-green-700 dark:border-green-700' : 'bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:text-green-200')
+                        : (isSelected ? 'bg-red-500 border-red-500 text-white dark:bg-red-700 dark:border-red-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'))
+                    : (isSelected 
+                        ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600' 
+                        : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300')
                   }`}
               >
                 <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
@@ -316,10 +328,15 @@ export default function PracticePage() {
             <button
               key={val}
               onClick={() => handleAnswerChange(val)}
+              disabled={revealed[currentIndex]} // 答案揭晓后禁用按钮
               className={`w-full text-left p-3 rounded-md border transition-colors
-                ${userAnswers[currentIndex] === val 
-                  ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600' 
-                  : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
+                ${revealed[currentIndex]
+                  ? (currentQuestion.answer === val
+                      ? (userAnswers[currentIndex] === val ? 'bg-green-600 border-green-600 text-white dark:bg-green-700 dark:border-green-700' : 'bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:text-green-200')
+                      : (userAnswers[currentIndex] === val ? 'bg-red-500 border-red-500 text-white dark:bg-red-700 dark:border-red-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'))
+                  : (userAnswers[currentIndex] === val 
+                      ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600' 
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300')
                 }`}
             >
               <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
@@ -332,7 +349,8 @@ export default function PracticePage() {
               value={userAnswers[currentIndex] as string || ''}
               onChange={(e) => handleAnswerChange(e.target.value)}
               rows={3}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+              disabled={revealed[currentIndex]} // 答案揭晓后禁用
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400"
               placeholder="在此输入您的答案..."
             />
           )}
@@ -342,25 +360,30 @@ export default function PracticePage() {
         {revealed[currentIndex] && (
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
             <h3 className="text-md font-semibold mb-2 text-gray-700 dark:text-gray-300">答案与解析</h3>
-            <div className={`p-3 rounded-md mb-2 ${checkAnswer(currentQuestion, userAnswers[currentIndex]) 
-              ? 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300' 
-              : 'bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-300'}`}
+            <div className={`p-3 rounded-md mb-2 text-sm 
+              ${checkAnswer(currentQuestion, userAnswers[currentIndex]) 
+                ? 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300' 
+                : 'bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-300'}`}
             >
-              <p className="font-medium">您的答案: {
+              <p><span className="font-medium">您的答案:</span> {
                 currentQuestion.type === QuestionType.MultipleChoice 
-                ? (Array.isArray(userAnswers[currentIndex]) ? (userAnswers[currentIndex] as string[]).join(', ') : '未作答') 
-                : userAnswers[currentIndex] || '未作答'
+                ? (Array.isArray(userAnswers[currentIndex]) && (userAnswers[currentIndex] as string[]).length > 0 ? (userAnswers[currentIndex] as string[]).map(ans => currentQuestion.options?.find(opt => opt.id === ans)?.content || ans).join(', ') : '未作答') 
+                : currentQuestion.type === QuestionType.TrueFalse 
+                    ? (userAnswers[currentIndex] === 'true' ? '正确' : (userAnswers[currentIndex] === 'false' ? '错误' : '未作答'))
+                    : userAnswers[currentIndex] || '未作答'
               }</p>
-              <p>正确答案: {
+              <p><span className="font-medium">正确答案:</span> {
                 currentQuestion.type === QuestionType.MultipleChoice 
-                ? (Array.isArray(currentQuestion.answer) ? currentQuestion.answer.join(', ') : '-') 
-                : currentQuestion.answer}
+                ? (Array.isArray(currentQuestion.answer) ? currentQuestion.answer.map(ans => currentQuestion.options?.find(opt => opt.id === ans)?.content || ans).join(', ') : '-') 
+                : currentQuestion.type === QuestionType.TrueFalse
+                    ? (currentQuestion.answer === 'true' ? '正确' : '错误')
+                    : currentQuestion.answer}
               </p>
             </div>
             {currentQuestion.explanation && (
-              <div className="p-3 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                <p className="font-semibold">解析:</p>
-                <p>{currentQuestion.explanation}</p>
+              <div className="p-3 rounded-md bg-gray-50 dark:bg-gray-750 text-gray-700 dark:text-gray-300 text-sm">
+                <p className="font-semibold mb-1">解析:</p>
+                <p className="whitespace-pre-wrap">{currentQuestion.explanation}</p>
               </div>
             )}
           </div>
@@ -368,14 +391,14 @@ export default function PracticePage() {
       </div>
       
       {/* 操作按钮 */}
-      <div className="flex justify-between">
+      <div className="flex justify-between mt-6">
         <button
           onClick={prevQuestion}
           disabled={currentIndex === 0}
-          className={`px-4 py-2 rounded-md flex items-center ${
-            currentIndex === 0
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          className={`px-4 py-2 rounded-md flex items-center transition-colors
+            ${currentIndex === 0
+              ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
           }`}
         >
           <FaArrowLeft className="mr-1" /> 上一题
@@ -383,22 +406,22 @@ export default function PracticePage() {
         
         <button
           onClick={toggleReveal}
-          className={`px-4 py-2 rounded-md ${
-            revealed[currentIndex]
-              ? 'bg-green-600 text-white hover:bg-green-700'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
+          className={`px-4 py-2 rounded-md font-medium transition-colors
+            ${revealed[currentIndex]
+              ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white'
+              : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white'
           }`}
         >
-          {revealed[currentIndex] ? '已显示答案' : '显示答案'}
+          {revealed[currentIndex] ? '继续答题 / 查看下一题' : '显示答案'}
         </button>
         
         <button
           onClick={nextQuestion}
           disabled={currentIndex === questions.length - 1}
-          className={`px-4 py-2 rounded-md flex items-center ${
-            currentIndex === questions.length - 1
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          className={`px-4 py-2 rounded-md flex items-center transition-colors
+            ${currentIndex === questions.length - 1
+              ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
           }`}
         >
           下一题 <FaArrowRight className="ml-1" />

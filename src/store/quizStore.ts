@@ -23,6 +23,7 @@ interface QuizState {
   // 记录操作
   addRecord: (record: QuestionRecord) => void;
   clearRecords: () => void;
+  removeWrongRecordsByQuestionId: (questionId: string) => void;
   
   // API密钥操作
   setApiKey: (key: Partial<ApiKeyConfig>) => void;
@@ -128,6 +129,13 @@ export const useQuizStore = create<QuizState>()(
       
       clearRecords: () => 
         set({ records: [] }),
+      
+      removeWrongRecordsByQuestionId: (questionIdToRemove) => 
+        set((state) => ({
+          records: state.records.filter(record => 
+            record.questionId !== questionIdToRemove || record.isCorrect === true
+          )
+        })),
       
       // API密钥操作
       setApiKey: (key) => 

@@ -2,10 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaExclamationTriangle, FaTrash, FaTimes, FaSearch } from 'react-icons/fa';
+import { FaExclamationTriangle, FaTrash, FaTimes, FaSearch, FaPlayCircle, FaListUl, FaCheck } from 'react-icons/fa';
 import { useQuizStore } from '@/store/quizStore';
 import { QuestionType } from '@/types/quiz';
 import { QUESTION_TYPE_NAMES, getTagColor } from '@/constants/quiz';
+import WrongQuestionItem, { WrongQuestionDisplay } from '@/components/quiz/WrongQuestionItem';
 
 /**
  * 错题本页面
@@ -15,17 +16,14 @@ export default function ReviewPage() {
   const { questionBanks, records, clearRecords } = useQuizStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBankId, setFilterBankId] = useState<string | 'all'>('all');
+  const [viewMode, setViewMode] = useState<'options' | 'list'>('options');
 
   /**
    * 汇总错题信息
    */
   const wrongQuestions = useMemo(() => {
-    // 获取所有错题记录
     const wrongRecords = records.filter(record => !record.isCorrect);
-    
-    // 从所有题库中查找对应的题目
-    const questions = wrongRecords.map(record => {
-      // 在所有题库中查找此题目
+    const questions: (WrongQuestionDisplay | null)[] = wrongRecords.map(record => {
       for (const bank of questionBanks) {
         const question = bank.questions.find(q => q.id === record.questionId);
         if (question) {
@@ -39,10 +37,8 @@ export default function ReviewPage() {
         }
       }
       return null;
-    }).filter(q => q !== null); // 过滤掉找不到的题目
-    
-    // 按照答题时间倒序排列
-    return questions.sort((a, b) => b!.answeredAt - a!.answeredAt);
+    });
+    return questions.sort((a, b) => (b?.answeredAt || 0) - (a?.answeredAt || 0));
   }, [questionBanks, records]);
 
   /**
@@ -92,32 +88,71 @@ export default function ReviewPage() {
     return new Date(timestamp).toLocaleString('zh-CN');
   };
 
+  if (wrongQuestions.length === 0 && viewMode === 'options') {
+    return (
+      <div className="dark:bg-gray-900 min-h-screen p-4 md:p-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            <FaExclamationTriangle className="inline-block mr-2 text-yellow-600 dark:text-yellow-500" />
+            错题本
+          </h1>
+        </div>
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">太棒了，您目前没有错题记录！</p>
+          <button
+            onClick={() => router.push('/quiz')}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-md"
+          >
+            返回题库列表
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="dark:bg-gray-900 min-h-screen p-4 md:p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
           <FaExclamationTriangle className="inline-block mr-2 text-yellow-600 dark:text-yellow-500" />
           错题本
         </h1>
-        {wrongQuestions.length > 0 && (
+        {viewMode === 'list' && wrongQuestions.length > 0 && (
           <button
             onClick={handleClearRecords}
-            className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            className="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white rounded-md"
           >
             <FaTrash className="mr-2" />
             清空错题本
           </button>
         )}
+        {viewMode === 'list' && (
+            <button
+                onClick={() => setViewMode('options')}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 text-white rounded-md ml-4"
+            >
+                返回选项
+            </button>
+        )}
       </div>
 
-      {wrongQuestions.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">太棒了，您目前没有错题记录！</p>
+      {viewMode === 'options' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
           <button
-            onClick={() => router.push('/quiz')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            onClick={() => router.push('/quiz/review/practice')}
+            className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow flex flex-col items-center justify-center text-center transform hover:scale-105"
           >
-            返回题库列表
+            <FaPlayCircle className="text-5xl text-blue-500 dark:text-blue-400 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">开始重做错题</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">进入练习模式，巩固掌握不牢固的知识点。</p>
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow flex flex-col items-center justify-center text-center transform hover:scale-105"
+          >
+            <FaListUl className="text-5xl text-green-500 dark:text-green-400 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">浏览和查找错题</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">查看所有错题记录，搜索或按题库筛选。</p>
           </button>
         </div>
       ) : (
@@ -163,134 +198,7 @@ export default function ReviewPage() {
               </div>
             ) : (
               filteredQuestions.map(q => (
-                <div
-                  key={q?.id}
-                  className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-md"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
-                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 rounded-md mr-2">
-                        {QUESTION_TYPE_NAMES[q!.type]}
-                      </span>
-                      <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 rounded-md">
-                        {q?.bankName}
-                      </span>
-                      {q?.tags && q.tags.length > 0 && (
-                        <div className="flex gap-1 ml-2">
-                          {q.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className={`px-2 py-1 rounded-md ${getTagColor(tag)}`}
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-400 dark:text-gray-500">
-                      {formatDate(q!.answeredAt)}
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-3">
-                    {q?.content}
-                  </h3>
-                  
-                  {/* 展示选项 (如果有) */}
-                  {q?.options && q.options.length > 0 && (
-                    <div className="space-y-1 mb-3">
-                      {q.options.map((option, idx) => {
-                        const optionLabel = String.fromCharCode(65 + idx); // A, B, C...
-                        
-                        // 判断是否为正确答案
-                        const isCorrect = q.type === QuestionType.SingleChoice
-                          ? q.answer === optionLabel
-                          : Array.isArray(q.answer) && q.answer.includes(optionLabel);
-                          
-                        // 判断用户是否选择了此答案
-                        const isSelected = q.type === QuestionType.SingleChoice
-                          ? q.userAnswer === optionLabel
-                          : Array.isArray(q.userAnswer) && q.userAnswer.includes(optionLabel);
-                        
-                        return (
-                          <div
-                            key={option.id}
-                            className={`p-2 rounded-md ${
-                              isCorrect
-                                ? 'bg-green-50 dark:bg-green-900'
-                                : isSelected
-                                  ? 'bg-red-50 dark:bg-red-900'
-                                  : 'bg-gray-50 dark:bg-gray-700'
-                            }`}
-                          >
-                            <span className="font-medium mr-1 dark:text-gray-200">
-                              {optionLabel}.
-                            </span>
-                            <span className="dark:text-gray-300">{option.content}</span>
-                            
-                            {isSelected && !isCorrect && (
-                              <FaTimes className="inline ml-2 text-red-600 dark:text-red-400" />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  
-                  {/* 判断题答案 */}
-                  {q?.type === QuestionType.TrueFalse && (
-                    <div className="mb-3">
-                      <div>
-                        <span className="font-medium dark:text-gray-300">您的答案: </span>
-                        <span className="text-red-600 dark:text-red-400">
-                          {q.userAnswer === 'true' ? '正确' : '错误'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-medium dark:text-gray-300">正确答案: </span>
-                        <span className="text-green-600 dark:text-green-400">
-                          {q.answer === 'true' ? '正确' : '错误'}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* 简答题答案 */}
-                  {q?.type === QuestionType.ShortAnswer && (
-                    <div className="mb-3">
-                      <div>
-                        <div className="font-medium mb-1 dark:text-gray-300">您的答案:</div>
-                        <div className="p-2 bg-red-50 dark:bg-red-900 dark:text-gray-300 rounded-md">
-                          {q.userAnswer as string || '(未作答)'}
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <div className="font-medium mb-1 dark:text-gray-300">正确答案:</div>
-                        <div className="p-2 bg-green-50 dark:bg-green-900 dark:text-gray-300 rounded-md">
-                          {q.answer as string}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* 解析 */}
-                  {q?.explanation && (
-                    <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900 rounded-md">
-                      <div className="font-medium text-blue-800 dark:text-blue-300 mb-1">解析:</div>
-                      <div className="text-blue-700 dark:text-blue-200">{q.explanation}</div>
-                    </div>
-                  )}
-                  
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      onClick={() => handlePracticeQuestion(q!.bankId)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
-                      练习此题库
-                    </button>
-                  </div>
-                </div>
+                <WrongQuestionItem key={q ? (q.id + q.answeredAt) : Math.random()} question={q as WrongQuestionDisplay} formatDate={formatDate} />
               ))
             )}
           </div>
