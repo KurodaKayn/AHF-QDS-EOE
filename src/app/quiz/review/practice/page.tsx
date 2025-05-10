@@ -30,53 +30,29 @@ export default function ReviewPracticePage() {
 
   const currentQuestion = practiceQuestions[currentIndex];
   
-  // 改进选项打乱逻辑，返回选项数组和映射
-  const { displayedOptions, originToShuffledMap } = useMemo(() => {
+  // 简化打乱选项实现，只改变显示顺序，保持选项ID不变
+  const displayedOptions = useMemo(() => {
     if (!currentQuestion || (currentQuestion.type !== QuestionType.SingleChoice && currentQuestion.type !== QuestionType.MultipleChoice)) {
-      return { 
-        displayedOptions: currentQuestion?.options || [], 
-        originToShuffledMap: {} 
-      };
+      return currentQuestion?.options || [];
     }
-    
-    const originalOptions = currentQuestion.options || [];
-    
     if (settings.shuffleReviewOptions) {
-      // 创建副本以防止修改原数组
-      const optionsCopy = [...originalOptions];
-      const shuffled = shuffleArray(optionsCopy);
-      
-      // 创建原始选项ID到打乱后索引的映射
-      const mapping: Record<string, number> = {};
-      shuffled.forEach((option, shuffledIndex) => {
-        mapping[option.id] = shuffledIndex;
-      });
-      
-      return {
-        displayedOptions: shuffled,
-        originToShuffledMap: mapping
-      };
+      return shuffleArray([...(currentQuestion.options || [])]); // 打乱选项的显示顺序
     }
-    
-    // 如果不打乱，则创建1:1映射
-    const defaultMapping: Record<string, number> = {};
-    originalOptions.forEach((option, index) => {
-      defaultMapping[option.id] = index;
-    });
-    
-    return {
-      displayedOptions: originalOptions,
-      originToShuffledMap: defaultMapping
-    };
+    return currentQuestion.options || [];
   }, [currentQuestion, settings.shuffleReviewOptions]);
 
-  // 获取正确选项ID
-  const getCorrectOptionId = useCallback((question: Question): string | null => {
-    if (question.type !== QuestionType.SingleChoice || typeof question.answer !== 'string') {
-      return null;
-    }
-    return question.answer;
-  }, []);
+  // 获取选项ID对应的显示索引（用于显示答案时转换）
+  const getDisplayedLetterForOptionId = useCallback((optionId: string): string => {
+    if (!displayedOptions.length) return '';
+    const index = displayedOptions.findIndex(opt => opt.id === optionId);
+    return index >= 0 ? String.fromCharCode(65 + index) : ''; // 转换为A, B, C, D...
+  }, [displayedOptions]);
+
+  // 获取显示索引对应的选项ID（用于用户选择时转换）
+  const getOptionIdFromDisplayedIndex = useCallback((index: number): string => {
+    if (index < 0 || index >= displayedOptions.length) return '';
+    return displayedOptions[index].id;
+  }, [displayedOptions]);
 
   useEffect(() => {
     const wrongRecords = records.filter(r => !r.isCorrect);
@@ -144,13 +120,27 @@ export default function ReviewPracticePage() {
 
   const checkAnswer = useCallback((question: Question, userAnswer: string | string[]): boolean => {
     if (!userAnswer || (Array.isArray(userAnswer) && userAnswer.length === 0)) return false;
-    if (question.type === QuestionType.MultipleChoice) {
-      const correctAnswers = Array.isArray(question.answer) ? question.answer : [];
+
+    const { type, answer, options = [] } = question;
+
+    if (type === QuestionType.MultipleChoice) {
+      const correctAnswers = Array.isArray(answer) ? answer : [];
       const userAnswerArray = Array.isArray(userAnswer) ? userAnswer : [];
       if (correctAnswers.length !== userAnswerArray.length) return false;
       return correctAnswers.every(a => userAnswerArray.includes(a));
     }
-    return userAnswer === question.answer;
+
+    if (typeof answer === 'string') {
+      if (options.length > 0 && answer.length === 1 && answer >= 'A' && answer < String.fromCharCode(65 + options.length)) {
+        const correctOptionIndex = answer.charCodeAt(0) - 65;
+        if (correctOptionIndex >= 0 && correctOptionIndex < options.length) {
+          const correctOptionId = options[correctOptionIndex].id;
+          return userAnswer === correctOptionId;
+        }
+      }
+      return userAnswer === answer;
+    }
+    return false;
   }, []);
 
   const handleAnswerChange = (answer: string | string[]) => {
@@ -249,6 +239,20 @@ export default function ReviewPracticePage() {
   const currentAnswer = userAnswers[currentQuestion.id] || '';
   const isCurrentRevealed = revealed[currentQuestion.id] || false;
 
+  // Determine the true correct option ID for single choice questions, used for styling
+  let trueCorrectOptionIdForSingleChoice: string | null = null;
+  if (currentQuestion && currentQuestion.type === QuestionType.SingleChoice && typeof currentQuestion.answer === 'string') {
+    const { answer, options = [] } = currentQuestion;
+    if (options.length > 0 && answer.length === 1 && answer >= 'A' && answer < String.fromCharCode(65 + options.length)) {
+      const correctOptionIndex = answer.charCodeAt(0) - 65;
+      if (correctOptionIndex >= 0 && correctOptionIndex < options.length) {
+        trueCorrectOptionIdForSingleChoice = options[correctOptionIndex].id;
+      }
+    } else {
+      trueCorrectOptionIdForSingleChoice = answer; // Assume it's an ID
+    }
+  }
+
   return (
     <div className="dark:bg-gray-900 dark:text-white min-h-screen p-4 md:p-8">
       <div className="flex justify-between items-center mb-6">
@@ -271,9 +275,10 @@ export default function ReviewPracticePage() {
         </div>
         <div className="space-y-3 mb-4">
           {currentQuestion.type === QuestionType.SingleChoice && displayedOptions.map((option, index) => {
-            const correctOptionId = getCorrectOptionId(currentQuestion);
-            const isThisOptionCorrect = option.id === correctOptionId;
-            
+            const optionLetter = String.fromCharCode(65 + index);
+            const isCorrectOption = option.id === trueCorrectOptionIdForSingleChoice;
+            const isSelected = currentAnswer === option.id;
+
             return (
               <button
                 key={option.id}
@@ -281,24 +286,29 @@ export default function ReviewPracticePage() {
                 disabled={isCurrentRevealed}
                 className={`w-full text-left p-3 rounded-md border transition-colors
                   ${isCurrentRevealed
-                    ? (isThisOptionCorrect
-                        ? (currentAnswer === option.id ? 'bg-green-600 border-green-600 text-white dark:bg-green-700 dark:border-green-700' : 'bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:text-green-200')
-                        : (currentAnswer === option.id ? 'bg-red-500 border-red-500 text-white dark:bg-red-700 dark:border-red-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'))
-                    : (currentAnswer === option.id 
+                    ? (isCorrectOption
+                        ? (isSelected ? 'bg-green-600 border-green-600 text-white dark:bg-green-700 dark:border-green-700' : 'bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:text-green-200')
+                        : (isSelected ? 'bg-red-500 border-red-500 text-white dark:bg-red-700 dark:border-red-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'))
+                    : (isSelected 
                         ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600' 
                         : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300')
                   }`}
               >
-                <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
+                <span className="font-medium mr-2">{optionLetter}.</span>
                 {option.content}
               </button>
             );
           })}
           {currentQuestion.type === QuestionType.MultipleChoice && displayedOptions.map((option, index) => {
+            // 转换选项字母标识
+            const optionLetter = String.fromCharCode(65 + index);
+            // 处理用户答案数组
             const userAnswerArray = Array.isArray(currentAnswer) ? currentAnswer as string[] : [];
             const isSelected = userAnswerArray.includes(option.id);
+            // 检查这个选项是否属于正确答案集合
             const correctAnswers = Array.isArray(currentQuestion.answer) ? currentQuestion.answer : [];
-            const isThisOptionCorrect = correctAnswers.includes(option.id);
+            const isCorrectOption = correctAnswers.includes(option.id);
+            
             return (
               <button
                 key={option.id}
@@ -313,7 +323,7 @@ export default function ReviewPracticePage() {
                 disabled={isCurrentRevealed}
                 className={`w-full text-left p-3 rounded-md border transition-colors
                   ${isCurrentRevealed
-                    ? (isThisOptionCorrect
+                    ? (isCorrectOption
                         ? (isSelected ? 'bg-green-600 border-green-600 text-white dark:bg-green-700 dark:border-green-700' : 'bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:text-green-200')
                         : (isSelected ? 'bg-red-500 border-red-500 text-white dark:bg-red-700 dark:border-red-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'))
                     : (isSelected 
@@ -321,7 +331,7 @@ export default function ReviewPracticePage() {
                         : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300')
                   }`}
               >
-                <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
+                <span className="font-medium mr-2">{optionLetter}.</span>
                 {option.content}
               </button>
             );
@@ -364,29 +374,65 @@ export default function ReviewPracticePage() {
                 ? 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300' 
                 : 'bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-300'}`}
             >
-               <p><span className="font-medium">您的答案:</span> {
+              <p><span className="font-medium">您的答案:</span> {
                 currentQuestion.type === QuestionType.MultipleChoice 
-                ? (Array.isArray(currentAnswer) && (currentAnswer as string[]).length > 0 ? (currentAnswer as string[]).map(ans => currentQuestion.options?.find(opt => opt.id === ans)?.content || ans).join(', ') : '未作答') 
+                ? (Array.isArray(currentAnswer) && (currentAnswer as string[]).length > 0 
+                    ? (currentAnswer as string[]).map(ans => {
+                        const index = displayedOptions.findIndex(opt => opt.id === ans);
+                        return index >= 0 ? `${String.fromCharCode(65 + index)}` : ans;
+                      }).join(', ') 
+                    : '未作答') 
                 : currentQuestion.type === QuestionType.TrueFalse 
                     ? (currentAnswer === 'true' ? '正确' : (currentAnswer === 'false' ? '错误' : '未作答'))
-                    : currentAnswer || '未作答'
+                    : currentQuestion.type === QuestionType.SingleChoice
+                      ? (currentAnswer ? `${displayedOptions.findIndex(opt => opt.id === currentAnswer) >= 0 ? String.fromCharCode(65 + displayedOptions.findIndex(opt => opt.id === currentAnswer)) : currentAnswer}` : '未作答')
+                      : currentAnswer || '未作答'
               }</p>
               <p><span className="font-medium">正确答案:</span> {
                 currentQuestion.type === QuestionType.MultipleChoice 
-                ? (Array.isArray(currentQuestion.answer) ? currentQuestion.answer.map(ans => currentQuestion.options?.find(opt => opt.id === ans)?.content || ans).join(', ') : '-') 
+                ? (Array.isArray(currentQuestion.answer) 
+                    ? currentQuestion.answer.map(ans => {
+                        const index = displayedOptions.findIndex(opt => opt.id === ans);
+                        if (index >= 0) return String.fromCharCode(65 + index);
+                        if (typeof ans === 'string' && ans.length === 1 && ans >= 'A' && ans < String.fromCharCode(65 + displayedOptions.length)) return ans;
+                        return `(${ans})`; 
+                      }).join(', ') 
+                    : '-') 
                 : currentQuestion.type === QuestionType.TrueFalse
                     ? (currentQuestion.answer === 'true' ? '正确' : '错误')
-                    : currentQuestion.answer}
-              </p>
+                    : currentQuestion.type === QuestionType.SingleChoice && typeof currentQuestion.answer === 'string'
+                      ? (() => {
+                          if (currentQuestion.options && currentQuestion.options.length > 0 && currentQuestion.answer.length === 1 && currentQuestion.answer >= 'A' && currentQuestion.answer < String.fromCharCode(65 + currentQuestion.options.length)) {
+                            const originalCorrectOptionIndex = currentQuestion.answer.charCodeAt(0) - 65;
+                            if (originalCorrectOptionIndex < currentQuestion.options.length) {
+                                const originalCorrectOptionId = currentQuestion.options[originalCorrectOptionIndex].id;
+                                return getDisplayedLetterForOptionId(originalCorrectOptionId) || `(${currentQuestion.answer})`;
+                            }
+                          }
+                          const letterById = getDisplayedLetterForOptionId(currentQuestion.answer);
+                          return letterById || `(${currentQuestion.answer || '未指定'})`;
+                        })()
+                      : currentQuestion.answer
+              }</p>
               {currentQuestion.originalUserAnswer && (
                 <p className="mt-1 italic text-xs"><span className="font-medium">原始错误答案:</span> {
-                    currentQuestion.type === QuestionType.MultipleChoice 
-                    ? (Array.isArray(currentQuestion.originalUserAnswer) && (currentQuestion.originalUserAnswer as string[]).length > 0 ? (currentQuestion.originalUserAnswer as string[]).map(ans => currentQuestion.options?.find(opt => opt.id === ans)?.content || ans).join(', ') : '未记录') 
-                    : currentQuestion.type === QuestionType.TrueFalse 
-                        ? (currentQuestion.originalUserAnswer === 'true' ? '正确' : (currentQuestion.originalUserAnswer === 'false' ? '错误' : '未记录'))
+                  currentQuestion.type === QuestionType.MultipleChoice 
+                    ? (Array.isArray(currentQuestion.originalUserAnswer) && (currentQuestion.originalUserAnswer as string[]).length > 0 
+                        ? (currentQuestion.originalUserAnswer as string[]).map(ans => {
+                            // 显示选项内容，因为这是过去的答案，与当前显示顺序无关
+                            const option = currentQuestion.options?.find(opt => opt.id === ans);
+                            return option ? option.content : ans;
+                          }).join(', ') 
+                        : '未记录') 
+                  : currentQuestion.type === QuestionType.TrueFalse 
+                      ? (currentQuestion.originalUserAnswer === 'true' ? '正确' : (currentQuestion.originalUserAnswer === 'false' ? '错误' : '未记录'))
+                      : currentQuestion.type === QuestionType.SingleChoice
+                        ? (currentQuestion.originalUserAnswer
+                            ? (currentQuestion.options?.find(opt => opt.id === currentQuestion.originalUserAnswer)?.content || currentQuestion.originalUserAnswer) 
+                            : '未记录')
                         : currentQuestion.originalUserAnswer || '未记录'
-                }</p>)
-              }
+                }</p>
+              )}
             </div>
             {currentQuestion.explanation && (
               <div className="p-3 rounded-md bg-gray-50 dark:bg-gray-750 text-gray-700 dark:text-gray-300 text-sm">
