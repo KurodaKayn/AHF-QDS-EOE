@@ -64,6 +64,15 @@ export default function QuizLayout({ children }: { children: React.ReactNode }) 
                 <span>题目转换</span>
               </Link>
             </li>
+            <li>
+              <Link 
+                href="/quiz/settings"
+                className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <FaCog className="mr-3" />
+                <span>应用设置</span>
+              </Link>
+            </li>
           </ul>
         </nav>
       </aside>

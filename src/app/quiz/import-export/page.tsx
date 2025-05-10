@@ -5,12 +5,13 @@ import { FaFileImport, FaFileExport, FaCheck } from 'react-icons/fa';
 import { useQuizStore } from '@/store/quizStore';
 import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from '@/utils/quiz';
 import { DEFAULT_EXPORT_FILENAME } from '@/constants/quiz';
+import { QuestionBank, Question } from '@/types/quiz';
 
 /**
  * 导入/导出题库页面
  */
 export default function ImportExportPage() {
-  const { questionBanks, addQuestionBank } = useQuizStore();
+  const { questionBanks, addQuestionBank, addQuestionToBank } = useQuizStore();
   const [selectedBankId, setSelectedBankId] = useState<string>('');
   const [importFormat, setImportFormat] = useState<'csv' | 'excel'>('csv');
   const [exportFormat, setExportFormat] = useState<'csv' | 'excel'>('csv');
@@ -24,31 +25,46 @@ export default function ImportExportPage() {
    */
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !importName.trim()) return;
+    if (!file || !importName.trim()) {
+        alert('请输入题库名称并选择文件。');
+        return;
+    }
 
     const reader = new FileReader();
 
     reader.onload = (e) => {
       try {
-        let newBank;
+        let importedData: QuestionBank | null = null; 
         
         if (importFormat === 'csv') {
           const content = e.target?.result as string;
-          newBank = importFromCSV(content, importName);
+          importedData = importFromCSV(content, importName.trim());
         } else {
           const content = e.target?.result as ArrayBuffer;
-          newBank = importFromExcel(content, importName);
+          importedData = importFromExcel(content, importName.trim());
         }
         
-        addQuestionBank(newBank);
+        if (!importedData) {
+            throw new Error('无法从文件解析数据。');
+        }
+
+        const newBank: QuestionBank = addQuestionBank(importedData.name, importedData.description);
+
+        if (newBank && importedData.questions && importedData.questions.length > 0) {
+            importedData.questions.forEach((question: Question) => {
+                const { id, ...questionData } = question;
+                addQuestionToBank(newBank.id, questionData);
+            });
+        }
+        
         setImportName('');
         if (fileInputRef.current) fileInputRef.current.value = '';
         
         setImportSuccess(true);
         setTimeout(() => setImportSuccess(false), 3000);
-      } catch (error) {
+      } catch (error: any) {
         console.error('导入失败:', error);
-        alert('导入失败，请检查文件格式是否正确');
+        alert(`导入失败: ${error.message || '请检查文件格式是否正确'}`);
       }
     };
 
@@ -230,17 +246,15 @@ export default function ImportExportPage() {
                 </label>
               </div>
             </div>
-            
-            <button
+
+            <button 
               onClick={handleExport}
               disabled={!selectedBankId}
-              className={`w-full py-2 rounded-md ${
-                selectedBankId
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-              }`}
+              className={`w-full flex items-center justify-center px-4 py-2 rounded-md text-white font-medium
+                        ${!selectedBankId ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800'}`}
             >
-              导出题库
+              <FaFileExport className="mr-2" />
+              导出
             </button>
             
             {exportSuccess && (

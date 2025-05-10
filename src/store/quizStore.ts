@@ -1,150 +1,204 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { Question, QuestionBank, QuestionRecord, ApiKeyConfig } from '@/types/quiz';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { Question, QuestionBank, QuestionRecord, QuestionType } from '@/types/quiz';
+import { v4 as uuidv4 } from 'uuid';
 
-interface QuizState {
-  questionBanks: QuestionBank[];
-  currentBankId: string | null;
-  records: QuestionRecord[];
-  apiKeys: ApiKeyConfig;
-  
-  // 题库操作
-  addQuestionBank: (bank: QuestionBank) => void;
-  updateQuestionBank: (id: string, bank: Partial<QuestionBank>) => void;
-  removeQuestionBank: (id: string) => void;
-  setCurrentBank: (id: string | null) => void;
-  addQuestionsToBank: (bankId: string, questions: Question[]) => void;
-  
-  // 题目操作
-  addQuestion: (bankId: string, question: Question) => void;
-  updateQuestion: (bankId: string, questionId: string, question: Partial<Question>) => void;
-  removeQuestion: (bankId: string, questionId: string) => void;
-  
-  // 记录操作
-  addRecord: (record: QuestionRecord) => void;
-  clearRecords: () => void;
-  removeWrongRecordsByQuestionId: (questionId: string) => void;
-  
-  // API密钥操作
-  setApiKey: (key: Partial<ApiKeyConfig>) => void;
+// 定义设置的接口
+export interface QuizSettings {
+  shufflePracticeOptions: boolean;
+  shuffleReviewOptions: boolean;
+  shufflePracticeQuestionOrder: boolean;
+  shuffleReviewQuestionOrder: boolean;
+  markMistakeAsCorrectedOnReviewSuccess: boolean;
+
+  // New AI Provider Settings
+  aiProvider: 'deepseek' | 'alibaba';
+  deepseekApiKey: string;
+  deepseekBaseUrl: string; // e.g., https://api.deepseek.com
+  alibabaApiKey: string;
+  // Alibaba base URL is fixed: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  // Alibaba model can be stored here if needed, e.g., qwenModel: string;
 }
 
-/**
- * 题库状态管理
- */
+export interface QuizState {
+  questionBanks: QuestionBank[];
+  records: QuestionRecord[];
+  settings: QuizSettings; // Settings state including AI provider config
+
+  // ... (其他状态)
+  addQuestionBank: (name: string, description?: string) => QuestionBank;
+  getQuestionBankById: (id: string) => QuestionBank | undefined;
+  updateQuestionBank: (id: string, name: string, description?: string) => void;
+  deleteQuestionBank: (id: string) => void;
+  addQuestionToBank: (bankId: string, question: Omit<Question, 'id'>) => Question | null;
+  updateQuestionInBank: (bankId: string, questionId: string, questionData: Partial<Omit<Question, 'id'>>) => Question | null;
+  deleteQuestionFromBank: (bankId: string, questionId: string) => void;
+  getQuestionById: (questionId: string) => { question: Question, bank: QuestionBank } | undefined;
+  addRecord: (record: Omit<QuestionRecord, 'id'>) => void;
+  clearRecords: (bankId?: string) => void;
+  removeWrongRecordsByQuestionId: (questionIdToRemove: string) => void;
+  
+  // Generic setting action
+  setQuizSetting: <K extends keyof QuizSettings>(key: K, value: QuizSettings[K]) => void;
+  resetQuizSettings: () => void;
+}
+
+// 初始设置
+const initialSettings: QuizSettings = {
+  shufflePracticeOptions: false,
+  shuffleReviewOptions: false,
+  shufflePracticeQuestionOrder: false,
+  shuffleReviewQuestionOrder: false,
+  markMistakeAsCorrectedOnReviewSuccess: true,
+
+  // AI Provider Defaults
+  aiProvider: 'deepseek',
+  deepseekApiKey: '',
+  deepseekBaseUrl: 'https://api.deepseek.com', // Default to common public API
+  alibabaApiKey: '',
+};
+
 export const useQuizStore = create<QuizState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       questionBanks: [],
-      currentBankId: null,
       records: [],
-      apiKeys: {
-        deepseek: '',
+      settings: initialSettings, // Initialize settings
+
+      addQuestionBank: (name, description = '') => {
+        const newBank: QuestionBank = { id: uuidv4(), name, description, questions: [], createdAt: Date.now(), updatedAt: Date.now() };
+        set((state) => ({ questionBanks: [...state.questionBanks, newBank] }));
+        return newBank;
       },
-      
-      // 题库操作
-      addQuestionBank: (bank) => 
+      getQuestionBankById: (id) => get().questionBanks.find(bank => bank.id === id),
+      updateQuestionBank: (id, name, description) => {
         set((state) => ({
-          questionBanks: [...state.questionBanks, bank]
-        })),
-      
-      updateQuestionBank: (id, updatedBank) => 
-        set((state) => ({
-          questionBanks: state.questionBanks.map(bank => 
-            bank.id === id ? { ...bank, ...updatedBank, updatedAt: Date.now() } : bank
-          )
-        })),
-      
-      removeQuestionBank: (id) => 
+          questionBanks: state.questionBanks.map(bank =>
+            bank.id === id ? { ...bank, name, description: description ?? bank.description, updatedAt: Date.now() } : bank
+          ),
+        }));
+      },
+      deleteQuestionBank: (id) => {
         set((state) => ({
           questionBanks: state.questionBanks.filter(bank => bank.id !== id),
-          currentBankId: state.currentBankId === id ? null : state.currentBankId
-        })),
-      
-      setCurrentBank: (id) => 
-        set({ currentBankId: id }),
-      
-      addQuestionsToBank: (bankId, questions) =>
+          records: state.records.filter(record => {
+            const questionBank = state.questionBanks.find(qb => qb.questions.some(q => q.id === record.questionId));
+            return questionBank ? questionBank.id !== id : true;
+          })
+        }));
+      },
+      addQuestionToBank: (bankId, questionData) => {
+        const newQuestion: Question = { ...questionData, id: uuidv4() };
+        let updatedBank: QuestionBank | undefined;
+        set((state) => ({
+          questionBanks: state.questionBanks.map(bank => {
+            if (bank.id === bankId) {
+              updatedBank = { ...bank, questions: [...bank.questions, newQuestion], updatedAt: Date.now() };
+              return updatedBank;
+            }
+            return bank;
+          }),
+        }));
+        return updatedBank ? newQuestion : null;
+      },
+      updateQuestionInBank: (bankId, questionId, questionData) => {
+        let updatedQuestion : Question | null = null;
+        set((state) => ({
+          questionBanks: state.questionBanks.map(bank => {
+            if (bank.id === bankId) {
+              return {
+                ...bank,
+                questions: bank.questions.map(q => {
+                  if (q.id === questionId) {
+                    updatedQuestion = { ...q, ...questionData, id: questionId };
+                    return updatedQuestion;
+                  }
+                  return q;
+                }),
+                updatedAt: Date.now(),
+              };
+            }
+            return bank;
+          }),
+        }));
+        return updatedQuestion;
+      },
+      deleteQuestionFromBank: (bankId, questionId) => {
         set((state) => ({
           questionBanks: state.questionBanks.map(bank =>
             bank.id === bankId
-              ? {
-                  ...bank,
-                  questions: [...bank.questions, ...questions],
-                  updatedAt: Date.now(),
-                }
+              ? { ...bank, questions: bank.questions.filter(q => q.id !== questionId), updatedAt: Date.now() }
               : bank
           ),
-        })),
-      
-      // 题目操作
-      addQuestion: (bankId, question) => 
-        set((state) => ({
-          questionBanks: state.questionBanks.map(bank => 
-            bank.id === bankId 
-              ? { 
-                  ...bank, 
-                  questions: [...bank.questions, question],
-                  updatedAt: Date.now()
-                } 
-              : bank
-          )
-        })),
-      
-      updateQuestion: (bankId, questionId, updatedQuestion) => 
-        set((state) => ({
-          questionBanks: state.questionBanks.map(bank => 
-            bank.id === bankId 
-              ? { 
-                  ...bank, 
-                  questions: bank.questions.map(q => 
-                    q.id === questionId 
-                      ? { ...q, ...updatedQuestion, updatedAt: Date.now() } 
-                      : q
-                  ),
-                  updatedAt: Date.now()
-                } 
-              : bank
-          )
-        })),
-      
-      removeQuestion: (bankId, questionId) => 
-        set((state) => ({
-          questionBanks: state.questionBanks.map(bank => 
-            bank.id === bankId 
-              ? { 
-                  ...bank, 
-                  questions: bank.questions.filter(q => q.id !== questionId),
-                  updatedAt: Date.now()
-                } 
-              : bank
-          )
-        })),
-      
-      // 记录操作
-      addRecord: (record) => 
-        set((state) => ({
-          records: [...state.records, record]
-        })),
-      
-      clearRecords: () => 
-        set({ records: [] }),
-      
-      removeWrongRecordsByQuestionId: (questionIdToRemove) => 
+          records: state.records.filter(record => record.questionId !== questionId)
+        }));
+      },
+      getQuestionById: (questionId) => {
+        for (const bank of get().questionBanks) {
+          const question = bank.questions.find(q => q.id === questionId);
+          if (question) {
+            return { question, bank };
+          }
+        }
+        return undefined;
+      },
+      addRecord: (record) => {
+        const newRecord: QuestionRecord = { ...record, id: uuidv4() };
+        set((state) => ({ records: [...state.records, newRecord] }));
+      },
+      clearRecords: (bankId) => {
+        if (bankId) {
+            const bank = get().getQuestionBankById(bankId);
+            if (!bank) return;
+            const questionIdsInBank = bank.questions.map(q => q.id);
+            set(state => ({
+                records: state.records.filter(r => !questionIdsInBank.includes(r.questionId))
+            }));
+        } else {
+            set({ records: [] });
+        }
+      },
+      removeWrongRecordsByQuestionId: (questionIdToRemove) => {
         set((state) => ({
           records: state.records.filter(record => 
-            record.questionId !== questionIdToRemove || record.isCorrect === true
-          )
-        })),
+            !(record.questionId === questionIdToRemove && !record.isCorrect)
+          ),
+        }));
+      },
       
-      // API密钥操作
-      setApiKey: (key) => 
+      // Settings actions
+      setQuizSetting: (key, value) => {
         set((state) => ({
-          apiKeys: { ...state.apiKeys, ...key }
-        })),
+          settings: {
+            ...state.settings,
+            [key]: value,
+          },
+        }));
+      },
+      resetQuizSettings: () => {
+        set((state) => ({ // Pass the current state to ensure other parts of the state are not affected
+            ...state, 
+            settings: initialSettings 
+        }));
+      }
     }),
     {
-      name: 'quiz-storage',
+      name: 'quiz-storage', 
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ 
+        questionBanks: state.questionBanks, 
+        records: state.records, 
+        settings: state.settings, // Persist the entire settings object
+      }),
+      merge: (persistedState, currentState) => {
+        const merged = { ...currentState, ...(persistedState as Partial<QuizState>) };
+        if (!(persistedState as QuizState)?.settings) {
+          merged.settings = initialSettings;
+        } else {
+          merged.settings = { ...initialSettings, ...(persistedState as QuizState).settings };
+        }
+        return merged;
+      },
     }
   )
-); 
+);

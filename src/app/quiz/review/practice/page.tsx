@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaArrowLeft, FaArrowRight, FaCheck, FaTimes } from 'react-icons/fa';
 import { useQuizStore } from '@/store/quizStore';
 import { Question, QuestionType } from '@/types/quiz';
 import { getTagColor, QUESTION_TYPE_NAMES } from '@/constants/quiz';
+import { shuffleArray } from '@/utils/array';
 
 export interface WrongQuestionDisplay extends Question {
   bankId: string;
@@ -19,7 +20,7 @@ export interface WrongQuestionDisplay extends Question {
 
 export default function ReviewPracticePage() {
   const router = useRouter();
-  const { questionBanks, records, removeWrongRecordsByQuestionId, addRecord } = useQuizStore();
+  const { questionBanks, records, removeWrongRecordsByQuestionId, addRecord, settings } = useQuizStore();
 
   const [practiceQuestions, setPracticeQuestions] = useState<WrongQuestionDisplay[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -27,10 +28,21 @@ export default function ReviewPracticePage() {
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
 
+  const currentQuestion = practiceQuestions[currentIndex];
+  const displayedOptions = useMemo(() => {
+    if (!currentQuestion || (currentQuestion.type !== QuestionType.SingleChoice && currentQuestion.type !== QuestionType.MultipleChoice)) {
+      return currentQuestion?.options || [];
+    }
+    if (settings.shuffleReviewOptions) {
+      return shuffleArray([...(currentQuestion.options || [])]);
+    }
+    return currentQuestion.options || [];
+  }, [currentQuestion, settings.shuffleReviewOptions]);
+
   useEffect(() => {
     const wrongRecords = records.filter(r => !r.isCorrect);
 
-    const questionsToPracticeArray: WrongQuestionDisplay[] = wrongRecords.map(record => {
+    let questionsToPracticeArray: WrongQuestionDisplay[] = wrongRecords.map(record => {
       for (const bank of questionBanks) {
         const question = bank.questions.find(q => q.id === record.questionId);
         if (question) {
@@ -47,6 +59,10 @@ export default function ReviewPracticePage() {
       }
       return null;
     }).filter(q => q !== null) as WrongQuestionDisplay[];
+
+    if (settings.shuffleReviewQuestionOrder) {
+      questionsToPracticeArray = shuffleArray(questionsToPracticeArray);
+    }
 
     const oldCurrentQuestionId = practiceQuestions[currentIndex]?.id;
     
@@ -77,15 +93,15 @@ export default function ReviewPracticePage() {
     } else {
       setIsSessionCompleted(false);
       let newCurrentIndex = questionsToPracticeArray.findIndex(q => q && q.id === oldCurrentQuestionId);
-      if (newCurrentIndex === -1) { 
-          newCurrentIndex = Math.min(currentIndex, questionsToPracticeArray.length - 1);
+      if (newCurrentIndex === -1 || settings.shuffleReviewQuestionOrder) { 
+          newCurrentIndex = settings.shuffleReviewQuestionOrder ? 0 : Math.min(currentIndex, questionsToPracticeArray.length - 1);
           newCurrentIndex = Math.max(0, newCurrentIndex); 
       }
       if (questionsToPracticeArray.length > 0) {
         setCurrentIndex(newCurrentIndex);
       }
     }
-  }, [records, questionBanks]);
+  }, [records, questionBanks, settings.shuffleReviewQuestionOrder]);
 
   const checkAnswer = useCallback((question: Question, userAnswer: string | string[]): boolean => {
     if (!userAnswer || (Array.isArray(userAnswer) && userAnswer.length === 0)) return false;
@@ -97,8 +113,6 @@ export default function ReviewPracticePage() {
     }
     return userAnswer === question.answer;
   }, []);
-
-  const currentQuestion = practiceQuestions[currentIndex];
 
   const handleAnswerChange = (answer: string | string[]) => {
     if (!currentQuestion) return;
@@ -122,14 +136,25 @@ export default function ReviewPracticePage() {
       const userAnswer = userAnswers[currentQuestion.id] || '';
       const isCorrect = checkAnswer(currentQuestion, userAnswer);
         
-      removeWrongRecordsByQuestionId(currentQuestion.id);
-        
-      addRecord({
+      if (isCorrect) {
+        if (settings.markMistakeAsCorrectedOnReviewSuccess) {
+          removeWrongRecordsByQuestionId(currentQuestion.id);
+          addRecord({
+            questionId: currentQuestion.id,
+            userAnswer: userAnswer,
+            isCorrect: true,
+            answeredAt: Date.now()
+          });
+        }
+      } else {
+        removeWrongRecordsByQuestionId(currentQuestion.id);
+        addRecord({
           questionId: currentQuestion.id,
           userAnswer: userAnswer,
-          isCorrect: isCorrect,
+          isCorrect: false,
           answeredAt: Date.now()
-      });
+        });
+      }
     } else {
       nextQuestion(); 
     }
@@ -149,7 +174,7 @@ export default function ReviewPracticePage() {
     }
   };
 
-  if (isSessionCompleted || (practiceQuestions.length === 0 && records.every(r => r.isCorrect))) {
+  if (isSessionCompleted || (practiceQuestions.length === 0 && records.filter(r => !r.isCorrect).length === 0)) {
     return (
       <div className="dark:bg-gray-900 min-h-screen p-4 md:p-8 flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
@@ -206,7 +231,7 @@ export default function ReviewPracticePage() {
           {currentQuestion.content}
         </div>
         <div className="space-y-3 mb-4">
-          {currentQuestion.type === QuestionType.SingleChoice && currentQuestion.options?.map((option, index) => (
+          {currentQuestion.type === QuestionType.SingleChoice && displayedOptions.map((option, index) => (
             <button
               key={option.id}
               onClick={() => handleAnswerChange(option.id)} 
@@ -225,7 +250,7 @@ export default function ReviewPracticePage() {
               {option.content}
             </button>
           ))}
-          {currentQuestion.type === QuestionType.MultipleChoice && currentQuestion.options?.map((option, index) => {
+          {currentQuestion.type === QuestionType.MultipleChoice && displayedOptions.map((option, index) => {
             const userAnswerArray = Array.isArray(currentAnswer) ? currentAnswer as string[] : [];
             const isSelected = userAnswerArray.includes(option.id);
             const isCorrectOption = Array.isArray(currentQuestion.answer) && currentQuestion.answer.includes(option.id);

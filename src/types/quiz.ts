@@ -47,6 +47,7 @@ export interface QuestionBank {
  * 用户答题记录
  */
 export interface QuestionRecord {
+  id?: string;
   questionId: string;
   userAnswer: string | string[];
   isCorrect: boolean;
