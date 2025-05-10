@@ -17,7 +17,7 @@ import { FaKeyboard } from 'react-icons/fa';
  */
 export default function ConvertPage() {
   const router = useRouter();
-  const { apiKeys, setApiKey, addQuestionBank } = useQuizStore();
+  const { apiKeys, setApiKey, addQuestionBank, questionBanks, addQuestionsToBank } = useQuizStore();
   
   const [inputText, setInputText] = useState('');
   const [apiKeyInput, setApiKeyInput] = useState('');
@@ -25,6 +25,11 @@ export default function ConvertPage() {
   const [error, setError] = useState<string | null>(null);
   const [convertedQuestions, setConvertedQuestions] = useState<Question[]>([]);
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  
+  // 保存模式: 'new' - 创建新题库, 'existing' - 添加到现有题库
+  const [saveMode, setSaveMode] = useState<'new' | 'existing'>('new');
+  const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
+  
   const [bankName, setBankName] = useState(DEFAULT_BANK_NAME);
   const [bankDesc, setBankDesc] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
@@ -85,21 +90,34 @@ export default function ConvertPage() {
   const handleSaveToBank = () => {
     if (!convertedQuestions.length) return;
     
-    const newBank = createEmptyBank(bankName, bankDesc);
-    newBank.questions = convertedQuestions;
-    
-    addQuestionBank(newBank);
-    setIsSuccess(true);
-    
-    // 重置状态
-    setTimeout(() => {
-      setIsSuccess(false);
-      setConvertedQuestions([]);
-      setInputText('');
-      setBankName(DEFAULT_BANK_NAME);
-      setBankDesc('');
-      router.push(`/quiz/practice?bankId=${newBank.id}`);
-    }, 1500);
+    if (saveMode === 'new') {
+      const newBank = createEmptyBank(bankName, bankDesc);
+      newBank.questions = convertedQuestions;
+      addQuestionBank(newBank);
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        setConvertedQuestions([]);
+        setInputText('');
+        setBankName(DEFAULT_BANK_NAME);
+        setBankDesc('');
+        setSelectedBankId(null); // 重置选中的题库ID
+        setSaveMode('new'); // 重置保存模式
+        router.push(`/quiz/practice?bankId=${newBank.id}`);
+      }, 1500);
+    } else if (saveMode === 'existing' && selectedBankId) {
+      // 调用新的 action 将问题添加到现有题库
+      addQuestionsToBank(selectedBankId, convertedQuestions);
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        setConvertedQuestions([]);
+        setInputText('');
+        // 不需要重置 bankName 和 bankDesc，因为它们不是用于保存的
+        // selectedBankId 和 saveMode 会在下次选择时改变
+        router.push(`/quiz/practice?bankId=${selectedBankId}`);
+      }, 1500);
+    }
   };
 
   /**
@@ -228,33 +246,74 @@ D. Boolean
                   </span>
                 </div>
                 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      题库名称
-                    </label>
-                    <input
-                      type="text"
-                      value={bankName}
-                      onChange={(e) => setBankName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                      placeholder="输入题库名称"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      题库描述 (可选)
-                    </label>
-                    <textarea
-                      value={bankDesc}
-                      onChange={(e) => setBankDesc(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                      rows={2}
-                      placeholder="输入题库描述"
-                    />
-                  </div>
+                {/* 保存选项 */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    保存到
+                  </label>
+                  <select
+                    value={saveMode === 'new' ? 'new' : selectedBankId || 'new'}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === 'new') {
+                        setSaveMode('new');
+                        setSelectedBankId(null);
+                        setBankName(DEFAULT_BANK_NAME); // 重置为默认新题库名称
+                        setBankDesc('');
+                      } else {
+                        setSaveMode('existing');
+                        setSelectedBankId(value);
+                        const selected = questionBanks.find(qb => qb.id === value);
+                        if (selected) {
+                          setBankName(selected.name); // 可选：用选中题库名称填充
+                          setBankDesc(selected.description || '');
+                        }
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="new">创建新题库</option>
+                    {questionBanks.map(qb => (
+                      <option key={qb.id} value={qb.id}>{qb.name}</option>
+                    ))}
+                  </select>
                 </div>
-                
+
+                {/* 题库名称和描述输入 (仅当创建新题库时) */}
+                {saveMode === 'new' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        题库名称
+                      </label>
+                      <input
+                        type="text"
+                        value={bankName}
+                        onChange={(e) => setBankName(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
+                        placeholder="输入题库名称"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        题库描述 (可选)
+                      </label>
+                      <textarea
+                        value={bankDesc}
+                        onChange={(e) => setBankDesc(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
+                        rows={2}
+                        placeholder="输入题库描述"
+                      />
+                    </div>
+                  </div>
+                )}
+                {saveMode === 'existing' && selectedBankId && (
+                   <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-md">
+                     将添加到现有题库: {questionBanks.find(qb => qb.id === selectedBankId)?.name || '未知题库'}
+                   </div>
+                )}
+
                 <div className="mt-4">
                   <button
                     onClick={handleSaveToBank}

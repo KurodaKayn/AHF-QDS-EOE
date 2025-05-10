@@ -41,13 +41,13 @@ D. jsp:include
  * 题目标签颜色
  */
 export const TAG_COLORS = [
-  'bg-blue-100 text-blue-800',
-  'bg-green-100 text-green-800',
-  'bg-yellow-100 text-yellow-800',
-  'bg-red-100 text-red-800',
-  'bg-purple-100 text-purple-800',
-  'bg-pink-100 text-pink-800',
-  'bg-indigo-100 text-indigo-800',
+  'bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-200',
+  'bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-200',
+  'bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200',
+  'bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-200',
+  'bg-purple-100 text-purple-800 dark:bg-purple-700 dark:text-purple-200',
+  'bg-pink-100 text-pink-800 dark:bg-pink-700 dark:text-pink-200',
+  'bg-indigo-100 text-indigo-800 dark:bg-indigo-700 dark:text-indigo-200',
 ];
 
 /**

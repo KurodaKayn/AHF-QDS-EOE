@@ -13,6 +13,7 @@ interface QuizState {
   updateQuestionBank: (id: string, bank: Partial<QuestionBank>) => void;
   removeQuestionBank: (id: string) => void;
   setCurrentBank: (id: string | null) => void;
+  addQuestionsToBank: (bankId: string, questions: Question[]) => void;
   
   // 题目操作
   addQuestion: (bankId: string, question: Question) => void;
@@ -61,6 +62,19 @@ export const useQuizStore = create<QuizState>()(
       
       setCurrentBank: (id) => 
         set({ currentBankId: id }),
+      
+      addQuestionsToBank: (bankId, questions) =>
+        set((state) => ({
+          questionBanks: state.questionBanks.map(bank =>
+            bank.id === bankId
+              ? {
+                  ...bank,
+                  questions: [...bank.questions, ...questions],
+                  updatedAt: Date.now(),
+                }
+              : bank
+          ),
+        })),
       
       // 题目操作
       addQuestion: (bankId, question) => 
