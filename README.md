@@ -7,11 +7,12 @@
 npm install
 npm run dev
 ```
+去deepseek或者是同义千问的api平台获取api key在设置里设置好即可使用AI导入功能
 即可
 # 技术栈
 Next.js作为全栈框架
 辅助美化的库有tailwindcss
-AI辅助导入题库目前只有deepseek，未来有空或许会支持更多的AI或者是说调用来自其他平台AI的API
+AI辅助导入题库目前只有deepseek和Qwen，未来有空或许会支持更多的AI或者是说调用来自其他平台AI的API
 # 数据存储
 因为是网页的技术栈，所以数据是存在网页的localstorage里的。
 # 项目特色
