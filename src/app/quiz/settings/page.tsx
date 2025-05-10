@@ -61,14 +61,16 @@ const TextInputSetting: React.FC<TextInputSettingProps> = ({
   return (
     <div className="py-4 border-b border-gray-200 dark:border-gray-700">
       <label htmlFor={settingKey} className="block text-lg font-medium text-gray-800 dark:text-gray-100">{label}</label>
-      <input 
-        type={type}
-        id={settingKey}
-        value={currentValue}
-        onChange={(e) => onUpdate(settingKey, e.target.value)}
-        placeholder={placeholder}
-        className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-      />
+      <form onSubmit={(e) => e.preventDefault()} className="m-0 p-0">
+        <input 
+          type={type}
+          id={settingKey}
+          value={currentValue}
+          onChange={(e) => onUpdate(settingKey, e.target.value)}
+          placeholder={placeholder}
+          className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+        />
+      </form>
     </div>
   );
 };
@@ -163,7 +165,9 @@ export default function SettingsPage() {
                   onClick={() => handleAiProviderChange(provider.id)}
                   className={`flex-1 p-4 border rounded-lg flex items-center justify-center space-x-3 transition-all duration-200 ease-in-out 
                     ${settings.aiProvider === provider.id 
-                      ? 'bg-blue-500 border-blue-600 text-white shadow-lg ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800' 
+                      ? provider.id === 'deepseek'
+                        ? 'bg-blue-800 border-blue-900 text-white shadow-lg ring-2 ring-blue-700 ring-offset-2 dark:ring-offset-gray-800' 
+                        : 'bg-purple-800 border-purple-900 text-white shadow-lg ring-2 ring-purple-700 ring-offset-2 dark:ring-offset-gray-800'
                       : 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}
                   `}
                 >
@@ -177,7 +181,7 @@ export default function SettingsPage() {
 
           {/* Deepseek Settings - Conditional on provider or always show and disable? For now, conditional */}
           {settings.aiProvider === 'deepseek' && (
-            <div className="p-4 border border-blue-200 dark:border-blue-700 rounded-lg bg-blue-50 dark:bg-gray-750 space-y-4">
+            <div className="p-4 border border-blue-200 dark:border-blue-900 rounded-lg bg-blue-50 dark:bg-blue-900/20 space-y-4">
               <h3 className="text-lg font-semibold text-blue-700 dark:text-blue-300">Deepseek 设置</h3>
               <TextInputSetting 
                 label="Deepseek API Key"
@@ -199,7 +203,7 @@ export default function SettingsPage() {
 
           {/* Alibaba Settings - Conditional on provider */}
           {settings.aiProvider === 'alibaba' && (
-            <div className="p-4 border border-purple-200 dark:border-purple-700 rounded-lg bg-purple-50 dark:bg-gray-750 space-y-4">
+            <div className="p-4 border border-purple-200 dark:border-purple-900 rounded-lg bg-purple-50 dark:bg-purple-900/20 space-y-4">
               <h3 className="text-lg font-semibold text-purple-700 dark:text-purple-300">通义千问 (Alibaba) 设置</h3>
               <TextInputSetting 
                 label="Alibaba API Key (DashScope)"
@@ -211,11 +215,11 @@ export default function SettingsPage() {
               />
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Base URL (固定)</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-600 p-2 rounded-md">{ALIBABA_BASE_URL}</p>
+                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 p-2 rounded-md">{ALIBABA_BASE_URL}</p>
               </div>
                <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">默认模型 (固定)</label>
-                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-600 p-2 rounded-md">qwen-plus (兼容 OpenAI SDK)</p>
+                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 p-2 rounded-md">qwen-plus (兼容 OpenAI SDK)</p>
               </div>
             </div>
           )}

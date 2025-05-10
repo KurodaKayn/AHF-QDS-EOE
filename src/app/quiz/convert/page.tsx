@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMagic, FaKey, FaSave, FaEye } from 'react-icons/fa';
+import { FaMagic, FaKey, FaSave, FaEye, FaPlay } from 'react-icons/fa';
 import { useQuizStore } from '@/store/quizStore';
 import { createEmptyBank } from '@/utils/quiz';
 import { EXAMPLE_QUESTION_TEXT, DEFAULT_BANK_NAME, QUESTION_TYPE_NAMES } from '@/constants/quiz';
@@ -48,6 +48,9 @@ export default function ConvertPage() {
   const ALIBABA_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
   const ALIBABA_MODEL = "qwen-plus";
 
+  // States for UI control
+  const [showAllQuestions, setShowAllQuestions] = useState(false);
+
   /**
    * 处理题目转换
    */
@@ -78,15 +81,15 @@ export default function ConvertPage() {
       let assistantResponse;
 
       if (aiProvider === 'deepseek') {
-        // 使用 Deepseek API
-        const response = await fetch(`${deepseekBaseUrl}/v1/chat/completions`, {
+        // 使用后端代理调用 Deepseek API
+        const response = await fetch('/api/ai/deepseek', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${deepseekApiKey}`,
           },
           body: JSON.stringify({
-            model: 'deepseek-chat', // Deepseek 的默认模型
+            apiKey: deepseekApiKey,
+            baseUrl: deepseekBaseUrl,
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: inputText },
@@ -96,21 +99,20 @@ export default function ConvertPage() {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error?.message || `API请求失败，状态码: ${response.status}`);
+          throw new Error(errorData.error || `API请求失败，状态码: ${response.status}`);
         }
         const data = await response.json();
         assistantResponse = data.choices[0]?.message?.content;
       } 
       else if (aiProvider === 'alibaba') {
-        // 使用通义千问 API (OpenAI 兼容模式)
-        const response = await fetch(`${ALIBABA_BASE_URL}/chat/completions`, {
+        // 使用后端代理调用通义千问 API
+        const response = await fetch('/api/ai/alibaba', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${alibabaApiKey}`,
           },
           body: JSON.stringify({
-            model: ALIBABA_MODEL,
+            apiKey: alibabaApiKey,
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: inputText },
@@ -120,7 +122,7 @@ export default function ConvertPage() {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error?.message || `API请求失败，状态码: ${response.status}`);
+          throw new Error(errorData.error || `API请求失败，状态码: ${response.status}`);
         }
         const data = await response.json();
         assistantResponse = data.choices[0]?.message?.content;
@@ -158,15 +160,63 @@ export default function ConvertPage() {
 
     convertedQuestions.forEach(q => addQuestionToBank(targetBankId, q));
 
-    setConvertedQuestions([]);
+    // 不再自动跳转，仅显示成功信息
     setIsSuccess(true);
     setTimeout(() => {
       setIsSuccess(false);
-      setInputText('');
-      setBankName(DEFAULT_BANK_NAME);
-      setBankDesc('');
-      router.push(`/quiz/practice?bankId=${targetBankId}`);
-    }, 1500);
+    }, 3000);
+  };
+
+  // 开始练习该题库
+  const handleStartPractice = (bankId: string) => {
+    router.push(`/quiz/practice?bankId=${bankId}`);
+  };
+
+  // 清除当前转换内容，继续转换
+  const handleContinueConverting = () => {
+    setConvertedQuestions([]);
+    setInputText('');
+    setBankName(DEFAULT_BANK_NAME);
+    setBankDesc('');
+  };
+
+  /**
+   * 渲染题目答案
+   */
+  const renderAnswer = (question: Omit<Question, 'id'>) => {
+    const { type, answer, options = [] } = question;
+    
+    if (type === QuestionType.SingleChoice && typeof answer === 'string') {
+      const option = options.find(opt => opt.id === answer);
+      return (
+        <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
+          答案: {answer}. {option?.content}
+        </div>
+      );
+    } 
+    else if (type === QuestionType.MultipleChoice && Array.isArray(answer)) {
+      return (
+        <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
+          答案: {answer.join(', ')}
+        </div>
+      );
+    }
+    else if (type === QuestionType.TrueFalse && typeof answer === 'string') {
+      return (
+        <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
+          答案: {answer === 'true' ? '正确' : '错误'}
+        </div>
+      );
+    }
+    else if (type === QuestionType.ShortAnswer && typeof answer === 'string') {
+      return (
+        <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
+          答案: {answer}
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   /**
@@ -184,12 +234,11 @@ export default function ConvertPage() {
     return (
       <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center space-x-3">
         <Image 
-          src={aiProvider === 'deepseek' ? '/logo/Deepseek.png' : '/logo/Qwen.png'} 
-          alt={`${aiProvider === 'deepseek' ? 'Deepseek' : '通义千问'} Logo`} 
-          width={24} 
-          height={24} 
-          className="object-contain" 
-          onError={(e) => e.currentTarget.style.display = 'none'} 
+          width={20} 
+          height={20} 
+          src={aiProvider === 'deepseek' ? '/logo/Deepseek.jpg' : '/logo/Qwen.jpg'} 
+          alt={aiProvider === 'deepseek' ? 'Deepseek Logo' : 'Qwen Logo'} 
+          className="mr-2" 
         />
         <div>
           <h3 className="font-medium text-blue-800 dark:text-blue-300">
@@ -293,7 +342,7 @@ export default function ConvertPage() {
             </div>
 
             <div className="space-y-4 max-h-96 overflow-y-auto p-4 border border-gray-200 dark:border-gray-700 rounded-md">
-              {convertedQuestions.slice(0, 3).map((q, idx) => (
+              {(showAllQuestions ? convertedQuestions : convertedQuestions.slice(0, 3)).map((q, idx) => (
                 <div key={idx} className="border-b border-gray-200 dark:border-gray-700 pb-3">
                   <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-1">
                     <span className="mr-2 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
@@ -310,17 +359,29 @@ export default function ConvertPage() {
                       ))}
                     </div>
                   )}
+                  {renderAnswer(q)}
                 </div>
               ))}
-              {convertedQuestions.length > 3 && (
-                <div className="text-center text-gray-500 dark:text-gray-400">
-                  ... 还有 {convertedQuestions.length - 3} 道题 (保存后可查看)
-                </div>
+              {!showAllQuestions && convertedQuestions.length > 3 && (
+                <button 
+                  onClick={() => setShowAllQuestions(true)}
+                  className="w-full text-center py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                >
+                  展开显示全部 {convertedQuestions.length} 道题 <FiChevronDown className="inline" />
+                </button>
+              )}
+              {showAllQuestions && (
+                <button 
+                  onClick={() => setShowAllQuestions(false)}
+                  className="w-full text-center py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                >
+                  收起 <FiChevronUp className="inline" />
+                </button>
               )}
             </div>
 
             {/* Save Options */}
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-750 rounded-lg">
+            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-750 dark:border-gray-700 dark:border rounded-lg">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">保存题目</h3>
               
               <div className="space-y-4">
@@ -396,7 +457,7 @@ export default function ConvertPage() {
                   className={`w-full px-4 py-3 rounded-md text-white font-semibold flex items-center justify-center
                     ${
                       (saveMode === 'new' && !newBankName.trim()) || (saveMode === 'existing' && !selectedBankId)
-                        ? 'bg-gray-400 cursor-not-allowed'
+                        ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
                         : 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800'
                     }
                   `}
@@ -405,6 +466,30 @@ export default function ConvertPage() {
                 </button>
               </div>
             </div>
+
+            {/* Success Message with Options */}
+            {isSuccess && (
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg animate-fade-in">
+                <h3 className="text-lg font-semibold text-green-700 dark:text-green-400 mb-3 flex items-center">
+                  <FiCheckCircle className="mr-2" /> 
+                  题目已成功保存！
+                </h3>
+                <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                  <button 
+                    onClick={handleContinueConverting} 
+                    className="flex-1 px-4 py-2 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-md font-medium flex items-center justify-center"
+                  >
+                    <FaMagic className="mr-2" /> 继续转换题目
+                  </button>
+                  <button 
+                    onClick={() => handleStartPractice(selectedBankId)} 
+                    className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white rounded-md font-medium flex items-center justify-center"
+                  >
+                    <FaPlay className="mr-2" /> 开始练习题目
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

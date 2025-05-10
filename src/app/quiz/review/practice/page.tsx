@@ -29,15 +29,54 @@ export default function ReviewPracticePage() {
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
 
   const currentQuestion = practiceQuestions[currentIndex];
-  const displayedOptions = useMemo(() => {
+  
+  // 改进选项打乱逻辑，返回选项数组和映射
+  const { displayedOptions, originToShuffledMap } = useMemo(() => {
     if (!currentQuestion || (currentQuestion.type !== QuestionType.SingleChoice && currentQuestion.type !== QuestionType.MultipleChoice)) {
-      return currentQuestion?.options || [];
+      return { 
+        displayedOptions: currentQuestion?.options || [], 
+        originToShuffledMap: {} 
+      };
     }
+    
+    const originalOptions = currentQuestion.options || [];
+    
     if (settings.shuffleReviewOptions) {
-      return shuffleArray([...(currentQuestion.options || [])]);
+      // 创建副本以防止修改原数组
+      const optionsCopy = [...originalOptions];
+      const shuffled = shuffleArray(optionsCopy);
+      
+      // 创建原始选项ID到打乱后索引的映射
+      const mapping: Record<string, number> = {};
+      shuffled.forEach((option, shuffledIndex) => {
+        mapping[option.id] = shuffledIndex;
+      });
+      
+      return {
+        displayedOptions: shuffled,
+        originToShuffledMap: mapping
+      };
     }
-    return currentQuestion.options || [];
+    
+    // 如果不打乱，则创建1:1映射
+    const defaultMapping: Record<string, number> = {};
+    originalOptions.forEach((option, index) => {
+      defaultMapping[option.id] = index;
+    });
+    
+    return {
+      displayedOptions: originalOptions,
+      originToShuffledMap: defaultMapping
+    };
   }, [currentQuestion, settings.shuffleReviewOptions]);
+
+  // 获取正确选项ID
+  const getCorrectOptionId = useCallback((question: Question): string | null => {
+    if (question.type !== QuestionType.SingleChoice || typeof question.answer !== 'string') {
+      return null;
+    }
+    return question.answer;
+  }, []);
 
   useEffect(() => {
     const wrongRecords = records.filter(r => !r.isCorrect);
@@ -231,29 +270,35 @@ export default function ReviewPracticePage() {
           {currentQuestion.content}
         </div>
         <div className="space-y-3 mb-4">
-          {currentQuestion.type === QuestionType.SingleChoice && displayedOptions.map((option, index) => (
-            <button
-              key={option.id}
-              onClick={() => handleAnswerChange(option.id)} 
-              disabled={isCurrentRevealed}
-              className={`w-full text-left p-3 rounded-md border transition-colors
-                ${isCurrentRevealed
-                  ? (checkAnswer(currentQuestion, option.id)
-                      ? (currentAnswer === option.id ? 'bg-green-600 border-green-600 text-white dark:bg-green-700 dark:border-green-700' : 'bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:text-green-200')
-                      : (currentAnswer === option.id ? 'bg-red-500 border-red-500 text-white dark:bg-red-700 dark:border-red-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'))
-                  : (currentAnswer === option.id 
-                      ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600' 
-                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300')
-                }`}
-            >
-              <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
-              {option.content}
-            </button>
-          ))}
+          {currentQuestion.type === QuestionType.SingleChoice && displayedOptions.map((option, index) => {
+            const correctOptionId = getCorrectOptionId(currentQuestion);
+            const isThisOptionCorrect = option.id === correctOptionId;
+            
+            return (
+              <button
+                key={option.id}
+                onClick={() => handleAnswerChange(option.id)} 
+                disabled={isCurrentRevealed}
+                className={`w-full text-left p-3 rounded-md border transition-colors
+                  ${isCurrentRevealed
+                    ? (isThisOptionCorrect
+                        ? (currentAnswer === option.id ? 'bg-green-600 border-green-600 text-white dark:bg-green-700 dark:border-green-700' : 'bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:text-green-200')
+                        : (currentAnswer === option.id ? 'bg-red-500 border-red-500 text-white dark:bg-red-700 dark:border-red-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'))
+                    : (currentAnswer === option.id 
+                        ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600' 
+                        : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300')
+                  }`}
+              >
+                <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
+                {option.content}
+              </button>
+            );
+          })}
           {currentQuestion.type === QuestionType.MultipleChoice && displayedOptions.map((option, index) => {
             const userAnswerArray = Array.isArray(currentAnswer) ? currentAnswer as string[] : [];
             const isSelected = userAnswerArray.includes(option.id);
-            const isCorrectOption = Array.isArray(currentQuestion.answer) && currentQuestion.answer.includes(option.id);
+            const correctAnswers = Array.isArray(currentQuestion.answer) ? currentQuestion.answer : [];
+            const isThisOptionCorrect = correctAnswers.includes(option.id);
             return (
               <button
                 key={option.id}
@@ -268,7 +313,7 @@ export default function ReviewPracticePage() {
                 disabled={isCurrentRevealed}
                 className={`w-full text-left p-3 rounded-md border transition-colors
                   ${isCurrentRevealed
-                    ? (isCorrectOption
+                    ? (isThisOptionCorrect
                         ? (isSelected ? 'bg-green-600 border-green-600 text-white dark:bg-green-700 dark:border-green-700' : 'bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:text-green-200')
                         : (isSelected ? 'bg-red-500 border-red-500 text-white dark:bg-red-700 dark:border-red-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'))
                     : (isSelected 
