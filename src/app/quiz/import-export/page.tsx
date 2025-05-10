@@ -98,32 +98,32 @@ export default function ImportExportPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-8">导入/导出题库</h1>
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-8">导入/导出题库</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* 导入题库 */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center mb-4">
-            <FaFileImport className="text-blue-600 mr-2" size={20} />
-            <h2 className="text-lg font-semibold">导入题库</h2>
+            <FaFileImport className="text-blue-600 dark:text-blue-400 mr-2" size={20} />
+            <h2 className="text-lg font-semibold dark:text-white">导入题库</h2>
           </div>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 题库名称
               </label>
               <input
                 type="text"
                 value={importName}
                 onChange={(e) => setImportName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                 placeholder="输入导入后的题库名称"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 导入格式
               </label>
               <div className="flex space-x-4">
@@ -135,7 +135,7 @@ export default function ImportExportPage() {
                     checked={importFormat === 'csv'}
                     onChange={() => setImportFormat('csv')}
                   />
-                  <span className="ml-2">CSV</span>
+                  <span className="ml-2 dark:text-gray-300">CSV</span>
                 </label>
                 <label className="inline-flex items-center">
                   <input
@@ -145,13 +145,13 @@ export default function ImportExportPage() {
                     checked={importFormat === 'excel'}
                     onChange={() => setImportFormat('excel')}
                   />
-                  <span className="ml-2">Excel</span>
+                  <span className="ml-2 dark:text-gray-300">Excel</span>
                 </label>
               </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 选择文件
               </label>
               <input
@@ -159,17 +159,17 @@ export default function ImportExportPage() {
                 ref={fileInputRef}
                 accept={importFormat === 'csv' ? '.csv' : '.xlsx,.xls'}
                 onChange={handleImport}
-                className="w-full text-sm text-gray-500
+                className="w-full text-sm text-gray-500 dark:text-gray-400
                          file:mr-4 file:py-2 file:px-4
                          file:rounded-md file:border-0
                          file:text-sm file:font-semibold
-                         file:bg-blue-50 file:text-blue-700
-                         hover:file:bg-blue-100"
+                         file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900 dark:file:text-blue-300
+                         hover:file:bg-blue-100 dark:hover:file:bg-blue-800"
               />
             </div>
             
             {importSuccess && (
-              <div className="flex items-center text-green-600">
+              <div className="flex items-center text-green-600 dark:text-green-400">
                 <FaCheck className="mr-1" />
                 <span>导入成功</span>
               </div>
@@ -178,21 +178,21 @@ export default function ImportExportPage() {
         </div>
         
         {/* 导出题库 */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center mb-4">
-            <FaFileExport className="text-green-600 mr-2" size={20} />
-            <h2 className="text-lg font-semibold">导出题库</h2>
+            <FaFileExport className="text-green-600 dark:text-green-400 mr-2" size={20} />
+            <h2 className="text-lg font-semibold dark:text-white">导出题库</h2>
           </div>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 选择题库
               </label>
               <select
                 value={selectedBankId}
                 onChange={(e) => setSelectedBankId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
               >
                 <option value="">-- 请选择题库 --</option>
                 {questionBanks.map((bank) => (
@@ -204,7 +204,7 @@ export default function ImportExportPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 导出格式
               </label>
               <div className="flex space-x-4">
@@ -216,7 +216,7 @@ export default function ImportExportPage() {
                     checked={exportFormat === 'csv'}
                     onChange={() => setExportFormat('csv')}
                   />
-                  <span className="ml-2">CSV</span>
+                  <span className="ml-2 dark:text-gray-300">CSV</span>
                 </label>
                 <label className="inline-flex items-center">
                   <input
@@ -226,7 +226,7 @@ export default function ImportExportPage() {
                     checked={exportFormat === 'excel'}
                     onChange={() => setExportFormat('excel')}
                   />
-                  <span className="ml-2">Excel</span>
+                  <span className="ml-2 dark:text-gray-300">Excel</span>
                 </label>
               </div>
             </div>
@@ -237,14 +237,14 @@ export default function ImportExportPage() {
               className={`w-full py-2 rounded-md ${
                 selectedBankId
                   ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               }`}
             >
               导出题库
             </button>
             
             {exportSuccess && (
-              <div className="flex items-center text-green-600">
+              <div className="flex items-center text-green-600 dark:text-green-400">
                 <FaCheck className="mr-1" />
                 <span>导出成功</span>
               </div>

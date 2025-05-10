@@ -8,6 +8,9 @@ import { DeepseekClient } from '@/lib/deepseek';
 import { createEmptyBank } from '@/utils/quiz';
 import { EXAMPLE_QUESTION_TEXT, DEFAULT_BANK_NAME, QUESTION_TYPE_NAMES } from '@/constants/quiz';
 import { Question } from '@/types/quiz';
+import { MdSave } from 'react-icons/md';
+import { IoDocumentText } from 'react-icons/io5';
+import { FaKeyboard } from 'react-icons/fa';
 
 /**
  * 题目转换页面
@@ -108,16 +111,16 @@ export default function ConvertPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">题目转换</h1>
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">题目转换</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* 输入区域 */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">源文本</h2>
+            <h2 className="text-lg font-semibold dark:text-white">源文本</h2>
             <button
               onClick={handleLoadExample}
-              className="text-blue-600 hover:text-blue-800 text-sm"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm"
             >
               加载示例
             </button>
@@ -126,7 +129,7 @@ export default function ConvertPage() {
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-4 dark:bg-gray-700 dark:text-white"
             rows={12}
             placeholder="粘贴题目文本，例如：
 1. 以下哪个不是 JavaScript 基本数据类型?( )
@@ -140,7 +143,7 @@ D. Boolean
           <div className="flex justify-between items-center">
             <button
               onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-              className="flex items-center text-sm text-gray-600"
+              className="flex items-center text-sm text-gray-600 dark:text-gray-400"
             >
               <FaKey className="mr-1" />
               {apiKeys.deepseek ? '更改 API 密钥' : '设置 API 密钥'}
@@ -151,7 +154,7 @@ D. Boolean
               disabled={isLoading || !inputText.trim()}
               className={`flex items-center px-4 py-2 rounded-md ${
                 isLoading || !inputText.trim()
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 text-white hover:bg-blue-700'
               }`}
             >
@@ -162,8 +165,8 @@ D. Boolean
           
           {/* API密钥输入 */}
           {showApiKeyInput && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-md">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-md">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 DeepSeek API 密钥
               </label>
               <div className="flex">
@@ -171,7 +174,7 @@ D. Boolean
                   type="password"
                   value={apiKeyInput}
                   onChange={(e) => setApiKeyInput(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-l-md dark:bg-gray-800 dark:text-white"
                   placeholder="输入 API 密钥"
                 />
                 <button
@@ -179,73 +182,73 @@ D. Boolean
                   disabled={!apiKeyInput}
                   className={`px-4 py-2 rounded-r-md ${
                     !apiKeyInput
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
                   保存
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 API 密钥将安全地存储在您的浏览器中，不会发送到任何服务器。
               </p>
             </div>
           )}
           
           {error && (
-            <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md">
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-md">
               {error}
             </div>
           )}
         </div>
         
         {/* 结果区域 */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold mb-4">转换结果</h2>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-lg font-semibold dark:text-white mb-4">转换结果</h2>
           
           {convertedQuestions.length > 0 ? (
             <div>
               <div className="mb-4">
-                <div className="text-sm text-gray-500 mb-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
                   已成功转换 {convertedQuestions.length} 道题目
                 </div>
                 
                 <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-sm">
+                  <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 rounded-md text-sm">
                     单选题: {convertedQuestions.filter(q => q.type === 'single-choice').length} 道
                   </span>
-                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded-md text-sm">
+                  <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 rounded-md text-sm">
                     多选题: {convertedQuestions.filter(q => q.type === 'multiple-choice').length} 道
                   </span>
-                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-md text-sm">
+                  <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300 rounded-md text-sm">
                     判断题: {convertedQuestions.filter(q => q.type === 'true-false').length} 道
                   </span>
-                  <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md text-sm">
+                  <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 rounded-md text-sm">
                     简答题: {convertedQuestions.filter(q => q.type === 'short-answer').length} 道
                   </span>
                 </div>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       题库名称
                     </label>
                     <input
                       type="text"
                       value={bankName}
                       onChange={(e) => setBankName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                       placeholder="输入题库名称"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       题库描述 (可选)
                     </label>
                     <textarea
                       value={bankDesc}
                       onChange={(e) => setBankDesc(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                       rows={2}
                       placeholder="输入题库描述"
                     />
@@ -255,7 +258,7 @@ D. Boolean
                 <div className="mt-4">
                   <button
                     onClick={handleSaveToBank}
-                    className="w-full flex justify-center items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    className="mt-4 w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:ring-offset-gray-800"
                   >
                     <FaSave className="mr-2" />
                     {isSuccess ? '已保存！' : '保存为题库'}
@@ -263,45 +266,49 @@ D. Boolean
                 </div>
               </div>
               
-              <div className="mt-6">
-                <h3 className="text-md font-medium mb-3 flex items-center">
-                  <FaEye className="mr-2" /> 题目预览
-                </h3>
-                
-                <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-md">
-                  <ul className="divide-y divide-gray-200">
-                    {convertedQuestions.map((q, idx) => (
-                      <li key={q.id} className="p-3 hover:bg-gray-50">
-                        <div className="flex items-center text-xs text-gray-500 mb-1">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md mr-2">
-                            {QUESTION_TYPE_NAMES[q.type]}
-                          </span>
-                          <span>#{idx + 1}</span>
-                        </div>
-                        <p className="text-sm font-medium">{q.content}</p>
-                        {q.options && q.options.length > 0 && (
-                          <div className="mt-1 text-xs text-gray-500">
-                            {q.options.map((opt, optIdx) => (
-                              <div key={opt.id}>
-                                {String.fromCharCode(65 + optIdx)}. {opt.content}
+              {/* 问题预览区域 */}
+              {convertedQuestions.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white">问题预览</h3>
+                  <div className="space-y-4">
+                    {convertedQuestions.slice(0, 3).map((q, i) => (
+                      <div key={i} className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                        <p className="font-medium mb-2 dark:text-white">{q.content}</p>
+                        {q.type === 'single-choice' || q.type === 'multiple-choice' ? (
+                          <div className="space-y-2">
+                            {q.options?.map((option, j) => (
+                              <div key={j} className="flex items-center">
+                                <span className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white mr-2">
+                                  {String.fromCharCode(65 + j)}
+                                </span>
+                                <span className="dark:text-gray-300">{typeof option === 'string' ? option : option.content}</span>
                               </div>
                             ))}
                           </div>
+                        ) : q.type === 'true-false' ? (
+                          <div className="space-y-2 dark:text-gray-300">
+                            <div>选项：对/错</div>
+                          </div>
+                        ) : (
+                          <div className="italic text-gray-600 dark:text-gray-400">简答题</div>
                         )}
-                      </li>
+                      </div>
                     ))}
-                  </ul>
+                    {convertedQuestions.length > 3 && (
+                      <p className="text-gray-600 dark:text-gray-400 italic">...还有 {convertedQuestions.length - 3} 道问题未显示</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               {isLoading ? (
-                <div>转换中，请稍候...</div>
+                <div className="dark:text-white">转换中，请稍候...</div>
               ) : (
                 <div>
-                  <p className="mb-4">转换结果将在这里显示</p>
-                  <p className="text-xs">使用 DeepSeek API 将自然语言题目文本转换为结构化题库</p>
+                  <p className="mb-4 dark:text-gray-300">转换结果将在这里显示</p>
+                  <p className="text-xs dark:text-gray-400">使用 DeepSeek API 将自然语言题目文本转换为结构化题库</p>
                 </div>
               )}
             </div>

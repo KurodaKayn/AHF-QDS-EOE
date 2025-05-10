@@ -45,7 +45,7 @@ export default function QuizHomePage() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">题库管理</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">题库管理</h1>
         <button
           onClick={() => setIsCreating(true)}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -57,29 +57,34 @@ export default function QuizHomePage() {
 
       {/* 新建题库表单 */}
       {isCreating && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold mb-4">新建题库</h2>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-lg font-bold text-black dark:text-white mb-4">新建题库</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 题库名称
               </label>
               <input
                 type="text"
                 value={newBankName}
                 onChange={(e) => setNewBankName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                onFocus={() => {
+                  if (newBankName === DEFAULT_BANK_NAME) {
+                    setNewBankName('');
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-black dark:text-white dark:bg-gray-700"
                 placeholder="输入题库名称"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 题库描述 (可选)
               </label>
               <textarea
                 value={newBankDesc}
                 onChange={(e) => setNewBankDesc(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-black dark:text-white dark:bg-gray-700"
                 placeholder="输入题库描述"
                 rows={3}
               />
@@ -87,7 +92,7 @@ export default function QuizHomePage() {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setIsCreating(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 取消
               </button>
@@ -104,8 +109,8 @@ export default function QuizHomePage() {
 
       {/* 题库列表 */}
       {questionBanks.length === 0 ? (
-        <div className="bg-white p-8 rounded-lg shadow text-center">
-          <p className="text-gray-500 mb-4">您还没有创建任何题库</p>
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow text-center">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">您还没有创建任何题库</p>
           <button
             onClick={() => setIsCreating(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -118,34 +123,34 @@ export default function QuizHomePage() {
           {questionBanks.map((bank) => (
             <div
               key={bank.id}
-              className="bg-white p-6 rounded-lg shadow-md relative"
+              className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md relative"
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-lg font-semibold">{bank.name}</h3>
+                  <h3 className="text-lg font-semibold dark:text-white">{bank.name}</h3>
                   {bank.description && (
-                    <p className="text-gray-500 mt-1 line-clamp-2">
+                    <p className="text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
                       {bank.description}
                     </p>
                   )}
-                  <p className="text-sm text-gray-400 mt-2">
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
                     {bank.questions.length} 道题目
                   </p>
                 </div>
                 <div className="relative">
                   <button
                     onClick={() => setShowActions(showActions === bank.id ? null : bank.id)}
-                    className="p-2 text-gray-400 hover:text-gray-600"
+                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     <FaEllipsisH />
                   </button>
                   
                   {/* 操作菜单 */}
                   {showActions === bank.id && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-10">
                       <Link
                         href={`/quiz/practice?bankId=${bank.id}`}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center"
                         onClick={() => setShowActions(null)}
                       >
                         <FaPencilAlt className="mr-2" />
@@ -153,7 +158,7 @@ export default function QuizHomePage() {
                       </Link>
                       <button
                         onClick={() => handleDeleteBank(bank.id)}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center"
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center"
                       >
                         <FaTrash className="mr-2" />
                         删除题库

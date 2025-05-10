@@ -95,8 +95,8 @@ export default function ReviewPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">
-          <FaExclamationTriangle className="inline-block mr-2 text-yellow-600" />
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <FaExclamationTriangle className="inline-block mr-2 text-yellow-600 dark:text-yellow-500" />
           错题本
         </h1>
         {wrongQuestions.length > 0 && (
@@ -111,8 +111,8 @@ export default function ReviewPage() {
       </div>
 
       {wrongQuestions.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <p className="text-gray-500 mb-4">太棒了，您目前没有错题记录！</p>
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">太棒了，您目前没有错题记录！</p>
           <button
             onClick={() => router.push('/quiz')}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -123,17 +123,17 @@ export default function ReviewPage() {
       ) : (
         <div>
           {/* 筛选工具栏 */}
-          <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <FaSearch className="text-gray-400" />
+                  <FaSearch className="text-gray-400 dark:text-gray-500" />
                 </div>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="pl-10 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                   placeholder="搜索错题内容..."
                 />
               </div>
@@ -142,7 +142,7 @@ export default function ReviewPage() {
                 <select
                   value={filterBankId}
                   onChange={(e) => setFilterBankId(e.target.value as 'all' | string)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                 >
                   <option value="all">所有题库</option>
                   {questionBanks.map(bank => (
@@ -158,21 +158,21 @@ export default function ReviewPage() {
           {/* 错题列表 */}
           <div className="space-y-4">
             {filteredQuestions.length === 0 ? (
-              <div className="text-center py-8 bg-white rounded-lg shadow-md">
-                <p className="text-gray-500">没有符合筛选条件的错题</p>
+              <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                <p className="text-gray-500 dark:text-gray-400">没有符合筛选条件的错题</p>
               </div>
             ) : (
               filteredQuestions.map(q => (
                 <div
                   key={q?.id}
-                  className="bg-white p-5 rounded-lg shadow-md"
+                  className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-md"
                 >
                   <div className="flex justify-between items-start">
-                    <div className="flex items-center text-sm text-gray-500 mb-2">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md mr-2">
+                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 rounded-md mr-2">
                         {QUESTION_TYPE_NAMES[q!.type]}
                       </span>
-                      <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md">
+                      <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 rounded-md">
                         {q?.bankName}
                       </span>
                       {q?.tags && q.tags.length > 0 && (
@@ -188,12 +188,12 @@ export default function ReviewPage() {
                         </div>
                       )}
                     </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-gray-400 dark:text-gray-500">
                       {formatDate(q!.answeredAt)}
                     </div>
                   </div>
                   
-                  <h3 className="text-lg font-medium text-gray-800 mb-3">
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-3">
                     {q?.content}
                   </h3>
                   
@@ -218,19 +218,19 @@ export default function ReviewPage() {
                             key={option.id}
                             className={`p-2 rounded-md ${
                               isCorrect
-                                ? 'bg-green-50'
+                                ? 'bg-green-50 dark:bg-green-900'
                                 : isSelected
-                                  ? 'bg-red-50'
-                                  : 'bg-gray-50'
+                                  ? 'bg-red-50 dark:bg-red-900'
+                                  : 'bg-gray-50 dark:bg-gray-700'
                             }`}
                           >
-                            <span className="font-medium mr-1">
+                            <span className="font-medium mr-1 dark:text-gray-200">
                               {optionLabel}.
                             </span>
-                            {option.content}
+                            <span className="dark:text-gray-300">{option.content}</span>
                             
                             {isSelected && !isCorrect && (
-                              <FaTimes className="inline ml-2 text-red-600" />
+                              <FaTimes className="inline ml-2 text-red-600 dark:text-red-400" />
                             )}
                           </div>
                         );
@@ -242,14 +242,14 @@ export default function ReviewPage() {
                   {q?.type === QuestionType.TrueFalse && (
                     <div className="mb-3">
                       <div>
-                        <span className="font-medium">您的答案: </span>
-                        <span className="text-red-600">
+                        <span className="font-medium dark:text-gray-300">您的答案: </span>
+                        <span className="text-red-600 dark:text-red-400">
                           {q.userAnswer === 'true' ? '正确' : '错误'}
                         </span>
                       </div>
                       <div>
-                        <span className="font-medium">正确答案: </span>
-                        <span className="text-green-600">
+                        <span className="font-medium dark:text-gray-300">正确答案: </span>
+                        <span className="text-green-600 dark:text-green-400">
                           {q.answer === 'true' ? '正确' : '错误'}
                         </span>
                       </div>
@@ -260,14 +260,14 @@ export default function ReviewPage() {
                   {q?.type === QuestionType.ShortAnswer && (
                     <div className="mb-3">
                       <div>
-                        <div className="font-medium mb-1">您的答案:</div>
-                        <div className="p-2 bg-red-50 rounded-md">
+                        <div className="font-medium mb-1 dark:text-gray-300">您的答案:</div>
+                        <div className="p-2 bg-red-50 dark:bg-red-900 dark:text-gray-300 rounded-md">
                           {q.userAnswer as string || '(未作答)'}
                         </div>
                       </div>
                       <div className="mt-2">
-                        <div className="font-medium mb-1">正确答案:</div>
-                        <div className="p-2 bg-green-50 rounded-md">
+                        <div className="font-medium mb-1 dark:text-gray-300">正确答案:</div>
+                        <div className="p-2 bg-green-50 dark:bg-green-900 dark:text-gray-300 rounded-md">
                           {q.answer as string}
                         </div>
                       </div>
@@ -276,9 +276,9 @@ export default function ReviewPage() {
                   
                   {/* 解析 */}
                   {q?.explanation && (
-                    <div className="mt-3 p-2 bg-blue-50 rounded-md">
-                      <div className="font-medium text-blue-800 mb-1">解析:</div>
-                      <div className="text-blue-700">{q.explanation}</div>
+                    <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900 rounded-md">
+                      <div className="font-medium text-blue-800 dark:text-blue-300 mb-1">解析:</div>
+                      <div className="text-blue-700 dark:text-blue-200">{q.explanation}</div>
                     </div>
                   )}
                   
