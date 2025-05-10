@@ -46,7 +46,7 @@ export default function ConvertPage() {
 
   // Alibaba API 固定参数
   const ALIBABA_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
-  const ALIBABA_MODEL = "qwen-plus";
+  const ALIBABA_MODEL = "qwen-turbo";
 
   // States for UI control
   const [showAllQuestions, setShowAllQuestions] = useState(false);

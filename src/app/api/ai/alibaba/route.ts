@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // 阿里云通义千问固定参数
 const ALIBABA_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
-const ALIBABA_MODEL = "qwen-plus";
+const ALIBABA_MODEL = "qwen-turbo";
 
 /**
  * 通义千问 API 代理
