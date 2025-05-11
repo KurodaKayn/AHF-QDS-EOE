@@ -75,6 +75,13 @@ function PracticeContent() {
       setCurrentBank(bank);
       
       if (isReviewMode) {
+        // 如果练习已完成，则不应在 useEffect 中自动重新开始
+        // 允许总结页面显示，直到用户明确操作
+        if (quizCompleted) {
+            setIsLoading(false); // 确保 loading 状态解除
+            return; 
+        }
+
         const wrongRecords = records.filter(r => !r.isCorrect);
         let wrongQuestionsFromBank = bank.questions
           .filter(question => wrongRecords.some(record => record.questionId === question.id))
@@ -87,6 +94,8 @@ function PracticeContent() {
           });
 
         if (wrongQuestionsFromBank.length === 0) {
+          // 如果在进入错题练习时（非完成时）就发现没有错题，则导航回错题本
+          // 这个判断主要是针对初次加载或 bankId/mode 变化时
           router.push('/quiz/review');
           return;
         }
@@ -112,7 +121,7 @@ function PracticeContent() {
         setCurrentQuestionIndex(0);
         setUserAnswers({});
         setShowAnswer(false);
-        setQuizCompleted(false);
+        setQuizCompleted(false); // 明确重置，确保开始新练习时不是完成状态
         setStartTime(Date.now());
         setIsLoading(false);
       } else {
@@ -725,7 +734,7 @@ function PracticeContent() {
 
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t dark:border-gray-700">
           <Button variant="outline" onClick={handleShowAnswer} 
-            disabled={showAnswer || !isCurrentQuestionAnswered}
+            disabled={showAnswer}
             className="w-full sm:w-auto text-sm md:text-base disabled:opacity-60">
             <FaLightbulb className="mr-2" /> {showAnswer ? (isCurrentCorrect ? '回答正确' : '回答错误') : '查看答案'}
           </Button>
