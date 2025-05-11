@@ -185,15 +185,6 @@ export default function SettingsPage() {
                       : 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}
                   `}
                 >
-                  <Image 
-                    src={`/logo/${provider.logoFile}`}
-                    alt={`${provider.name} Logo`} 
-                    width={24} 
-                    height={24} 
-                    className="object-contain" 
-                    onError={(e) => e.currentTarget.style.display = 'none'}
-                    unoptimized
-                  />
                   <span className="font-medium">{provider.name}</span>
                 </button>
               ))}

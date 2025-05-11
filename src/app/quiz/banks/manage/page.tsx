@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuizStore } from '@/store/quizStore';
 import { Question, QuestionBank, QuestionType, QuestionOption } from '@/types/quiz';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FaPlusCircle, FaEdit, FaTrash, FaArrowLeft, FaEye, FaRegTrashAlt } from 'react-icons/fa';
+import { FaPlusCircle, FaEdit, FaTrash, FaArrowLeft, FaEye, FaRegTrashAlt, FaSearch } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { QUESTION_TYPE_NAMES } from '@/constants/quiz';
 import QuestionFormModal from '@/components/QuestionFormModal';
 
 export default function ManageBanksPage() {
   const router = useRouter();
+  const searchParams = useSearchParams(); // 获取 URL 查询参数
   const {
     questionBanks,
     getQuestionBankById,
@@ -33,6 +34,7 @@ export default function ManageBanksPage() {
 
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const sortedBanks = useMemo(() => {
     return [...(questionBanks || [])].sort((a, b) => a.name.localeCompare(b.name));
@@ -43,47 +45,39 @@ export default function ManageBanksPage() {
     return getQuestionBankById(selectedBankId) || null;
   }, [selectedBankId, getQuestionBankById, questionBanks]);
 
-  // 组件挂载时从 URL hash 中获取 bankId
+  // 过滤题库中的题目
+  const filteredQuestions = useMemo(() => {
+    if (!selectedBank?.questions) return [];
+    if (!searchQuery.trim()) return selectedBank.questions;
+    
+    return selectedBank.questions.filter(question => 
+      question.content.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [selectedBank, searchQuery]);
+
+  // 从 URL 查询参数中读取 tempBankId，并在组件挂载时自动选中对应题库
   useEffect(() => {
     try {
-      // 仅在客户端执行
+      // 只在客户端执行
       if (typeof window !== 'undefined') {
-        console.log("检查 URL hash");
-        const hash = window.location.hash;
+        // 获取 URL 查询参数中的 tempBankId
+        const tempBankId = searchParams.get('tempBankId');
+        console.log("从 URL 查询参数中获取 tempBankId:", tempBankId);
         
-        if (hash && hash.length > 1) { // 排除空 hash (#)
-          console.log("发现 hash:", hash);
-          // 去除开头的 # 号
-          const encodedData = hash.substring(1);
-          const decodedData = decodeURIComponent(encodedData);
-          console.log("解码后的数据:", decodedData);
+        if (tempBankId && questionBanks.some(bank => bank.id === tempBankId)) {
+          console.log("找到匹配的题库，设置 selectedBankId:", tempBankId);
+          setSelectedBankId(tempBankId);
           
-          try {
-            const data = JSON.parse(decodedData);
-            console.log("解析后的对象:", data);
-            
-            if (data && data.selectedBankId) {
-              const hashBankId = data.selectedBankId;
-              console.log("从 hash 中提取的 bankId:", hashBankId);
-              
-              if (hashBankId && questionBanks.some(bank => bank.id === hashBankId)) {
-                console.log("设置 selectedBankId 为:", hashBankId);
-                setSelectedBankId(hashBankId);
-                
-                // 清除 URL 中的 hash，避免刷新页面时再次触发选择
-                // 使用 history.replaceState 不会触发页面刷新
-                window.history.replaceState(null, '', window.location.pathname);
-              }
-            }
-          } catch (parseError) {
-            console.error("解析 hash 数据出错:", parseError);
-          }
+          // 清除 URL 中的查询参数，避免刷新页面时重复选择
+          const url = new URL(window.location.href);
+          url.searchParams.delete('tempBankId');
+          window.history.replaceState({}, '', url.toString());
         }
       }
     } catch (error) {
-      console.error("处理 URL hash 出错:", error);
+      console.error("处理 URL 查询参数出错:", error);
     }
-  }, [questionBanks]);
+  }, [searchParams, questionBanks]);
 
   useEffect(() => {
     if (selectedBank) {
@@ -280,15 +274,44 @@ export default function ManageBanksPage() {
             )}
 
             <div className="mb-4 flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">题目列表 ({selectedBank.questions ? selectedBank.questions.length : 0}题)</h3>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">题目列表 ({filteredQuestions.length}/{selectedBank.questions ? selectedBank.questions.length : 0}题)</h3>
                 <Button size="sm" className="bg-green-500 hover:bg-green-600" onClick={handleOpenAddQuestionModal}>
                     <FaPlusCircle className="mr-2" /> 添加新题目
                 </Button>
             </div>
+            
+            {/* 题目搜索框 */}
+            <div className="mb-4 relative">
+              <div className="flex">
+                <div className="relative flex-grow">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaSearch className="text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <Input
+                    type="text"
+                    placeholder="搜索题目..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 w-full"
+                  />
+                </div>
+                {searchQuery && (
+                  <Button 
+                    variant="outline"
+                    size="icon"
+                    className="ml-2"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    <span className="sr-only">清除</span>
+                    ×
+                  </Button>
+                )}
+              </div>
+            </div>
 
-            {selectedBank.questions && selectedBank.questions.length > 0 ? (
+            {filteredQuestions.length > 0 ? (
                 <ul className="space-y-3">
-                    {selectedBank.questions.map((question, index) => (
+                    {filteredQuestions.map((question, index) => (
                         <li key={question.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md shadow-sm flex justify-between items-center">
                             <div>
                                 <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{index + 1}.</span>
@@ -317,7 +340,7 @@ export default function ManageBanksPage() {
                 </ul>
             ) : (
                 <p className="text-center text-gray-500 dark:text-gray-400 py-6">
-                    此题库中还没有题目。点击上方 "添加新题目" 开始创建。
+                    {searchQuery ? '没有找到匹配的题目。' : '此题库中还没有题目。点击上方 "添加新题目" 开始创建。'}
                 </p>
             )}
           </CardContent>

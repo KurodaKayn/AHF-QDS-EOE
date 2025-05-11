@@ -19,6 +19,33 @@ export default function ReviewPage() {
   const [viewMode, setViewMode] = useState<'options' | 'list'>('options');
 
   /**
+   * 处理开始练习错题
+   */
+  const handleStartPractice = () => {
+    // 获取错题记录
+    const wrongRecords = records.filter(record => !record.isCorrect);
+    
+    if (wrongRecords.length === 0) {
+      alert('没有错题可供练习！');
+      return;
+    }
+    
+    // 找出第一个有错题的题库
+    const bankWithWrongQuestions = questionBanks.find(bank => 
+      bank.questions.some(q => 
+        wrongRecords.some(record => record.questionId === q.id)
+      )
+    );
+    
+    if (bankWithWrongQuestions) {
+      // 跳转到普通练习页面，但添加参数表示这是错题练习模式
+      router.push(`/quiz/practice?bankId=${bankWithWrongQuestions.id}&mode=review`);
+    } else {
+      alert('找不到包含错题的题库，请先进行一些练习！');
+    }
+  };
+
+  /**
    * 汇总错题信息
    */
   const wrongQuestions = useMemo(() => {
@@ -139,7 +166,7 @@ export default function ReviewPage() {
       {viewMode === 'options' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
           <button
-            onClick={() => router.push('/quiz/review/practice')}
+            onClick={handleStartPractice}
             className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow flex flex-col items-center justify-center text-center transform hover:scale-105"
           >
             <FaPlayCircle className="text-5xl text-blue-500 dark:text-blue-400 mb-4" />

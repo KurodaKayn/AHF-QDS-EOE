@@ -30,7 +30,7 @@ export interface QuizState {
   getQuestionBankById: (id: string) => QuestionBank | undefined;
   updateQuestionBank: (id: string, name: string, description?: string) => void;
   deleteQuestionBank: (id: string) => void;
-  addQuestionToBank: (bankId: string, question: Omit<Question, 'id'>) => Question | null;
+  addQuestionToBank: (bankId: string, question: Omit<Question, 'id'>) => { question: Question | null; isDuplicate: boolean };
   updateQuestionInBank: (bankId: string, questionId: string, questionData: Partial<Omit<Question, 'id'>>) => Question | null;
   deleteQuestionFromBank: (bankId: string, questionId: string) => void;
   getQuestionById: (questionId: string) => { question: Question, bank: QuestionBank } | undefined;
@@ -88,18 +88,43 @@ export const useQuizStore = create<QuizState>()(
         }));
       },
       addQuestionToBank: (bankId, questionData) => {
+        const bank = get().getQuestionBankById(bankId);
+        if (!bank) {
+          return { question: null, isDuplicate: false };
+        }
+        
+        // 检查是否存在相同题干的题目
+        const duplicateQuestion = bank.questions.find(
+          q => q.content.trim() === questionData.content.trim()
+        );
+        
+        // 如果存在重复的题目，直接返回
+        if (duplicateQuestion) {
+          return { question: null, isDuplicate: true };
+        }
+        
+        // 不存在重复，添加新题目
         const newQuestion: Question = { ...questionData, id: uuidv4() };
         let updatedBank: QuestionBank | undefined;
+        
         set((state) => ({
           questionBanks: state.questionBanks.map(bank => {
             if (bank.id === bankId) {
-              updatedBank = { ...bank, questions: [...bank.questions, newQuestion], updatedAt: Date.now() };
+              updatedBank = { 
+                ...bank, 
+                questions: [...bank.questions, newQuestion], 
+                updatedAt: Date.now() 
+              };
               return updatedBank;
             }
             return bank;
           }),
         }));
-        return updatedBank ? newQuestion : null;
+        
+        return { 
+          question: updatedBank ? newQuestion : null, 
+          isDuplicate: false 
+        };
       },
       updateQuestionInBank: (bankId, questionId, questionData) => {
         let updatedQuestion : Question | null = null;

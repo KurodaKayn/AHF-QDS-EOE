@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { FaFileImport, FaFileExport, FaCheck } from 'react-icons/fa';
+import { FaFileImport, FaFileExport, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
 import { useQuizStore } from '@/store/quizStore';
 import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from '@/utils/quiz';
 import { DEFAULT_EXPORT_FILENAME } from '@/constants/quiz';
@@ -19,6 +19,7 @@ export default function ImportExportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importSuccess, setImportSuccess] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
+  const [importResult, setImportResult] = useState<{ total: number; added: number; duplicates: number } | null>(null);
 
   /**
    * 处理文件导入
@@ -49,19 +50,38 @@ export default function ImportExportPage() {
         }
 
         const newBank: QuestionBank = addQuestionBank(importedData.name, importedData.description);
+        
+        let addedCount = 0;
+        let duplicateCount = 0;
+        const totalCount = importedData.questions ? importedData.questions.length : 0;
 
         if (newBank && importedData.questions && importedData.questions.length > 0) {
             importedData.questions.forEach((question: Question) => {
                 const { id, ...questionData } = question;
-                addQuestionToBank(newBank.id, questionData);
+                const result = addQuestionToBank(newBank.id, questionData);
+                if (result.isDuplicate) {
+                    duplicateCount++;
+                } else if (result.question) {
+                    addedCount++;
+                }
             });
         }
+        
+        setImportResult({
+            total: totalCount,
+            added: addedCount,
+            duplicates: duplicateCount
+        });
         
         setImportName('');
         if (fileInputRef.current) fileInputRef.current.value = '';
         
         setImportSuccess(true);
-        setTimeout(() => setImportSuccess(false), 3000);
+        setTimeout(() => {
+            setImportSuccess(false);
+            // 5秒后清除导入结果
+            setTimeout(() => setImportResult(null), 5000);
+        }, 3000);
       } catch (error: any) {
         console.error('导入失败:', error);
         alert(`导入失败: ${error.message || '请检查文件格式是否正确'}`);
@@ -188,6 +208,20 @@ export default function ImportExportPage() {
               <div className="flex items-center text-green-600 dark:text-green-400">
                 <FaCheck className="mr-1" />
                 <span>导入成功</span>
+              </div>
+            )}
+            
+            {importResult && (
+              <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-100 dark:border-blue-800">
+                <p className="text-blue-700 dark:text-blue-300 text-sm">
+                  共导入 {importResult.total} 题，成功添加 {importResult.added} 题
+                </p>
+                {importResult.duplicates > 0 && (
+                  <p className="flex items-center mt-1 text-amber-600 dark:text-amber-400 text-sm">
+                    <FaExclamationTriangle className="mr-1" size={12} />
+                    跳过 {importResult.duplicates} 个重复题目
+                  </p>
+                )}
               </div>
             )}
           </div>

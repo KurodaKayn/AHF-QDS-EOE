@@ -13,77 +13,145 @@ import { QUESTION_TYPE_NAMES } from '@/constants/quiz';
 import NumQuestionsModal from '@/components/NumQuestionsModal';
 import { BeatLoader } from 'react-spinners';
 import { useThemeStore } from '@/store/themeStore';
+import { shuffleArray } from '@/utils/array';
 
 function PracticeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bankId = searchParams.get('bankId');
+  const mode = searchParams.get('mode'); // 获取练习模式
+  const isReviewMode = mode === 'review'; // 是否是错题练习模式
+  
   const { 
     settings, 
     getQuestionBankById, 
     addRecord,
     removeWrongRecordsByQuestionId,
+    records, // 获取错题记录
   } = useQuizStore();
   const { theme } = useThemeStore();
 
   const [currentBank, setCurrentBank] = useState<QuestionBank | null>(null);
   const [allBankQuestions, setAllBankQuestions] = useState<Question[]>([]);
-  const [practiceQuestions, setPracticeQuestions] = useState<Question[]>([]);
+  const [practiceQuestions, setPracticeQuestions] = useState<(Question & { originalUserAnswer?: string | string[] })[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, string | string[]>>({});
   const [showAnswer, setShowAnswer] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number>(0); // 新增状态：用于存储总用时（秒）
   const [isLoading, setIsLoading] = useState(true);
   const [isNumQuestionsModalOpen, setIsNumQuestionsModalOpen] = useState(false);
-  const [startTime, setStartTime] = useState<number | null>(null);
+
+  // 提前定义 currentQuestion 和相关 useMemo Hooks
+  const currentQuestion = practiceQuestions[currentQuestionIndex];
+  
+  const isCurrentQuestionAnswered = useMemo(() => {
+    if (!currentQuestion || !userAnswers[currentQuestion.id]) return false;
+    const answer = userAnswers[currentQuestion.id];
+    return Array.isArray(answer) ? answer.length > 0 : answer !== '';
+  }, [currentQuestion, userAnswers]);
+
+  const isLastQuestion = useMemo(() => 
+    currentQuestionIndex === practiceQuestions.length - 1 && practiceQuestions.length > 0
+  , [currentQuestionIndex, practiceQuestions.length]);
+
+  const canPressNext = useMemo(() => {
+    if (isLastQuestion) {
+      return isCurrentQuestionAnswered;
+    } else {
+      return isCurrentQuestionAnswered || showAnswer;
+    }
+  }, [isLastQuestion, isCurrentQuestionAnswered, showAnswer]);
 
   useEffect(() => {
-    if (bankId) {
+    if (!bankId) {
+      router.push('/quiz');
+      return;
+    }
+
       const bank = getQuestionBankById(bankId);
       if (bank) {
-        setCurrentBank(bank);
-        const loadedQuestions = bank.questions.map(q => ({ ...q, options: q.options ? [...q.options] : [] }));
-        setAllBankQuestions(loadedQuestions);
-        if (loadedQuestions.length > 0) {
-          setIsNumQuestionsModalOpen(true);
-          setIsLoading(false);
-        } else {
-          setPracticeQuestions([]);
-          setIsLoading(false);
+      setCurrentBank(bank);
+      
+      if (isReviewMode) {
+        const wrongRecords = records.filter(r => !r.isCorrect);
+        let wrongQuestionsFromBank = bank.questions
+          .filter(question => wrongRecords.some(record => record.questionId === question.id))
+          .map(q => {
+            const originalRecord = wrongRecords.find(r => r.questionId === q.id);
+            return {
+              ...q,
+              originalUserAnswer: originalRecord ? originalRecord.userAnswer : undefined,
+            } as Question & { originalUserAnswer?: string | string[] }; // 类型断言
+          });
+
+        if (wrongQuestionsFromBank.length === 0) {
+          router.push('/quiz/review');
+          return;
         }
+        
+        setAllBankQuestions(wrongQuestionsFromBank);
+        let questionsToSet = [...wrongQuestionsFromBank];
+        
+        if (settings.shuffleReviewQuestionOrder) {
+          questionsToSet = shuffleArray([...questionsToSet]);
+        }
+        
+        if (settings.shuffleReviewOptions) {
+          questionsToSet = questionsToSet.map(q_item => {
+            if (q_item.options && q_item.type !== QuestionType.TrueFalse && q_item.options.length > 1) {
+              const shuffledOptions = shuffleArray([...q_item.options]);
+              return { ...q_item, options: shuffledOptions };
+            }
+            return q_item;
+          });
+        }
+        
+        setPracticeQuestions(questionsToSet);
+        setCurrentQuestionIndex(0);
+        setUserAnswers({});
+        setShowAnswer(false);
+        setQuizCompleted(false);
+        setStartTime(Date.now());
+        setIsLoading(false);
       } else {
-        setCurrentBank(null);
-        setPracticeQuestions([]);
+        const loadedQuestions = bank.questions.map(q => ({...q, options: q.options ? [...q.options] : []}));
+        setAllBankQuestions(loadedQuestions);
+        if (practiceQuestions.length === 0 && loadedQuestions.length > 0 && !quizCompleted) { 
+          setIsNumQuestionsModalOpen(true);
+        }
         setIsLoading(false);
       }
-      setQuizCompleted(false);
-      setCurrentQuestionIndex(0);
-      setUserAnswers({});
-      setShowAnswer(false);
-      setStartTime(null);
     } else {
-      setIsLoading(false);
+      router.push('/quiz');
     }
-  }, [bankId, getQuestionBankById]);
+  }, [bankId, getQuestionBankById, isReviewMode, records, router, settings.shuffleReviewOptions, settings.shuffleReviewQuestionOrder, settings.markMistakeAsCorrectedOnReviewSuccess, quizCompleted]); // Added router to dependency array
 
   const handleNumQuestionsSubmit = (numToPractice: number) => {
     setIsNumQuestionsModalOpen(false);
     let questionsToSet = [...allBankQuestions];
+    
+    // 应用题目随机排序设置
     if (settings.shufflePracticeQuestionOrder) {
-      questionsToSet.sort(() => Math.random() - 0.5);
+      questionsToSet = shuffleArray([...questionsToSet]); // 使用更可靠的 shuffleArray 函数
     }
+    
     const finalNumToPractice = Math.max(1, Math.min(numToPractice, questionsToSet.length));
     questionsToSet = questionsToSet.slice(0, finalNumToPractice);
 
+    // 应用选项随机排序设置
     if (settings.shufflePracticeOptions) {
       questionsToSet = questionsToSet.map(q => {
         if (q.options && q.type !== QuestionType.TrueFalse && q.options.length > 1) {
-          let shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+          // 深拷贝选项并随机排序，但确保不影响原始数据
+          const shuffledOptions = shuffleArray([...q.options]);
           return { ...q, options: shuffledOptions };
         }
         return q;
       });
     }
+    
     setPracticeQuestions(questionsToSet);
     setUserAnswers({});
     setCurrentQuestionIndex(0);
@@ -92,8 +160,6 @@ function PracticeContent() {
     setStartTime(Date.now());
   };
   
-  const currentQuestion = practiceQuestions[currentQuestionIndex];
-
   const handleAnswerSelect = (optionId: string) => {
     if (!currentQuestion || showAnswer) return;
     let newAnswer: string | string[];
@@ -129,31 +195,8 @@ function PracticeContent() {
     return userAnswer === question.answer;
   };
 
-  const recordQuestionAttempt = (question: Question, userAnswer: string | string[] | undefined) => {
-    if (!question || userAnswer === undefined) {
-      return;
-    }
-    const isCorrect = checkIsCorrect(question, userAnswer);
-    if (!isCorrect) {
-      addRecord({
-        questionId: question.id,
-        userAnswer: userAnswer,
-        isCorrect: false,
-        answeredAt: Date.now(),
-      });
-    } else {
-      if (settings.markMistakeAsCorrectedOnReviewSuccess) {
-        removeWrongRecordsByQuestionId(question.id);
-      }
-    }
-  };
-
   const handleNextQuestion = () => {
     if (!currentQuestion) return;
-
-    const userAnswer = userAnswers[currentQuestion.id];
-    recordQuestionAttempt(currentQuestion, userAnswer);
-
     setShowAnswer(false);
     if (currentQuestionIndex < practiceQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -163,32 +206,64 @@ function PracticeContent() {
   };
 
   const handleCompleteQuiz = () => {
+    practiceQuestions.forEach(question => {
+      const userAnswer = userAnswers[question.id];
+      const isCorrect = checkIsCorrect(question, userAnswer);
+
+      removeWrongRecordsByQuestionId(question.id);
+
+      if (!isCorrect) {
+      addRecord({
+          questionId: question.id,
+          userAnswer: userAnswer || '',
+          isCorrect: false,
+        answeredAt: Date.now(),
+      });
+    } else {
+        if (isReviewMode && settings.markMistakeAsCorrectedOnReviewSuccess) {
+          addRecord({
+            questionId: question.id,
+            userAnswer: userAnswer || '',
+            isCorrect: true,
+            answeredAt: Date.now(),
+          });
+        }
+      }
+    });
     setQuizCompleted(true);
+    if (startTime) {
+      setElapsedTime((Date.now() - startTime) / 1000);
+    }
   };
   
-  const isCurrentQuestionAnswered = useMemo(() => {
-    if (!currentQuestion || !userAnswers[currentQuestion.id]) return false;
-    const answer = userAnswers[currentQuestion.id];
-    return Array.isArray(answer) ? answer.length > 0 : answer !== '';
-  }, [currentQuestion, userAnswers]);
-
-  const isLastQuestion = currentQuestionIndex === practiceQuestions.length - 1;
+  // 获取完成练习时的标题
+  const getCompletionTitle = () => {
+    if (isReviewMode) {
+      return '错题练习完成！';
+    }
+    return '练习完成!';
+  };
 
   const handleManageBankClick = () => {
     if (bankId) {
-      try {
-        console.log("使用 URL hash 传递 bankId:", bankId);
-        
-        // 将 bankId 添加到 URL 的 hash 部分
-        const encodedData = encodeURIComponent(JSON.stringify({ selectedBankId: bankId }));
-        
-        // 使用 window.location.href 直接跳转，而不是通过 Next.js 路由
-        window.location.href = `/quiz/banks/manage/#${encodedData}`;
-      } catch (error) {
-        console.error("URL 处理出错:", error);
-        // 出错时仍尝试直接导航
-        window.location.href = '/quiz/banks/manage/';
-      }
+      console.log("使用表单提交传递 bankId:", bankId);
+      
+      // 创建一个临时表单元素
+      const form = document.createElement('form');
+      form.method = 'GET';
+      form.action = '/quiz/banks/manage/';
+      form.style.display = 'none';
+      
+      // 添加 bankId 作为参数
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'tempBankId';
+      input.value = bankId;
+      form.appendChild(input);
+      
+      // 添加到文档并提交
+      document.body.appendChild(form);
+      form.submit();
     }
   };
 
@@ -257,7 +332,7 @@ function PracticeContent() {
   return (
       <div className="dark:bg-gray-900 min-h-screen p-4 md:p-8 flex flex-col items-center justify-start pt-12">
         <Card className="w-full max-w-2xl text-center shadow-2xl animate-fade-in">
-          <CardHeader><CardTitle className="text-3xl font-bold text-blue-600 dark:text-blue-400">练习完成!</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-3xl font-bold text-blue-600 dark:text-blue-400">{getCompletionTitle()}</CardTitle></CardHeader>
           <CardContent className="space-y-6 px-4 sm:px-6 pb-6">
             <p className="text-lg text-gray-700 dark:text-gray-200">您已完成本次练习。</p>
             {/* Statistics Section */}
@@ -304,6 +379,8 @@ function PracticeContent() {
                         correctAnswerDisplay = question.answer as string || 'N/A';
                     }
 
+                    const userAnswerCorrect = isCorrect;
+
                     return (
                       <div key={question.id} className={`p-3 rounded-md shadow-sm ${isCorrect ? 'bg-green-50 dark:bg-green-900/30' : 'bg-red-50 dark:bg-red-900/30'}`}>
                         <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
@@ -312,18 +389,55 @@ function PracticeContent() {
                             ({isCorrect ? '正确' : '错误'})
                 </span>
                         </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          <span className="font-medium">你的答案:</span> {userAnswerDisplay}
+                        {/* 显示用户答案 */}
+                        <p className={`text-sm ${userAnswerCorrect ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                          <span className="font-semibold">你的答案:</span> {userAnswerDisplay}
                         </p>
-                        {!isCorrect && (
-                          <p className="text-xs text-green-700 dark:text-green-300">
-                            <span className="font-medium">正确答案:</span> {correctAnswerDisplay}
+                        
+                        {/* 显示正确答案 (如果用户答错了) */}
+                        {!userAnswerCorrect && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="font-semibold">正确答案:</span> {correctAnswerDisplay}
                           </p>
                         )}
+
+                        {/* 在错题回顾模式下，如果答错了，显示最初的错误答案 */}
+                        {isReviewMode && !userAnswerCorrect && (question as any).originalUserAnswer && (
+                          <p className="text-xs mt-1 text-amber-600 dark:text-amber-400">
+                            <span className="font-semibold">最初错误答案:</span> {
+                              (() => {
+                                const q = question as any;
+                                const originalAns = q.originalUserAnswer;
+                                if (q.type === QuestionType.SingleChoice || q.type === QuestionType.MultipleChoice) {
+                                  const currentQOptions = q.options;
+                                  if (!currentQOptions || currentQOptions.length === 0) return "选项数据缺失";
+
+                                  const originalAnswerArray = Array.isArray(originalAns) ? originalAns : [originalAns].filter(Boolean);
+                                  return originalAnswerArray.map((ansId: string) => {
+                                    const option = currentQOptions.find((opt: QuestionOption) => opt.id === ansId);
+                                    if (option) {
+                                      const optionIndex = currentQOptions.findIndex((opt: QuestionOption) => opt.id === ansId);
+                                      return `${String.fromCharCode(65 + (optionIndex ?? 0))}. ${option.content}`;
+                                    }
+                                    return `未知选项ID: ${ansId}`;
+                                  }).join(', ') || "未记录";
+                                } else if (q.type === QuestionType.TrueFalse) {
+                                  return originalAns === 'true' ? '正确' : (originalAns === 'false' ? '错误' : (originalAns || "未记录"));
+                                } else {
+                                  return originalAns || "未记录";
+                                }
+                              })()
+                            }
+                          </p>
+                        )}
+
+                        {/* 显示题目解析 */}
                         {question.explanation && (
-                            <p className="text-xs mt-1 pt-1 border-t border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400">
-                                <span className="font-medium">解析:</span> {question.explanation}
+                          <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-pre-wrap break-words">
+                              <span className="font-semibold">解析:</span> {question.explanation}
                             </p>
+                          </div>
                         )}
                       </div>
                     );
@@ -336,27 +450,78 @@ function PracticeContent() {
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row justify-center gap-3 pt-6">
             <Button onClick={() => router.push('/quiz')} variant="outline" className="w-full sm:w-auto"><FaArrowLeft className="mr-2" /> 返回题库列表</Button>
-            <Button onClick={() => { 
-              if(bankId) {
-                const bank = getQuestionBankById(bankId);
-                if (bank) {
-                  setCurrentBank(bank);
-                  const loadedQuestions = bank.questions.map(q => ({ ...q, options: q.options ? [...q.options] : [] }));
-                  setAllBankQuestions(loadedQuestions);
-                  setPracticeQuestions([]); 
-                  setQuizCompleted(false);
-                  setCurrentQuestionIndex(0);
-                  setUserAnswers({});
-                  setShowAnswer(false);
-                  setStartTime(null);
-                  if (loadedQuestions.length > 0) {
-                    setIsNumQuestionsModalOpen(true);
-                    setIsLoading(false);
-                  } else {
-                    setIsLoading(false);
-                  }
-                } else { router.push('/quiz');}
-              } else { router.push('/quiz'); }
+            <Button onClick={() => {
+              if (!bankId) {
+                router.push('/quiz');
+                return;
+              }
+              const bank = getQuestionBankById(bankId);
+              if (!bank) {
+                router.push('/quiz');
+                return;
+              }
+
+              setCurrentBank(bank); 
+              const loadedQuestions = bank.questions.map(q => ({ ...q, options: q.options ? [...q.options] : [] }));
+              setAllBankQuestions(loadedQuestions);
+              setPracticeQuestions([]); 
+              setQuizCompleted(false);
+              setCurrentQuestionIndex(0);
+              setUserAnswers({});
+              setShowAnswer(false);
+              setStartTime(null);
+              setElapsedTime(0); // 重置已用时间
+              setIsLoading(false); // 确保 loading 状态解除
+
+              if (isReviewMode) {
+                // 错题回顾模式：直接重新加载错题，不显示数量选择
+                // useEffect 将会因为 bankId 和 isReviewMode 未变而重新获取错题
+                // 需要确保 useEffect 能够正确处理再次加载的逻辑，可能需要触发它
+                // 或者直接在这里调用类似 useEffect 内部的错题加载逻辑
+                // 为了简单起见，我们先依赖 useEffect 的重新触发，但可能需要调整依赖项或手动触发。
+                // 一个更直接的方式是重新导航，但这可能导致页面闪烁。
+                // 暂时我们先重置状态，期望 useEffect 捕获 bankId 和 isReviewMode 的依赖，并重新加载。 
+                // 如果不行，我们再考虑强制刷新或更复杂的逻辑。
+                // router.push(`/quiz/practice?bankId=${bankId}&mode=review&t=${Date.now()}`); // 强制刷新
+                // 实际上，我们应该直接重新构建练习状态，类似于 useEffect 里的逻辑
+                const wrongRecords = records.filter(r => !r.isCorrect);
+                let wrongQuestionsFromBank = bank.questions
+                  .filter(question => wrongRecords.some(record => record.questionId === question.id))
+                  .map(q => {
+                    const originalRecord = wrongRecords.find(r => r.questionId === q.id);
+                    return {
+                      ...q,
+                      originalUserAnswer: originalRecord ? originalRecord.userAnswer : undefined,
+                    } as Question & { originalUserAnswer?: string | string[] };
+                  });
+                if (wrongQuestionsFromBank.length === 0) {
+                    router.push('/quiz/review'); // 如果没有错题了，返回错题本
+                    return;
+                }
+                let questionsToSet = [...wrongQuestionsFromBank];
+                if (settings.shuffleReviewQuestionOrder) {
+                  questionsToSet = shuffleArray([...questionsToSet]);
+                }
+                if (settings.shuffleReviewOptions) {
+                  questionsToSet = questionsToSet.map(q_item => {
+                    if (q_item.options && q_item.type !== QuestionType.TrueFalse && q_item.options.length > 1) {
+                      return { ...q_item, options: shuffleArray([...q_item.options]) };
+                    }
+                    return q_item;
+                  });
+                }
+                setPracticeQuestions(questionsToSet);
+                setStartTime(Date.now());
+
+              } else {
+                // 普通练习模式
+                if (loadedQuestions.length > 0) {
+                  setIsNumQuestionsModalOpen(true);
+                } else {
+                  // 题库为空，可以给个提示或直接返回
+                  // For now, do nothing, page will show empty state based on practiceQuestions.length === 0
+                }
+              }
             }} className="w-full sm:w-auto">
               <FaRedo className="mr-2" /> 再次练习该题库
             </Button>
@@ -469,7 +634,6 @@ function PracticeContent() {
   
   const nextButtonText = isLastQuestion ? '完成练习' : '下一题';
   const nextButtonAction = handleNextQuestion;
-  const canPressNext = showAnswer || (isCurrentQuestionAnswered && !isLastQuestion) || (isLastQuestion && isCurrentQuestionAnswered && showAnswer);
 
   return (
     <div className="dark:bg-gray-900 min-h-screen p-2 sm:p-4 md:p-8 flex flex-col items-center">
@@ -480,21 +644,25 @@ function PracticeContent() {
               <Button variant="outline" size="sm" onClick={() => router.back()} className="text-sm">
                 <FaArrowLeft className="mr-2" />返回
               </Button>
-              {currentBank && (
+              {currentBank && !isReviewMode && (
                 <Button variant="outline" size="sm" onClick={handleManageBankClick} className="text-sm">
                   <FaCog className="mr-2" />管理题库
                 </Button>
             )}
             </div>
             <div className="text-right">
-                <p className="text-xs text-gray-500 dark:text-gray-400">题库</p>
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate max-w-[200px] sm:max-w-xs md:max-w-sm" title={currentBank?.name}>{currentBank?.name || '练习模式'}</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {isReviewMode ? '错题回顾模式' : '当前题库'}
+                </p>
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate max-w-[200px] sm:max-w-xs md:max-w-sm" title={currentBank?.name}>
+                  {currentBank?.name ? (isReviewMode ? `${currentBank.name} (错题)`: currentBank.name) : (isReviewMode ? '错题回顾' : '常规练习')}
+                </h2>
             </div>
           </div>
           <Progress value={progressPercentage} className="w-full h-2" />
           <div className="flex justify-between items-baseline mt-2">
             <CardTitle className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">
-              第 {currentQuestionIndex + 1} / {practiceQuestions.length} 题
+              {isReviewMode ? '回顾: ' : ''} 第 {currentQuestionIndex + 1} / {practiceQuestions.length} 题
             </CardTitle>
             <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
               {currentQuestion ? QUESTION_TYPE_NAMES[currentQuestion.type] : ''}
@@ -512,10 +680,43 @@ function PracticeContent() {
                 : currentQuestion.type === QuestionType.ShortAnswer ? renderShortAnswerInput()
                 : renderOptions()}
               
+              {showAnswer && isReviewMode && (currentQuestion as any).originalUserAnswer && (
+                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/30 rounded-md border border-amber-200 dark:border-amber-700">
+                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">最初错误答案回顾：</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                    {
+                      (() => {
+                        const q = currentQuestion as any;
+                        const originalAns = q.originalUserAnswer;
+                        if (q.type === QuestionType.SingleChoice || q.type === QuestionType.MultipleChoice) {
+                          const currentQOptions = q.options;
+                          if (!currentQOptions || currentQOptions.length === 0) return "选项数据缺失";
+
+                          const originalAnswerArray = Array.isArray(originalAns) ? originalAns : [originalAns].filter(Boolean);
+                          return originalAnswerArray.map((ansId: string) => {
+                            const option = currentQOptions.find((opt: QuestionOption) => opt.id === ansId);
+                            if (option) {
+                              const optionIndex = currentQOptions.findIndex((opt: QuestionOption) => opt.id === ansId);
+                              return `${String.fromCharCode(65 + (optionIndex ?? 0))}. ${option.content}`;
+                            }
+                            return `未知选项ID: ${ansId}`;
+                          }).join(', ') || "未记录";
+                        } else if (q.type === QuestionType.TrueFalse) {
+                          return originalAns === 'true' ? '正确' : (originalAns === 'false' ? '错误' : (originalAns || "未记录"));
+                        } else {
+                          return originalAns || "未记录";
+                        }
+                      })()
+                    }
+                  </p>
+                </div>
+              )}
               {showAnswer && currentQuestion.explanation && (
-                <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg animate-fade-in">
-                  <h4 className="text-sm font-semibold text-yellow-700 dark:text-yellow-300 mb-1">题目解析:</h4>
-                  <p className="text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{currentQuestion.explanation}</p>
+                <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow">
+                  <h3 className="text-md font-semibold text-gray-700 dark:text-gray-200 mb-2">题目解析:</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
+                    {currentQuestion.explanation}
+                  </p>
                 </div>
                 )}
             </>

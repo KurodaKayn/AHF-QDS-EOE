@@ -161,8 +161,18 @@ export default function QuestionFormModal({
         updateQuestionInBank(bankId, questionToEdit.id, questionData);
         toast.success('题目已成功更新。');
       } else {
-        addQuestionToBank(bankId, questionData);
-        toast.success('题目已成功添加。');
+        const result = addQuestionToBank(bankId, questionData);
+        if (result.isDuplicate) {
+          toast.error('题目添加失败：题库中已存在相同题干的题目。');
+          setIsLoading(false);
+          return;
+        } else if (result.question) {
+          toast.success('题目已成功添加。');
+        } else {
+          toast.error('题目添加失败，请稍后重试。');
+          setIsLoading(false);
+          return;
+        }
       }
       if (onSubmitSuccess) onSubmitSuccess();
       onClose(); // Close modal on success
