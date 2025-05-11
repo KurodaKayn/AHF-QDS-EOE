@@ -11,7 +11,8 @@
     "electron": "electron .",
     "electron:dev": "concurrently \"npm run dev\" \"npm run electron\"",
     "build:electron": "next build --no-lint && electron-builder --publish=never",
-    "dist": "electron-builder --publish=never"
+    "dist": "electron-builder --publish=never",
+    "build:electron:win": "next build --no-lint && cross-env ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ electron-builder --win --x64 --publish=never"
   },
   "build": {
     "appId": "com.ahf-qds-eoe",
@@ -25,8 +26,12 @@
       "icon": "build/icon.icns"
     },
     "win": {
-      "target": "nsis",
-      "icon": "build/icon.icns"
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.jpg",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "files": [
       "electron/**/*",
@@ -73,6 +78,7 @@
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "react-spinners": "^0.17.0",
+    "sharp": "^0.34.1",
     "uuid": "^11.1.0",
     "xlsx": "^0.18.5",
     "zustand": "^5.0.4"
@@ -85,6 +91,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "electron": "^30.0.4",
     "electron-builder": "^24.9.1",
     "eslint": "^9",

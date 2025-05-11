@@ -72,6 +72,14 @@ function getAppRoot() {
       path.join(__dirname, '..')
     ];
     
+    // Windows可能有不同的路径
+    if (process.platform === 'win32') {
+      possiblePaths.push(
+        path.join(process.resourcesPath, 'app.asar.unpacked'),
+        path.join(process.cwd(), 'resources', 'app.asar')
+      );
+    }
+    
     for (const tryPath of possiblePaths) {
       logToFile(`检查可能的应用根目录: ${tryPath}`);
       if (fs.existsSync(tryPath)) {
@@ -569,13 +577,27 @@ async function startNextServer() {
       const appRoot = getAppRoot();
       logToFile(`使用应用根目录启动Next.js: ${appRoot}`);
       
+      // 根据平台选择正确的命令
+      let command = 'npx';
+      let args = ['next', 'start', '-p', nextPort.toString()];
+      const options = {
+        cwd: appRoot,
+        shell: true,
+        env: { ...process.env, PORT: nextPort.toString() },
+      };
+
+      // 在Windows上使用不同的命令方式
+      if (process.platform === 'win32') {
+        // Windows可能需要使用不同的方式调用npx
+        logToFile('检测到Windows系统，调整命令');
+        command = process.platform === 'win32' ? 'cmd' : command;
+        args = process.platform === 'win32' ? ['/c', `npx next start -p ${nextPort}`] : args;
+      }
+      
       // 尝试启动next服务
       try {
-        nextProcess = spawn('npx', ['next', 'start', '-p', nextPort.toString()], {
-          cwd: appRoot,
-          shell: true,
-          env: { ...process.env, PORT: nextPort.toString() },
-        });
+        logToFile(`执行命令: ${command} ${args.join(' ')}`);
+        nextProcess = spawn(command, args, options);
 
         // 监听输出
         nextProcess.stdout.on('data', (data) => {
