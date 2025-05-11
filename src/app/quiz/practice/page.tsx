@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FaArrowLeft, FaArrowRight, FaCheck, FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useQuizStore } from '@/store/quizStore';
@@ -8,7 +8,8 @@ import { Question, QuestionType, QuestionOption } from '@/types/quiz';
 import { getTagColor, QUESTION_TYPE_NAMES } from '@/constants/quiz';
 import { shuffleArray } from '@/utils/array'; // <--- Import shuffleArray
 
-export default function PracticePage() {
+// 实际内容组件
+function PracticeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bankId = searchParams.get('bankId');
@@ -417,5 +418,18 @@ export default function PracticePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// 主页面组件，使用Suspense包裹实际内容
+export default function PracticePage() {
+  return (
+    <Suspense fallback={
+      <div className="dark:bg-gray-900 min-h-screen p-4 md:p-8 flex flex-col items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+      </div>
+    }>
+      <PracticeContent />
+    </Suspense>
   );
 }

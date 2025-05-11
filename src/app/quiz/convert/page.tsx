@@ -337,17 +337,26 @@ C. Opt3
   // 显示当前选中的 AI 提供商信息
   const renderProviderInfo = () => {
     const { aiProvider } = settings;
+    // 使用相对路径直接加载Logo
+    const logoFileName = aiProvider === 'deepseek' ? 'Deepseek.jpg' : 'Qwen.jpg';
+    
     return (
       <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center space-x-3">
         <Image 
           width={20} 
           height={20} 
-          src={aiProvider === 'deepseek' ? '/logo/Deepseek.jpg' : '/logo/Qwen.jpg'} 
+          src={`/logo/${logoFileName}`} 
           alt={aiProvider === 'deepseek' ? 'Deepseek Logo' : 'Qwen Logo'} 
-          className="mr-2" 
+          className="mr-2"
+          onError={(e) => {
+            // 如果加载失败，隐藏图片元素
+            e.currentTarget.style.display = 'none';
+            console.error(`无法加载AI Logo: ${logoFileName}`);
+          }}
+          unoptimized
         />
         <div>
-          <h3 className="font-medium text-blue-800 dark:text-blue-300">
+          <h3 className="font-medium text-blue-800 dark:text-white">
             正在使用 {aiProvider === 'deepseek' ? 'Deepseek' : '通义千问 (Alibaba)'} AI
           </h3>
           <p className="text-sm text-blue-600 dark:text-blue-400">

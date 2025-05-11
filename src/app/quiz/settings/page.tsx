@@ -75,6 +75,20 @@ const TextInputSetting: React.FC<TextInputSettingProps> = ({
   );
 };
 
+// 添加这个函数用于获取资源路径
+function getAssetPath(filename: string) {
+  // 检查是否在Electron环境中
+  const isElectron = typeof window !== 'undefined' && window && 'electron' in window;
+  
+  if (isElectron) {
+    // 在Electron打包环境中，logo可能位于不同位置
+    return `/app.asar.unpacked/public/logo/${filename}`;
+  }
+  
+  // 普通Web环境
+  return `/logo/${filename}`;
+}
+
 export default function SettingsPage() {
   const { settings, setQuizSetting, resetQuizSettings } = useQuizStore();
 
@@ -157,8 +171,8 @@ export default function SettingsPage() {
             <label className="block text-lg font-medium text-gray-800 dark:text-gray-100">选择 AI 服务商:</label>
             <div className="flex flex-col sm:flex-row gap-4">
               {([
-                { id: 'deepseek', name: 'Deepseek', logo: '/logo/Deepseek.jpg' },
-                { id: 'alibaba', name: '通义千问 (Alibaba)', logo: '/logo/Qwen.jpg' },
+                { id: 'deepseek', name: 'Deepseek', logoFile: 'Deepseek.jpg' },
+                { id: 'alibaba', name: '通义千问 (Alibaba)', logoFile: 'Qwen.jpg' },
               ] as const).map((provider) => (
                 <button 
                   key={provider.id} 
@@ -171,8 +185,15 @@ export default function SettingsPage() {
                       : 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}
                   `}
                 >
-                  {/* Logo Placeholder - User will add actual images */}
-                  <Image src={provider.logo} alt={`${provider.name} Logo`} width={24} height={24} className="object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+                  <Image 
+                    src={`/logo/${provider.logoFile}`}
+                    alt={`${provider.name} Logo`} 
+                    width={24} 
+                    height={24} 
+                    className="object-contain" 
+                    onError={(e) => e.currentTarget.style.display = 'none'}
+                    unoptimized
+                  />
                   <span className="font-medium">{provider.name}</span>
                 </button>
               ))}

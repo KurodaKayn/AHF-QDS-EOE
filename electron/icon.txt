@@ -1,0 +1,18 @@
+Electron应用图标说明:
+
+为了给应用添加图标，请按照以下步骤操作:
+
+1. 创建一个名为"build"的文件夹在项目根目录
+2. 添加以下图标文件到build文件夹:
+   - icon.icns (macOS, 大小至少为512x512像素)
+   - icon.ico (Windows, 大小建议为256x256像素)
+   - icon.png (通用, 大小至少为512x512像素)
+
+这些图标将被electron-builder自动识别并用于构建过程。
+
+图标可以使用图像编辑软件创建，如Photoshop, GIMP或在线工具如:
+- https://www.electron.build/icons.html (官方说明)
+- https://cloudconvert.com/png-to-icns (转换PNG到ICNS)
+- https://cloudconvert.com/png-to-ico (转换PNG到ICO)
+
+注意: 确保图标分辨率足够高，以提供良好的显示效果。 

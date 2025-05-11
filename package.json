@@ -2,20 +2,73 @@
   "name": "ahf-qds-eoe",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "electron": "electron .",
+    "electron:dev": "concurrently \"npm run dev\" \"npm run electron\"",
+    "build:electron": "next build --no-lint && electron-builder --publish=never",
+    "dist": "electron-builder --publish=never"
+  },
+  "build": {
+    "appId": "com.ahf-qds-eoe",
+    "productName": "AHF QDS EOE",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.icns"
+    },
+    "files": [
+      "electron/**/*",
+      "node_modules/**/*",
+      "public/**/*",
+      "package.json",
+      "out/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "out",
+        "to": "app.asar.unpacked/out"
+      },
+      {
+        "from": "public",
+        "to": "app.asar.unpacked/public"
+      }
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "out/**/*"
+    ],
+    "directories": {
+      "buildResources": "resources",
+      "output": "dist"
+    },
+    "extraMetadata": {
+      "main": "electron/main.js"
+    }
   },
   "dependencies": {
     "@headlessui/react": "^2.2.2",
     "@types/uuid": "^10.0.0",
     "axios": "^1.9.0",
     "date-fns": "^4.1.0",
+    "electron-serve": "^1.2.0",
+    "express": "^4.18.3",
     "next": "15.3.2",
+    "node-fetch": "^2.7.0",
     "openai": "^4.98.0",
     "papaparse": "^5.5.2",
+    "portfinder": "^1.0.32",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
@@ -31,9 +84,13 @@
     "@types/papaparse": "^5.3.16",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^8.2.2",
+    "electron": "^30.0.4",
+    "electron-builder": "^24.9.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wait-on": "^7.2.0"
   }
 }
