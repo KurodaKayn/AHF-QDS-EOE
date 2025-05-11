@@ -39,15 +39,6 @@ export default function QuizLayout({ children }: { children: React.ReactNode }) 
             </li>
             <li>
               <Link 
-                href="/quiz/practice"
-                className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <FaPencilAlt className="mr-3" />
-                <span>开始练习</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
                 href="/quiz/review" 
                 className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
               >

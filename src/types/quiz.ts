@@ -6,6 +6,7 @@ export enum QuestionType {
   MultipleChoice = 'multiple-choice', // 多选题
   TrueFalse = 'true-false', // 判断题
   ShortAnswer = 'short-answer', // 简答题
+  FillInBlank = 'fill-in-blank', // 填空题
 }
 
 /**

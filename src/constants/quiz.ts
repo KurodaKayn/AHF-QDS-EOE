@@ -8,6 +8,7 @@ export const QUESTION_TYPE_NAMES: Record<QuestionType, string> = {
   [QuestionType.MultipleChoice]: '多选题',
   [QuestionType.TrueFalse]: '判断题',
   [QuestionType.ShortAnswer]: '简答题',
+  [QuestionType.FillInBlank]: '填空题',
 };
 
 /**
