@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuizStore } from '@/store/quizStore';
 import { Question, QuestionBank, QuestionType, QuestionOption } from '@/types/quiz';
 import { Button } from '@/components/ui/button';
@@ -13,10 +13,23 @@ import { FaPlusCircle, FaEdit, FaTrash, FaArrowLeft, FaEye, FaRegTrashAlt, FaSea
 import { toast } from 'sonner';
 import { QUESTION_TYPE_NAMES } from '@/constants/quiz';
 import QuestionFormModal from '@/components/QuestionFormModal';
+import { BeatLoader } from 'react-spinners';
+import { useThemeStore } from '@/store/themeStore';
 
-export default function ManageBanksPage() {
+// 创建静态导出路径的辅助组件
+const ManageIndexPage = () => {
+  // 这个组件的作用是确保静态构建时能生成这个路径
+  return (
+    <div className="hidden">
+      <h1>题库管理页面</h1>
+      <p>如果看到这个页面，说明页面加载中或发生了错误。</p>
+    </div>
+  );
+};
+
+// 客户端组件，使用 useSearchParams()，但通过父组件提供的 URLSearchParams
+function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: string | null }) {
   const router = useRouter();
-  const searchParams = useSearchParams(); // 获取 URL 查询参数
   const {
     questionBanks,
     getQuestionBankById,
@@ -45,7 +58,6 @@ export default function ManageBanksPage() {
     return getQuestionBankById(selectedBankId) || null;
   }, [selectedBankId, getQuestionBankById, questionBanks]);
 
-  // 过滤题库中的题目
   const filteredQuestions = useMemo(() => {
     if (!selectedBank?.questions) return [];
     if (!searchQuery.trim()) return selectedBank.questions;
@@ -55,29 +67,17 @@ export default function ManageBanksPage() {
     );
   }, [selectedBank, searchQuery]);
 
-  // 从 URL 查询参数中读取 tempBankId，并在组件挂载时自动选中对应题库
+  // 初始化时处理可能的URL参数 - 这里改为通过props接收
   useEffect(() => {
     try {
-      // 只在客户端执行
-      if (typeof window !== 'undefined') {
-        // 获取 URL 查询参数中的 tempBankId
-        const tempBankId = searchParams.get('tempBankId');
-        console.log("从 URL 查询参数中获取 tempBankId:", tempBankId);
-        
-        if (tempBankId && questionBanks.some(bank => bank.id === tempBankId)) {
-          console.log("找到匹配的题库，设置 selectedBankId:", tempBankId);
-          setSelectedBankId(tempBankId);
-          
-          // 清除 URL 中的查询参数，避免刷新页面时重复选择
-          const url = new URL(window.location.href);
-          url.searchParams.delete('tempBankId');
-          window.history.replaceState({}, '', url.toString());
-        }
+      if (initialTempBankId && questionBanks && questionBanks.some(bank => bank.id === initialTempBankId)) {
+        setSelectedBankId(initialTempBankId);
+        // 由于是静态导出，我们不再尝试修改URL
       }
     } catch (error) {
-      console.error("处理 URL 查询参数出错:", error);
+      console.error("处理题库ID出错:", error);
     }
-  }, [searchParams, questionBanks]);
+  }, [initialTempBankId, questionBanks]);
 
   useEffect(() => {
     if (selectedBank) {
@@ -88,7 +88,7 @@ export default function ManageBanksPage() {
       setEditBankName('');
       setEditBankDescription('');
       setIsEditingBankDetails(false);
-      if (selectedBankId && !questionBanks.find(b => b.id === selectedBankId)) {
+      if (selectedBankId && !(questionBanks || []).find(b => b.id === selectedBankId)) {
         setSelectedBankId(null);
       }
     }
@@ -125,7 +125,7 @@ export default function ManageBanksPage() {
       if (newBank && typeof newBank === 'object' && 'id' in newBank) {
         setSelectedBankId(newBank.id);
         toast.success(`新题库 "${newName.trim()}" 已创建并选中。`);
-      } else if (typeof newBank === 'string') {
+      } else if (newBank && typeof newBank === 'string') {
         setSelectedBankId(newBank);
         toast.success(`新题库 "${newName.trim()}" 已创建并选中。`);
       } else {
@@ -253,13 +253,9 @@ export default function ManageBanksPage() {
                     className="text-base"
                   />
                 </div>
-                <div className="flex gap-3 pt-2">
-                  <Button onClick={handleSaveBankDetails} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
-                    <FaEdit className="mr-2" /> 保存更改
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsEditingBankDetails(false)}>
-                    取消
-                  </Button>
+                <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsEditingBankDetails(false)} size="sm">取消</Button>
+                    <Button onClick={handleSaveBankDetails} size="sm">保存更改</Button>
                 </div>
               </div>
             ) : (
@@ -280,7 +276,6 @@ export default function ManageBanksPage() {
                 </Button>
             </div>
             
-            {/* 题目搜索框 */}
             <div className="mb-4 relative">
               <div className="flex">
                 <div className="relative flex-grow">
@@ -370,5 +365,58 @@ export default function ManageBanksPage() {
         />
       )}
     </div>
+  );
+}
+
+// 主页面组件，优化为静态导出方式
+export default function ManageBanksPage() {
+  const { theme } = useThemeStore();
+
+  // 使用安全的方式在客户端获取URL参数
+  const [initialTempBankId, setInitialTempBankId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    // 在这里添加关键的静态路径标记，帮助构建系统识别路径
+    // 通过注释或隐藏元素确保这些路径被识别 - 这是静态导出的关键
+    const paths = [
+      '/quiz/banks/manage/',
+      '/quiz/banks/manage/index.html',
+      '/quiz/banks/manage/index',
+      '/quiz/banks/manage'
+    ];
+    console.log('可用的静态路径:', paths);
+    
+    if (typeof window !== 'undefined') {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tempBankId = urlParams.get('tempBankId');
+        if (tempBankId) {
+          setInitialTempBankId(tempBankId);
+          // 清理URL，避免重复加载
+          const url = new URL(window.location.href);
+          url.searchParams.delete('tempBankId');
+          window.history.replaceState({}, '', url.toString());
+        }
+      } catch (error) {
+        console.error("获取URL参数出错:", error);
+      }
+    }
+  }, []);
+
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto p-4 md:p-8 min-h-screen flex flex-col justify-center items-center dark:bg-gray-900">
+        <BeatLoader color={theme === 'dark' ? '#38BDF8' : '#3B82F6'} />
+        <p className="text-xl text-gray-500 dark:text-gray-400 mt-4">加载管理界面...</p>
+      </div>
+    }>
+      {/* 添加隐藏的链接元素，帮助静态导出系统识别路由 */}
+      <div style={{ display: 'none' }}>
+        <a href="/quiz/banks/manage">管理题库</a>
+        <a href="/quiz/banks/manage/">管理题库带斜杠</a>
+        <a href="/quiz/banks/manage/index.html">管理题库HTML</a>
+      </div>
+      <ManageBanksPageContent initialTempBankId={initialTempBankId} />
+    </Suspense>
   );
 } 

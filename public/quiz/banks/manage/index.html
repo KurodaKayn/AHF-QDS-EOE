@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>题库管理</title>
+  <script>
+    // 尝试修复路径问题
+    if (typeof window !== 'undefined') {
+      // 判断是否在Electron环境中
+      const isElectron = window.navigator.userAgent.toLowerCase().indexOf('electron/') > -1;
+      if (isElectron) {
+        // 重定向到正确的路径
+        window.location.href = window.location.origin + '/out/quiz/banks/manage/index.html';
+      } else {
+        // 非Electron环境，使用相对路径
+        window.location.href = '../../../_next/static/chunks/app/quiz/banks/manage/page.js';
+      }
+    }
+  </script>
+</head>
+<body>
+  <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif;">
+    <div style="text-align: center;">
+      <h1>题库管理页面加载中...</h1>
+      <p>如果页面没有自动跳转，请<a href="/quiz">返回题库列表</a></p>
+    </div>
+  </div>
+</body>
+</html> 

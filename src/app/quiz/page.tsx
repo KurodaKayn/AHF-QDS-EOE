@@ -53,7 +53,15 @@ export default function QuizPage() {
             <FaPlay className="mr-2"/> 开始练习
           </button>
           <button
-            onClick={() => router.push('/quiz/banks/manage')}
+            onClick={() => {
+              // 使用表单导航来代替router.push
+              const form = document.createElement('form');
+              form.method = 'GET';
+              form.action = '/quiz/banks/manage/index.html';
+              form.style.display = 'none';
+              document.body.appendChild(form);
+              form.submit();
+            }}
             className="flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
           >
             <FaBook className="mr-2"/> 管理题库
@@ -75,7 +83,17 @@ export default function QuizPage() {
           <p className="text-xl text-gray-500 dark:text-gray-400 mb-6">
             您还没有任何题库。
           </p>
-          <Button onClick={() => router.push('/quiz/banks/manage')} className="bg-green-600 hover:bg-green-700">
+          <Button 
+            onClick={() => {
+              const form = document.createElement('form');
+              form.method = 'GET';
+              form.action = '/quiz/banks/manage/index.html';
+              form.style.display = 'none';
+              document.body.appendChild(form);
+              form.submit();
+            }} 
+            className="bg-green-600 hover:bg-green-700"
+          >
             <FaPlus className="mr-2" /> 前往创建新题库
           </Button>
         </div>
