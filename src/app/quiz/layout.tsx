@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { FaBook, FaPencilAlt, FaExchangeAlt, FaExclamationTriangle, FaCog } from 'react-icons/fa';
+import { FaBook, FaPencilAlt, FaExchangeAlt, FaExclamationTriangle, FaCog, FaListUl } from 'react-icons/fa';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 
 /**
@@ -21,11 +21,20 @@ export default function QuizLayout({ children }: { children: React.ReactNode }) 
           <ul className="space-y-2">
             <li>
               <Link 
-                href="/quiz" 
+                href="/quiz/banks/manage" 
                 className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <FaBook className="mr-3" />
                 <span>题库管理</span>
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href="/quiz" 
+                className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <FaListUl className="mr-3" />
+                <span>刷题，启动！</span>
               </Link>
             </li>
             <li>

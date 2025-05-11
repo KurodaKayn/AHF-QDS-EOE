@@ -180,7 +180,7 @@ export const useQuizStore = create<QuizState>()(
             ...state, 
             settings: initialSettings 
         }));
-      }
+      },
     }),
     {
       name: 'quiz-storage', 
