@@ -32,7 +32,7 @@ Mac OS:~/Library/Application Support/ahf-qds-eoe/Local Storage/
 
 ## 未来计划
 ### 1.加入题目的图片存储支持
-### 2.也许在很遥远的未来，会搞手机APP
+### 2.也许在很遥远的未来，会搞手机APP(目前已经有了响应式布局，只要导出就行了，但是app的存储挺麻烦的)
 
 #开发者食用指南
 本项目支持打包成桌面应用，可以在Windows和macOS系统上运行。当然如果你不是开发者直接就从我放在Releases的包直接拿来用就行了
