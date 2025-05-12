@@ -54,13 +54,19 @@ export default function QuizPage() {
           </button>
           <button
             onClick={() => {
-              // 使用表单导航来代替router.push
-              const form = document.createElement('form');
-              form.method = 'GET';
-              form.action = '/quiz/banks/manage/index.html';
-              form.style.display = 'none';
-              document.body.appendChild(form);
-              form.submit();
+              // 检测是否为开发环境
+              if (process.env.NODE_ENV === 'development') {
+                // 开发环境使用Next.js路由
+                router.push('/quiz/banks/manage');
+              } else {
+                // 生产环境使用表单导航（适用于Electron静态导出）
+                const form = document.createElement('form');
+                form.method = 'GET';
+                form.action = '/quiz/banks/manage/index.html';
+                form.style.display = 'none';
+                document.body.appendChild(form);
+                form.submit();
+              }
             }}
             className="flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
           >
@@ -85,12 +91,19 @@ export default function QuizPage() {
           </p>
           <Button 
             onClick={() => {
-              const form = document.createElement('form');
-              form.method = 'GET';
-              form.action = '/quiz/banks/manage/index.html';
-              form.style.display = 'none';
-              document.body.appendChild(form);
-              form.submit();
+              // 检测是否为开发环境
+              if (process.env.NODE_ENV === 'development') {
+                // 开发环境使用Next.js路由
+                router.push('/quiz/banks/manage');
+              } else {
+                // 生产环境使用表单导航（适用于Electron静态导出）
+                const form = document.createElement('form');
+                form.method = 'GET';
+                form.action = '/quiz/banks/manage/index.html';
+                form.style.display = 'none';
+                document.body.appendChild(form);
+                form.submit();
+              }
             }} 
             className="bg-green-600 hover:bg-green-700"
           >
