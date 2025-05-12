@@ -799,6 +799,18 @@ export default function ManageBanksPage() {
     if (typeof window !== 'undefined') {
       try {
         const urlParams = new URLSearchParams(window.location.search);
+        // 优先检查bankId参数（从题库列表直接进入）
+        const bankId = urlParams.get('bankId');
+        if (bankId) {
+          setInitialTempBankId(bankId);
+          // 清理URL，避免重复加载
+          const url = new URL(window.location.href);
+          url.searchParams.delete('bankId');
+          window.history.replaceState({}, '', url.toString());
+          return;
+        }
+        
+        // 兼容原有的tempBankId参数
         const tempBankId = urlParams.get('tempBankId');
         if (tempBankId) {
           setInitialTempBankId(tempBankId);

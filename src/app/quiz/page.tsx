@@ -56,13 +56,19 @@ export default function QuizPage() {
             onClick={() => {
               // 检测是否为开发环境
               if (process.env.NODE_ENV === 'development') {
-                // 开发环境使用Next.js路由
-                router.push('/quiz/banks/manage');
+                // 开发环境使用Next.js路由，带上题库ID
+                router.push(`/quiz/banks/manage?bankId=${bank.id}`);
               } else {
                 // 生产环境使用表单导航（适用于Electron静态导出）
                 const form = document.createElement('form');
                 form.method = 'GET';
                 form.action = '/quiz/banks/manage/index.html';
+                // 添加题库ID作为参数
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'bankId';
+                input.value = bank.id;
+                form.appendChild(input);
                 form.style.display = 'none';
                 document.body.appendChild(form);
                 form.submit();
