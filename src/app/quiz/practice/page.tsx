@@ -199,9 +199,35 @@ function PracticeContent() {
       if (correctAnswers.size === 0 && userAnswersSet.size === 0) return true;
       return correctAnswers.size === userAnswersSet.size && [...correctAnswers].every(ans => userAnswersSet.has(ans));
     } else if (question.type === QuestionType.TrueFalse) {
-        return (userAnswer as string).toLowerCase() === (question.answer as string).toLowerCase();
+      return (userAnswer as string).toLowerCase() === (question.answer as string).toLowerCase();
+    } else if (question.type === QuestionType.FillInBlank) {
+      // 处理填空题的多答案情况
+      const userAns = (userAnswer as string).trim();
+      if (!userAns) return false; // 用户未作答
+
+      // 处理标准答案
+      const correctAns = question.answer as string;
+      
+      // 处理可能的多个标准答案（用分号分隔）
+      if (correctAns.includes(';')) {
+        // 正则表达式匹配分号，但不匹配连续分号中的前面那个
+        const acceptableAnswers = correctAns.split(/;(?!;)/).map(ans => {
+          // 替换连续分号为单个分号
+          return ans.replace(/;;/g, ';').trim();
+        });
+        
+        // 只要用户答案匹配任何一个可接受的答案即为正确（忽略大小写）
+        return acceptableAnswers.some(acceptableAns => 
+          userAns.toLowerCase() === acceptableAns.toLowerCase()
+        );
+      }
+      
+      // 单个答案的情况
+      return userAns.toLowerCase() === correctAns.toLowerCase();
     }
-    return userAnswer === question.answer;
+    
+    // 其他类型题目
+    return (userAnswer as string).toLowerCase() === (question.answer as string).toLowerCase();
   };
 
   const handleNextQuestion = () => {
@@ -384,7 +410,16 @@ function PracticeContent() {
                         correctAnswerDisplay = question.answer === 'true' ? '正确' : '错误';
                     } else if (question.options && question.options.length > 0) { // Single Choice from options
                         correctAnswerDisplay = (question.options || []).find(opt => opt.id === question.answer)?.content || (question.answer as string || 'N/A');
-                    } else { // Short Answer, FillInBlank
+                    } else if (question.type === QuestionType.FillInBlank && (question.answer as string).includes(';')) {
+                        // 处理填空题多答案显示，将答案拆分并美化显示
+                        const correctAns = question.answer as string;
+                        // 正则表达式匹配分号，但不匹配连续分号中的前面那个
+                        const acceptableAnswers = correctAns.split(/;(?!;)/).map(ans => {
+                            // 替换连续分号为单个分号
+                            return ans.replace(/;;/g, ';').trim();
+                        });
+                        correctAnswerDisplay = acceptableAnswers.map((ans, i) => `答案${i+1}: ${ans}`).join(' | ');
+                    } else { // Short Answer, other FillInBlank
                         correctAnswerDisplay = question.answer as string || 'N/A';
                     }
 
@@ -638,6 +673,41 @@ function PracticeContent() {
     );
   };
 
+  // 填空题输入组件
+  const renderFillInBlankInput = () => {
+    if (!currentQuestion || currentQuestion.type !== QuestionType.FillInBlank) return null;
+    const currentAnswerText = (userAnswers[currentQuestion.id] as string || '');
+    
+    return (
+      <div className="mt-4">
+        <input 
+          type="text" 
+          value={currentAnswerText}
+          onChange={(e) => setUserAnswers(prev => ({ ...prev, [currentQuestion.id]: e.target.value }))}
+          placeholder="在此输入填空答案..." 
+          className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 text-base"
+          disabled={showAnswer}
+        />
+        {showAnswer && (
+          <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg">
+            <p className="text-sm font-semibold text-green-700 dark:text-green-300 mb-1">参考答案:</p>
+            {(currentQuestion.answer as string).includes(';') ? (
+              <div>
+                {(currentQuestion.answer as string).split(/;(?!;)/).map((ans, i) => (
+                  <p key={i} className="text-gray-800 dark:text-gray-100 whitespace-pre-wrap">
+                    {i + 1}. {ans.replace(/;;/g, ';').trim()}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-800 dark:text-gray-100 whitespace-pre-wrap">{currentQuestion.answer as string}</p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const progressPercentage = practiceQuestions.length > 0 ? ((currentQuestionIndex + 1) / practiceQuestions.length) * 100 : 0;
   const isCurrentCorrect = currentQuestion && showAnswer ? checkIsCorrect(currentQuestion, userAnswers[currentQuestion.id]) : null;
   
@@ -687,6 +757,7 @@ function PracticeContent() {
               </p>
               {currentQuestion.type === QuestionType.TrueFalse ? renderTrueFalseOptions()
                 : currentQuestion.type === QuestionType.ShortAnswer ? renderShortAnswerInput()
+                : currentQuestion.type === QuestionType.FillInBlank ? renderFillInBlankInput()
                 : renderOptions()}
               
               {showAnswer && isReviewMode && (currentQuestion as any).originalUserAnswer && (

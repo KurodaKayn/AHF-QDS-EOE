@@ -292,13 +292,23 @@ export default function QuestionFormModal({
               </div>
             )}
             {(type === QuestionType.ShortAnswer || type === QuestionType.FillInBlank) && (
-              <Textarea 
-                value={answer as string} 
-                onChange={(e) => setAnswer(e.target.value)} 
-                placeholder="请输入答案..."
-                rows={3}
-                className="text-base"
-              />
+              <>
+                <Textarea 
+                  value={answer as string} 
+                  onChange={(e) => setAnswer(e.target.value)} 
+                  placeholder={type === QuestionType.FillInBlank 
+                    ? "请输入答案，多个可接受的答案请用分号(;)分隔..."
+                    : "请输入答案..."}
+                  rows={3}
+                  className="text-base"
+                />
+                {type === QuestionType.FillInBlank && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    提示：填空题支持多个答案，不同答案之间用分号(;)分隔。学生只需要输入其中任意一个答案即可被判定为正确。
+                    如果答案本身包含多个连续分号，只有最后一个分号会被视为分隔符。
+                  </p>
+                )}
+              </>
             )}
           </div>
           

@@ -16,6 +16,8 @@ export interface QuizSettings {
   deepseekApiKey: string;
   deepseekBaseUrl: string; // e.g., https://api.deepseek.com
   alibabaApiKey: string;
+  // 新增：题目查重开关
+  checkDuplicateQuestion: boolean;
   // Alibaba base URL is fixed: "https://dashscope.aliyuncs.com/compatible-mode/v1"
   // Alibaba model can be stored here if needed, e.g., qwenModel: string;
 }
@@ -56,6 +58,8 @@ const initialSettings: QuizSettings = {
   deepseekApiKey: '',
   deepseekBaseUrl: 'https://api.deepseek.com', // Default to common public API
   alibabaApiKey: '',
+  // 新增
+  checkDuplicateQuestion: true,
 };
 
 export const useQuizStore = create<QuizState>()(
@@ -92,21 +96,20 @@ export const useQuizStore = create<QuizState>()(
         if (!bank) {
           return { question: null, isDuplicate: false };
         }
-        
-        // 检查是否存在相同题干的题目
-        const duplicateQuestion = bank.questions.find(
-          q => q.content.trim() === questionData.content.trim()
-        );
-        
-        // 如果存在重复的题目，直接返回
+        // 只有开启查重时才查重
+        const checkDuplicate = get().settings.checkDuplicateQuestion;
+        let duplicateQuestion = undefined;
+        if (checkDuplicate) {
+          duplicateQuestion = bank.questions.find(
+            q => q.content.trim() === questionData.content.trim()
+          );
+        }
         if (duplicateQuestion) {
           return { question: null, isDuplicate: true };
         }
-        
         // 不存在重复，添加新题目
         const newQuestion: Question = { ...questionData, id: uuidv4() };
         let updatedBank: QuestionBank | undefined;
-        
         set((state) => ({
           questionBanks: state.questionBanks.map(bank => {
             if (bank.id === bankId) {
@@ -120,7 +123,6 @@ export const useQuizStore = create<QuizState>()(
             return bank;
           }),
         }));
-        
         return { 
           question: updatedBank ? newQuestion : null, 
           isDuplicate: false 

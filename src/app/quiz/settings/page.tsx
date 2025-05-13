@@ -160,6 +160,13 @@ export default function SettingsPage() {
             currentValue={settings.markMistakeAsCorrectedOnReviewSuccess}
             onToggle={handleBooleanSettingToggle}
           />
+          <SettingRow
+            label="导入题目时查重"
+            description="开启后，导入题库时会自动跳过重复题目（题干完全一致视为重复）"
+            settingKey={"checkDuplicateQuestion" as any}
+            currentValue={settings.checkDuplicateQuestion}
+            onToggle={handleBooleanSettingToggle as any}
+          />
         </div>
 
         {/* AI Provider Settings */}

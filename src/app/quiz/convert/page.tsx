@@ -15,6 +15,9 @@ import { BeatLoader } from 'react-spinners';
 import { v4 as uuidv4 } from 'uuid';
 import Image from 'next/image';
 import { parseTextByScript, ScriptTemplate } from '@/utils/scriptParser';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { CONVERT_SYSTEM_PROMPT } from '@/constants/ai';
 
 /**
  * 题目转换页面
@@ -85,13 +88,63 @@ B. Opt2
 C. Opt3
 正确答案:C;`;
 
+  /**
+   * 显示脚本示例对话框
+   */
   const handleShowExample = () => {
     if (scriptTemplate === ScriptTemplate.ChaoXing) {
-      setExampleModalTitle('学习通 (ChaoXing) 格式示例');
-      setExampleModalContent(CHAOXING_EXAMPLE);
+      setExampleModalTitle('学习通模板示例');
+      setExampleModalContent(
+`1. (单选题)以下选项中，哪一个是JavaScript的基本数据类型?
+A. Array
+B. Object
+C. Number
+D. Function
+正确答案:C
+
+2. (多选题)以下哪些是JavaScript框架或库?
+A. React
+B. Vue
+C. Python
+D. Angular
+正确答案:A,B,D
+
+3. (判断题)HTML是一种编程语言。
+正确答案:错误
+
+4. (填空题)CSS选择器中，____ 用于选择类，而 ____ 用于选择ID。
+正确答案:(1) .;(2) #`);
+    } else if (scriptTemplate === ScriptTemplate.SingleChoice1) {
+      setExampleModalTitle('单选题1模板示例');
+      setExampleModalContent(
+`1. 关于上颌第一磨牙髓腔形态的描述不正确的是A.髓室颊舌中径大于近远中径且大于髓室高度B.髓室顶形凹，最凹处约接近牙冠中1／3 
+C.近颊髓角和近舌髓角均接近牙冠中l／3 
+D.远颊髓角和远舌髓角均接近牙冠顶l／3 
+E.近颊根管为双管型或单双管型者共占63%
+参考答案：B
+
+2. 汇合形成面后静脉的是A．面前静脉，颞浅静脉
+B．颞浅静脉，领内静脉
+C．翼静脉丛，颌内静脉
+D．面前静脉，耳后静脉
+E．翼静脉丛，耳后静脉
+参考答案：B`);
     } else {
-      setExampleModalTitle('其它 (Other) 格式示例');
-      setExampleModalContent(OTHER_EXAMPLE);
+      setExampleModalTitle('其它模板示例');
+      setExampleModalContent(
+`1. 以下哪个不是 JavaScript 基本数据类型?( )
+A. String
+B. Number
+C. Array
+D. Boolean
+正确答案:C:Array;
+
+2. 哪个 JSP 动作标记用于动态包含另一个 JSP 页面?( )
+A. jsp:forward
+B. jsp:useBean
+C. jsp:setProperty
+D. jsp:include
+正确答案:D:jsp:include;`);
     }
     setIsExampleModalOpen(true);
   };
@@ -139,7 +192,7 @@ C. Opt3
       return;
     }
     
-    const systemPrompt = '你是一个专业的题库转换助手。请将用户提供的文本精准地转换为结构化的题目数据。题目类型包括单选题、多选题、判断题、简答题。请严格按照以下格式输出，每道题之间用空行分隔：\n单选题：题目内容\nA. 选项1\nB. 选项2\nC. 选项3\nD. 选项4\n答案：A\n解析：可选的解析内容\n\n多选题：题目内容\nA. 选项1\nB. 选项2\nC. 选项3\nD. 选项4\n答案：A, B\n解析：可选的解析内容\n\n判断题：题目内容\n答案：对 或 错 (或 True/False, 正确/错误)\n解析：可选的解析内容\n\n简答题：题目内容\n答案：参考答案\n解析：可选的解析内容';
+    const systemPrompt = CONVERT_SYSTEM_PROMPT;
 
     try {
       let assistantResponse;
@@ -408,6 +461,7 @@ C. Opt3
                   className="flex-grow mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
                 >
                   <option value={ScriptTemplate.ChaoXing}>学习通</option>
+                  <option value={ScriptTemplate.SingleChoice1}>单选题1</option>
                   <option value={ScriptTemplate.Other}>其它</option>
                 </select>
                 <button
@@ -773,12 +827,30 @@ const parseQuestions = (text: string): Omit<Question, 'id'>[] => {
         if (answerIndex >= 0) {
           answer = lines[answerIndex].replace(/^答案：/, '').trim();
         }
-      } 
+      }
+      else if (lines[0].includes('填空题：')) {
+        questionType = QuestionType.FillInBlank;
+        content = lines[0].replace(/^填空题：/, '').trim();
+        
+        // 确保题目内容包含填空符号
+        if (!content.includes('____') && !content.includes('_____')) {
+          content = content.replace(/\(([^)]+)\)/g, '____');  // 把括号中的内容替换为填空符
+        }
+        
+        // 解析答案
+        const answerIndex = lines.findIndex(line => line.startsWith('答案：'));
+        if (answerIndex >= 0) {
+          answer = lines[answerIndex].replace(/^答案：/, '').trim();
+        }
+      }
       else {
         // 尝试自动判断类型
         const hasOptions = lines.some(line => /^[A-Za-z]\./.test(line));
+        const hasFillBlank = lines[0].includes('____') || lines[0].includes('_____'); // 检查是否包含填空符号
         
-        if (hasOptions) {
+        if (hasFillBlank) {
+          questionType = QuestionType.FillInBlank;
+        } else if (hasOptions) {
           // 检查是否为多选
           const answerLine = lines.find(line => line.startsWith('答案：'));
           if (answerLine && answerLine.includes(',')) {
@@ -838,6 +910,12 @@ const parseQuestions = (text: string): Omit<Question, 'id'>[] => {
             } else if (['错', '错误', 'FALSE', 'False', 'false'].includes(answerText)) {
               answer = 'false';
             }
+          }
+        } else if (questionType === QuestionType.FillInBlank) {
+          // 解析填空题答案
+          const answerLine = lines.find(line => line.startsWith('答案：'));
+          if (answerLine) {
+            answer = answerLine.replace(/^答案：/, '').trim();
           }
         } else { // ShortAnswer
           // 解析答案

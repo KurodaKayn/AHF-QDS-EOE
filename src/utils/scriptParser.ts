@@ -18,6 +18,7 @@ interface ParsedOption extends QuestionOption {
 export enum ScriptTemplate {
   ChaoXing = 'chaoxing', // 学习通
   Other = 'other', // 其它
+  SingleChoice1 = 'singlechoice1', // 单选题1格式
 }
 
 /**
@@ -33,6 +34,8 @@ export function parseTextByScript(
   switch (template) {
     case ScriptTemplate.ChaoXing:
       return parseChaoXingTemplate(text);
+    case ScriptTemplate.SingleChoice1:
+      return parseSingleChoice1Template(text);
     case ScriptTemplate.Other:
     default:
       return parseOtherTemplate(text);
@@ -464,5 +467,157 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
   }
   
   console.log(`\n总共解析成功 ${questions.length} 道题目`);
+  return questions;
+}
+
+/**
+ * 解析"单选题1"模板的文本，适用于紧凑格式的单选题
+ * 例如: "1. 题目内容 A.选项1 B.选项2 C.选项3 参考答案：A"
+ * 支持题干和选项混排、选项跨行、A.或A．、参考答案在任意行
+ * 采用顺序扫描+状态机，兼容所有混排和跨行情况
+ * @param text 原始文本输入
+ */
+function parseSingleChoice1Template(text: string): Omit<Question, 'id' | 'bankId'>[] {
+  const questions: Omit<Question, 'id' | 'bankId'>[] = [];
+  if (!text.trim()) return questions;
+
+  enum State { None, Question, Option, Answer }
+  let state: State = State.None;
+
+  // 题号正则
+  const seqReg = /^\s*(\d+)\./;
+  // 选项正则（A. A． 全角/半角）
+  const optReg = /^([A-EＡ-Ｅ])[\.．]\s*(.*)$/;
+  // 参考答案正则
+  const ansReg = /参考答案[:：]?\s*([A-EＡ-Ｅ])/;
+  // 行内选项正则（用于题干和选项混排）
+  const inlineOptReg = /([A-EＡ-Ｅ])[\.．]\s*([^A-EＡ-Ｅ]*)/g;
+  // 工具：全角转半角
+  const toHalf = (ch: string) => String.fromCharCode(ch.charCodeAt(0) > 127 ? ch.charCodeAt(0) - 65248 : ch.charCodeAt(0));
+
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+
+  let bufferQuestion = '';
+  let bufferOption = '';
+  let bufferOptionLetter = '';
+  let bufferOptions: ParsedOption[] = [];
+  let bufferAnswer = '';
+
+  function pushQuestion() {
+    if (!bufferQuestion.trim() || bufferOptions.length === 0 || !bufferAnswer) return;
+    const now = Date.now();
+    questions.push({
+      content: bufferQuestion.trim(),
+      type: QuestionType.SingleChoice,
+      options: bufferOptions.filter(opt => !!opt.letter).map(opt => ({ id: opt.letter as string, content: opt.content.trim() })),
+      answer: bufferAnswer,
+      explanation: '',
+      tags: [],
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // 1. 判断是否为新题号
+    const seqMatch = line.match(seqReg);
+    if (seqMatch) {
+      // 如果已有缓存，先保存上一题
+      if (bufferQuestion && bufferOptions.length && bufferAnswer) {
+        pushQuestion();
+      }
+      // 重置缓存
+      bufferQuestion = '';
+      bufferOptions = [];
+      bufferOption = '';
+      bufferOptionLetter = '';
+      bufferAnswer = '';
+      state = State.Question;
+      // 去掉题号，剩下为题干+选项混合体
+      const afterSeq = line.replace(seqReg, '').trim();
+      // 检查是否有A.或A．，如有则拆分题干和选项
+      const firstOptIdx = afterSeq.search(/([A-EＡ-Ｅ])[\.．]/);
+      if (firstOptIdx !== -1) {
+        bufferQuestion = afterSeq.substring(0, firstOptIdx).trim();
+        const optStr = afterSeq.substring(firstOptIdx);
+        // 用全局正则拆分所有选项
+        let match;
+        let lastLetter = '';
+        let lastContent = '';
+        let lastIndex = 0;
+        let optMatches = Array.from(optStr.matchAll(inlineOptReg));
+        for (let j = 0; j < optMatches.length; j++) {
+          const m = optMatches[j];
+          const letter = toHalf(m[1]);
+          const content = m[2].trim();
+          // 选项内容为当前匹配到的内容+下一个选项前的所有内容
+          let nextStart = j < optMatches.length - 1 ? optMatches[j+1].index : optStr.length;
+          let fullContent = optStr.substring(m.index! + m[0].length, nextStart).trim();
+          // 合并当前正则捕获和后续内容
+          const optionContent = (content + ' ' + fullContent).replace(/\s+/g, ' ').trim();
+          bufferOptions.push({
+            id: letter,
+            letter,
+            content: optionContent
+          });
+        }
+        state = State.Option;
+        continue;
+      } else {
+        bufferQuestion = afterSeq;
+        continue;
+      }
+    }
+
+    // 2. 判断是否为选项（新行的B. C. D. E.）
+    const optMatch = line.match(optReg);
+    if (optMatch) {
+      // 如果有上一选项，先保存
+      if (bufferOptionLetter) {
+        bufferOptions.push({
+          id: bufferOptionLetter,
+          letter: bufferOptionLetter,
+          content: bufferOption.trim(),
+        });
+      }
+      bufferOptionLetter = toHalf(optMatch[1]);
+      bufferOption = optMatch[2].trim();
+      state = State.Option;
+      continue;
+    }
+
+    // 3. 判断是否为参考答案
+    const ansMatch = line.match(ansReg);
+    if (ansMatch) {
+      // 保存最后一个选项
+      if (bufferOptionLetter) {
+        bufferOptions.push({
+          id: bufferOptionLetter,
+          letter: bufferOptionLetter,
+          content: bufferOption.trim(),
+        });
+        bufferOptionLetter = '';
+        bufferOption = '';
+      }
+      bufferAnswer = toHalf(ansMatch[1]);
+      state = State.Answer;
+      continue;
+    }
+
+    // 4. 追加内容到当前状态
+    if (state === State.Question) {
+      bufferQuestion += ' ' + line;
+    } else if (state === State.Option) {
+      bufferOption += ' ' + line;
+    }
+    // 答案状态下的内容忽略
+  }
+  // 处理最后一题
+  if (bufferQuestion && bufferOptions.length && bufferAnswer) {
+    pushQuestion();
+  }
   return questions;
 } 

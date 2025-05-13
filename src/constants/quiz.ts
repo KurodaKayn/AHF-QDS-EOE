@@ -36,7 +36,10 @@ A. jsp:forward
 B. jsp:useBean
 C. jsp:setProperty
 D. jsp:include
-正确答案:D:jsp:include;`;
+正确答案:D:jsp:include;
+
+3. 在Java编程中，____是一种面向对象的编程语言，由Sun公司于____年发布。
+正确答案:Java;1995;`;
 
 /**
  * 题目标签颜色
