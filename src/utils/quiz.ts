@@ -53,10 +53,20 @@ export const createQuestion = (
  */
 export const exportToCSV = (bank: QuestionBank): string => {
   const rows = bank.questions.map(q => {
+    // 格式化答案
+    let formattedAnswer = q.answer;
+    if (q.type === QuestionType.MultipleChoice && Array.isArray(q.answer)) {
+      // 对于多选题，将选项ID数组转换为逗号分隔的字符串
+      formattedAnswer = q.answer.join(',');
+    } else if (q.type === QuestionType.TrueFalse && typeof q.answer === 'string') {
+      // 确保判断题答案是小写的true/false
+      formattedAnswer = q.answer.toLowerCase();
+    }
+
     const baseRow = {
       type: q.type,
       content: q.content,
-      answer: Array.isArray(q.answer) ? q.answer.join(',') : q.answer,
+      answer: formattedAnswer,
       explanation: q.explanation || '',
       tags: q.tags?.join(',') || ''
     };
@@ -67,7 +77,7 @@ export const exportToCSV = (bank: QuestionBank): string => {
         const optKey = `option${String.fromCharCode(65 + index)}`; // A, B, C...
         return { ...acc, [optKey]: opt.content };
       }, {});
-      
+   
       return { ...baseRow, ...optionsObj };
     }
     
@@ -82,10 +92,20 @@ export const exportToCSV = (bank: QuestionBank): string => {
  */
 export const exportToExcel = (bank: QuestionBank): Blob => {
   const rows = bank.questions.map(q => {
+    // 格式化答案
+    let formattedAnswer = q.answer;
+    if (q.type === QuestionType.MultipleChoice && Array.isArray(q.answer)) {
+      // 对于多选题，将选项ID数组转换为逗号分隔的字符串
+      formattedAnswer = q.answer.join(',');
+    } else if (q.type === QuestionType.TrueFalse && typeof q.answer === 'string') {
+      // 确保判断题答案是小写的true/false
+      formattedAnswer = q.answer.toLowerCase();
+    }
+
     const baseRow: Record<string, any> = {
       type: q.type,
       content: q.content,
-      answer: Array.isArray(q.answer) ? q.answer.join(',') : q.answer,
+      answer: formattedAnswer,
       explanation: q.explanation || '',
       tags: q.tags?.join(',') || ''
     };
@@ -119,16 +139,35 @@ export const importFromCSV = (csvString: string, bankName: string): QuestionBank
     .map((row: any) => {
       const type = row.type as QuestionType;
       const content = row.content;
-      const answer = type === QuestionType.MultipleChoice 
-        ? row.answer.split(',') 
-        : row.answer;
+      
+      // 处理不同类型题目的答案
+      let answer: string | string[] = row.answer;
+      if (type === QuestionType.MultipleChoice) {
+        // 处理多选题答案，可能以逗号分隔的字符串或带有双引号的格式
+        answer = typeof row.answer === 'string' 
+          ? row.answer.replace(/["']/g, '').split(/\s*,\s*/).filter(Boolean)
+          : row.answer;
+      } else if (type === QuestionType.TrueFalse) {
+        // 确保判断题答案为小写的 'true' 或 'false'
+        if (typeof row.answer === 'string') {
+          const answerText = row.answer.toString().trim().toLowerCase();
+          // 处理各种可能的表示形式
+          if (['true', 't', '1', '正确', '对', 'yes', 'y', '√'].includes(answerText)) {
+            answer = 'true';
+          } else if (['false', 'f', '0', '错误', '错', 'no', 'n', '×'].includes(answerText)) {
+            answer = 'false';
+          } else {
+            answer = answerText; // 保留原值
+          }
+        }
+      }
       
       // 查找所有选项 (optionA, optionB, ...)
       const optionKeys = Object.keys(row).filter(key => /^option[A-Z]$/.test(key));
       const options = optionKeys
         .filter(key => row[key]?.trim())
         .map(key => ({
-          id: generateId(),
+          id: key.replace('option', ''), // 使用选项字母作为ID
           content: row[key]
         }));
       
@@ -172,16 +211,35 @@ export const importFromExcel = (buffer: ArrayBuffer, bankName: string): Question
     .map((row: any) => {
       const type = row.type as QuestionType;
       const content = row.content;
-      const answer = type === QuestionType.MultipleChoice 
-        ? row.answer.split(',') 
-        : row.answer;
+      
+      // 处理不同类型题目的答案
+      let answer: string | string[] = row.answer;
+      if (type === QuestionType.MultipleChoice) {
+        // 处理多选题答案，可能以逗号分隔的字符串或带有双引号的格式
+        answer = typeof row.answer === 'string' 
+          ? row.answer.replace(/["']/g, '').split(/\s*,\s*/).filter(Boolean)
+          : row.answer;
+      } else if (type === QuestionType.TrueFalse) {
+        // 确保判断题答案为小写的 'true' 或 'false'
+        if (typeof row.answer === 'string') {
+          const answerText = row.answer.toString().trim().toLowerCase();
+          // 处理各种可能的表示形式
+          if (['true', 't', '1', '正确', '对', 'yes', 'y', '√'].includes(answerText)) {
+            answer = 'true';
+          } else if (['false', 'f', '0', '错误', '错', 'no', 'n', '×'].includes(answerText)) {
+            answer = 'false';
+          } else {
+            answer = answerText; // 保留原值
+          }
+        }
+      }
       
       // 查找所有选项 (optionA, optionB, ...)
       const optionKeys = Object.keys(row).filter(key => /^option[A-Z]$/.test(key));
       const options = optionKeys
         .filter(key => row[key]?.trim())
         .map(key => ({
-          id: generateId(),
+          id: key.replace('option', ''), // 使用选项字母作为ID
           content: row[key]
         }));
       
