@@ -74,7 +74,7 @@ export const exportToCSV = (bank: QuestionBank): string => {
     // 为选择题添加选项
     if (q.options && q.options.length > 0) {
       const optionsObj = q.options.reduce((acc, opt, index) => {
-        const optKey = `option${String.fromCharCode(65 + index)}`; // A, B, C...
+        const optKey = `option${String.fromCharCode(65 + index)}`; // 选项A, B, C...
         return { ...acc, [optKey]: opt.content };
       }, {});
    
@@ -113,7 +113,7 @@ export const exportToExcel = (bank: QuestionBank): Blob => {
     // 为选择题添加选项
     if (q.options && q.options.length > 0) {
       q.options.forEach((opt, index) => {
-        const optKey = `option${String.fromCharCode(65 + index)}`; // A, B, C...
+        const optKey = `option${String.fromCharCode(65 + index)}`; // 选项A, B, C...
         baseRow[optKey] = opt.content;
       });
     }

@@ -1,7 +1,7 @@
 import { Question, QuestionOption, QuestionType } from '@/types/quiz';
-// Assuming createOptionId from quiz.ts is a simple ID generator and doesn\'t rely on store context
-// If it does, we might need a simpler local generator or adjust its usage.
-// For now, using a simple local GUID generator.
+// 假设来自quiz.ts的createOptionId是一个简单的ID生成器，不依赖于store上下文
+// 如果它依赖store，我们可能需要一个更简单的本地生成器或调整其使用方式
+// 目前，使用一个简单的本地GUID生成器
 const generateGuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
   const r = Math.random() * 16 | 0;
   const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -9,7 +9,7 @@ const generateGuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/
 });
 
 interface ParsedOption extends QuestionOption {
-  letter?: string; // To temporarily store the original letter like 'A', 'B'
+  letter?: string; // 临时存储原始字母如'A', 'B'
 }
 
 /**
@@ -52,7 +52,7 @@ function parseOtherTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] {
     return questions;
   }
 
-  const questionBlocks = text.trim().split(/\n\s*\n/); // Split by one or more blank lines
+  const questionBlocks = text.trim().split(/\n\s*\n/); // 按一个或多个空行拆分
 
   for (const block of questionBlocks) {
     const lines = block.trim().split('\n').map(line => line.trim()).filter(line => line);
@@ -67,7 +67,7 @@ function parseOtherTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] {
     if (questionLineMatch && questionLineMatch[1]) {
       questionContent = questionLineMatch[1].trim();
     } else if (!lines[0].match(/^([A-Z])\.\s+/) && !lines[0].startsWith('正确答案:')) {
-      questionContent = lines[0]; // Fallback: first line as content if not option/answer
+      questionContent = lines[0]; // 回退：如果第一行不是选项且不是答案行，则作为题目内容
     }
     
     if (!questionContent) continue;

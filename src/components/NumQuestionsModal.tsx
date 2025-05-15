@@ -22,9 +22,9 @@ const NumQuestionsModal: React.FC<NumQuestionsModalProps> = ({
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    // Reset input when modal opens or totalQuestions changes
+    // 当模态框打开或总题目数量变化时重置输入
     if (isOpen) {
-      // Default to a smaller number or total questions if total is small
+      // 默认选择较小的数量或总题目数（如果总数较小）
       const defaultNum = totalQuestions > 0 ? Math.min(10, totalQuestions).toString() : '1';
       setNumQuestions(defaultNum);
       setError('');

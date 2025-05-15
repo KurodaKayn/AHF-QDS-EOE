@@ -55,10 +55,10 @@ export default function QuestionFormModal({
         setAnswer(questionToEdit.answer);
         setExplanation(questionToEdit.explanation || '');
       } else {
-        // Reset form for new question
+        // 重置新题目的表单
         setContent('');
         setType(QuestionType.SingleChoice);
-        setOptions(defaultQuestionOptions.map(opt => ({...opt, content: ''}))); // Ensure content is cleared
+        setOptions(defaultQuestionOptions.map(opt => ({...opt, content: ''}))); // 确保内容被清空
         setAnswer('');
         setExplanation('');
       }
@@ -68,18 +68,18 @@ export default function QuestionFormModal({
 
   const handleTypeChange = (newType: QuestionType) => {
     setType(newType);
-    // Reset options and answer based on type
+    // 根据类型重置选项和答案
     if (newType === QuestionType.TrueFalse) {
       setOptions([
-        { id: 'true', content: '正确' }, // Use fixed IDs for True/False for easier answer mapping
+        { id: 'true', content: '正确' }, // 为判断题使用固定ID，便于答案映射
         { id: 'false', content: '错误' },
       ]);
-      setAnswer(''); // Single string answer
+      setAnswer(''); // 单个字符串答案
     } else if (newType === QuestionType.ShortAnswer || newType === QuestionType.FillInBlank) {
       setOptions([]);
-      setAnswer(''); // Single string answer
-    } else { // SingleChoice, MultipleChoice
-      // If switching back to choice from non-choice, restore default options if current are empty or TF
+      setAnswer(''); // 单个字符串答案
+    } else { // 单选题，多选题
+      // 如果从非选择题切换回选择题，如果当前选项为空或是判断题选项，则恢复默认选项
       if (options.length < 2 || options.some(o => o.id === 'true' || o.id === 'false')) {
          setOptions(defaultQuestionOptions.map(opt => ({...opt, content: ''})));
       }
@@ -99,7 +99,7 @@ export default function QuestionFormModal({
 
   const handleRemoveOption = (optionId: string) => {
     setOptions(prevOptions => prevOptions.filter(opt => opt.id !== optionId));
-    // Also remove from answer if it was selected
+    // 如果被删除的选项是已选答案，也移除答案
     if (type === QuestionType.SingleChoice && answer === optionId) {
       setAnswer('');
     }
@@ -149,11 +149,11 @@ export default function QuestionFormModal({
       content: content.trim(),
       type,
       options: (type === QuestionType.ShortAnswer || type === QuestionType.FillInBlank) ? [] : options.map(o => ({id: o.id, content: o.content.trim()})),
-      answer, // Already in correct format (string or string[])
+      answer, // 已经是正确的格式（字符串或字符串数组）
       explanation: explanation.trim(),
       createdAt: questionToEdit?.createdAt || Date.now(),
       updatedAt: Date.now(),
-      tags: questionToEdit?.tags || [], // Preserve existing tags or default to empty
+      tags: questionToEdit?.tags || [], // 保留现有标签或默认为空
     };
 
     try {
@@ -175,7 +175,7 @@ export default function QuestionFormModal({
         }
       }
       if (onSubmitSuccess) onSubmitSuccess();
-      onClose(); // Close modal on success
+      onClose(); // 成功后关闭模态框
     } catch (error) {
       toast.error('操作失败，请稍后重试。');
       console.error('Failed to save question:', error);
@@ -193,7 +193,7 @@ export default function QuestionFormModal({
         </DialogHeader>
         
         <div className="space-y-4 py-3 overflow-y-auto flex-grow pr-2">
-          {/* Question Type */}
+          {/* 题目类型 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">题目类型</label>
             <Select value={type} onValueChange={(value) => handleTypeChange(value as QuestionType)}>
@@ -206,7 +206,7 @@ export default function QuestionFormModal({
             </Select>
           </div>
 
-          {/* Question Content */}
+          {/* 题目内容 */}
           <div>
             <label htmlFor="questionContent" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">题目内容</label>
             <Textarea 
@@ -219,7 +219,7 @@ export default function QuestionFormModal({
             />
           </div>
 
-          {/* Options for SingleChoice, MultipleChoice, TrueFalse */}
+          {/* 单选题、多选题、判断题的选项 */}
           {(type === QuestionType.SingleChoice || type === QuestionType.MultipleChoice || type === QuestionType.TrueFalse) && (
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -240,7 +240,7 @@ export default function QuestionFormModal({
                       value={option.content} 
                       onChange={(e) => handleOptionContentChange(option.id, e.target.value)} 
                       placeholder={`选项 ${String.fromCharCode(65 + index)} 内容`}
-                      disabled={type === QuestionType.TrueFalse} // True/False options are fixed
+                      disabled={type === QuestionType.TrueFalse} // 判断题选项是固定的
                       className="text-base flex-grow"
                     />
                     {(type === QuestionType.SingleChoice || type === QuestionType.MultipleChoice) && (

@@ -562,8 +562,7 @@ function PracticeContent() {
                 if (loadedQuestions.length > 0) {
                   setIsNumQuestionsModalOpen(true);
                 } else {
-                  // 题库为空，可以给个提示或直接返回
-                  // For now, do nothing, page will show empty state based on practiceQuestions.length === 0
+                  // 题库为空，页面将基于practiceQuestions.length === 0显示空状态
                 }
               }
             }} className="w-full sm:w-auto">

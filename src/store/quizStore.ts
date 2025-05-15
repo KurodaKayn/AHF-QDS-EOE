@@ -11,21 +11,21 @@ export interface QuizSettings {
   shuffleReviewQuestionOrder: boolean;
   markMistakeAsCorrectedOnReviewSuccess: boolean;
 
-  // New AI Provider Settings
+  // 新的AI提供商设置
   aiProvider: 'deepseek' | 'alibaba';
   deepseekApiKey: string;
-  deepseekBaseUrl: string; // e.g., https://api.deepseek.com
+  deepseekBaseUrl: string; // 例如：https://api.deepseek.com
   alibabaApiKey: string;
   // 新增：题目查重开关
   checkDuplicateQuestion: boolean;
-  // Alibaba base URL is fixed: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-  // Alibaba model can be stored here if needed, e.g., qwenModel: string;
+  // 阿里巴巴基础URL是固定的："https://dashscope.aliyuncs.com/compatible-mode/v1"
+  // 阿里巴巴模型可以在这里存储，例如：qwenModel: string;
 }
 
 export interface QuizState {
   questionBanks: QuestionBank[];
   records: QuestionRecord[];
-  settings: QuizSettings; // Settings state including AI provider config
+  settings: QuizSettings; // 设置状态，包括AI提供商配置
 
   // ... (其他状态)
   addQuestionBank: (name: string, description?: string) => QuestionBank;
@@ -40,7 +40,7 @@ export interface QuizState {
   clearRecords: (bankId?: string) => void;
   removeWrongRecordsByQuestionId: (questionIdToRemove: string) => void;
   
-  // Generic setting action
+  // 通用设置操作
   setQuizSetting: <K extends keyof QuizSettings>(key: K, value: QuizSettings[K]) => void;
   resetQuizSettings: () => void;
 }
@@ -53,10 +53,10 @@ const initialSettings: QuizSettings = {
   shuffleReviewQuestionOrder: false,
   markMistakeAsCorrectedOnReviewSuccess: true,
 
-  // AI Provider Defaults
+  // AI提供商默认值
   aiProvider: 'deepseek',
   deepseekApiKey: '',
-  deepseekBaseUrl: 'https://api.deepseek.com', // Default to common public API
+  deepseekBaseUrl: 'https://api.deepseek.com', // 默认为常用公共API
   alibabaApiKey: '',
   // 新增
   checkDuplicateQuestion: true,
@@ -67,7 +67,7 @@ export const useQuizStore = create<QuizState>()(
     (set, get) => ({
       questionBanks: [],
       records: [],
-      settings: initialSettings, // Initialize settings
+      settings: initialSettings, // 初始化设置
 
       addQuestionBank: (name, description = '') => {
         const newBank: QuestionBank = { id: uuidv4(), name, description, questions: [], createdAt: Date.now(), updatedAt: Date.now() };
