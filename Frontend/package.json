@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "next lint",
     "electron": "electron .",
-    "electron:dev": "concurrently \"npm run dev\" \"npm run electron\"",
+    "electron:dev": "concurrently \"pnpm run dev\" \"pnpm run electron\"",
     "build:electron": "next build --no-lint && electron-builder --publish=never",
     "dist": "electron-builder --publish=never",
     "build:electron:win": "next build --no-lint && cross-env ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ electron-builder --win --x64 --publish=never"

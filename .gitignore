@@ -9,6 +9,9 @@ node_modules/
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+.pnpm-store/
+.pnpm-debug.log*
+pnpm-lock.yaml
 
 # testing
 /coverage
