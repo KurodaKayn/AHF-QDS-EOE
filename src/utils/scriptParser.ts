@@ -134,33 +134,71 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
 
   // 预处理：删除多余空格和换行，统一冒号格式
   let cleanedText = text.replace(/\r\n/g, '\n').replace(/\n\s*\n/g, '\n');
-  // 移除所有"AI讲解"及其后面的内容，直到下一题或文本结束
-  cleanedText = cleanedText.replace(/AI讲解[\s\S]*?(?=\d+\.\s*\(|\Z)/g, '\n');
+  
+  // 改进: 更精细地处理AI讲解，确保不会干扰题目识别
+  // 先标记所有AI讲解的位置，而不是直接删除
+  cleanedText = cleanedText.replace(/AI讲解/g, '###AI讲解###');
   
   // 打印调试信息
   console.log("处理学习通格式文本，字符数：", cleanedText.length);
+  console.log("预处理后前100个字符:", cleanedText.substring(0, 100));
   
-  // 按题目编号拆分文本，更精确的正则表达式
-  const questionRegex = /(\d+\.\s*\([^)]+\)[\s\S]*?)(?=\d+\.\s*\(|\Z)/g;
-  const matches = Array.from(cleanedText.matchAll(questionRegex));
+  // 改进: 更精确的题目识别模式，使用多个策略匹配
+  // 策略1: 按题号和类型匹配 - 例如 "3. (单选题)"
+  const questionRegex1 = /(\d+\s*\.\s*\([^)]+\)[^]*?)(?=\d+\s*\.\s*\(|\s*###AI讲解###|$)/g;
+  // 策略2: 按题号和"我的答案"+"正确答案"模式匹配
+  const questionRegex2 = /(\d+\s*\.\s*[^]*?我的答案[^]*?正确答案[^]*?)(?=\d+\s*\.\s*|\s*###AI讲解###|$)/g;
+  // 策略3: 按题号和分数行匹配
+  const questionRegex3 = /(\d+\s*\.\s*[^]*?\d+\.?\d*分\s*)(?=\d+\s*\.\s*|\s*###AI讲解###|$)/g;
   
-  console.log("匹配到题目数量：", matches.length);
+  // 尝试所有匹配策略
+  let matches1 = Array.from(cleanedText.matchAll(questionRegex1));
+  console.log("策略1匹配到题目数量：", matches1.length);
   
-  // 如果没有匹配到题目，尝试使用另一种拆分方法
+  let matches2 = Array.from(cleanedText.matchAll(questionRegex2));
+  console.log("策略2匹配到题目数量：", matches2.length);
+  
+  let matches3 = Array.from(cleanedText.matchAll(questionRegex3));
+  console.log("策略3匹配到题目数量：", matches3.length);
+  
+  // 选择匹配数量最多的策略
   let questionBlocks: string[] = [];
-  if (matches.length > 0) {
-    questionBlocks = matches.map(match => match[1].trim());
+  let bestMatches = matches1;
+  if (matches2.length > bestMatches.length) bestMatches = matches2;
+  if (matches3.length > bestMatches.length) bestMatches = matches3;
+  
+  if (bestMatches.length > 0) {
+    questionBlocks = bestMatches.map(match => match[1].trim());
+    console.log("选择最佳匹配策略，匹配数量：", bestMatches.length);
   } else {
-    // 回退方法：根据题号直接拆分
-    questionBlocks = cleanedText.split(/(?=\d+\.\s*\()/);
-    console.log("使用备用拆分方法，拆分数量：", questionBlocks.length);
+    // 如果所有策略都失败，回退到简单的题号分割
+    questionBlocks = cleanedText.split(/(?=\d+\s*\.\s*\()/);
+    console.log("所有匹配策略失败，使用简单分割，块数：", questionBlocks.length);
   }
   
+  // 记录每个题目块的前50个字符，帮助调试
+  console.log("题目块预览：");
+  questionBlocks.forEach((block, i) => {
+    console.log(`块${i+1}的前50个字符: "${block.substring(0, 50).replace(/\n/g, '\\n')}..."`);
+  });
+  
+  // 过滤掉过短或无效的块
+  questionBlocks = questionBlocks.filter(block => {
+    // 块至少应该包含题目标识和一些内容
+    return block.trim().length > 10 && /\d+\s*\.\s*/.test(block);
+  });
+  console.log("过滤后的有效题目块数量：", questionBlocks.length);
+  
+  // 处理每个题目块
   for (let i = 0; i < questionBlocks.length; i++) {
-    const block = questionBlocks[i];
-    if (!block.trim()) continue;
+    const block = questionBlocks[i].replace(/###AI讲解###[^]*?(?=\d+\s*\.\s*|$)/g, '');
+    if (!block.trim()) {
+      console.log(`跳过空的题目块 ${i+1}`);
+      continue;
+    }
     
-    console.log(`\n处理第${i+1}个题目块：`, block.substring(0, 50) + (block.length > 50 ? "..." : ""));
+    console.log(`\n处理第${i+1}个题目块：长度=${block.length}`);
+    console.log(`题目块前100字符: "${block.substring(0, 100).replace(/\n/g, '\\n')}..."`);
     
     // 按行拆分，清理每行
     const lines = block.split('\n')
@@ -176,39 +214,72 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
     let questionType: QuestionType;
     let questionContent = '';
     
+    // 改进: 增强题目类型和内容提取的稳健性
     // 匹配题目类型和内容 - 格式：数字. (类型)内容
-    const questionTypeMatch = lines[0].match(/^\d+\.\s*\(([^)]+)\)(.+)$/);
+    const questionTypeMatch = lines[0].match(/^\d+\s*\.\s*(?:\(([^)]+)\))?\s*(.+)$/);
     
     if (questionTypeMatch) {
-      const typeText = questionTypeMatch[1].toLowerCase();
+      // questionTypeMatch[1]可能是undefined（如果没有括号类型）
+      const typeText = questionTypeMatch[1] ? questionTypeMatch[1].toLowerCase() : '';
       questionContent = questionTypeMatch[2].trim();
       
-      console.log("提取到题目类型:", typeText);
+      console.log("提取到题目类型:", typeText || '无类型标记');
       console.log("提取到题目内容:", questionContent);
       
-      if (typeText.includes('填空题')) {
+      if (typeText.includes('填空')) {
         questionType = QuestionType.FillInBlank;
-      } else if (typeText.includes('单选题')) {
+      } else if (typeText.includes('单选')) {
         questionType = QuestionType.SingleChoice;
-      } else if (typeText.includes('多选题')) {
+      } else if (typeText.includes('多选')) {
         questionType = QuestionType.MultipleChoice;
-      } else if (typeText.includes('判断题')) {
+      } else if (typeText.includes('判断')) {
         questionType = QuestionType.TrueFalse;
       } else {
-        questionType = QuestionType.ShortAnswer;
+        // 尝试从内容推断题型
+        if (block.includes('A.') || block.includes('A．') || block.match(/\([A-D]\)/)) {
+          // 有ABCD选项标记，可能是选择题
+          questionType = block.includes('正确答案:') && block.match(/正确答案[:：]\s*[A-D],?[A-D]?/) 
+            ? QuestionType.MultipleChoice // 有多个字母的是多选
+            : QuestionType.SingleChoice;  // 否则是单选
+        } else if (block.includes('判断') || block.includes('正确答案:对') || block.includes('正确答案:错')) {
+          questionType = QuestionType.TrueFalse;
+        } else if (block.includes('____') || block.includes('填空')) {
+          questionType = QuestionType.FillInBlank;
+        } else {
+          questionType = QuestionType.SingleChoice; // 默认
+        }
+        console.log("从内容推断题型:", questionType);
       }
     } else {
-      // 无法匹配类型，尝试提取题目内容
-      questionContent = lines[0];
-      // 根据下划线判断是否是填空题
-      if (questionContent.includes('____')) {
-        questionType = QuestionType.FillInBlank;
+      // 无法匹配标准格式，尝试更宽松的提取
+      console.log("无法匹配标准题目格式，尝试备用提取");
+      
+      // 查找第一行中的数字+点格式
+      const basicMatch = lines[0].match(/^\d+\s*\.\s*(.+)$/);
+      if (basicMatch) {
+        questionContent = basicMatch[1].trim();
       } else {
-        questionType = QuestionType.SingleChoice; // 默认为单选
+        questionContent = lines[0]; // 回退到使用整行
       }
       
-      console.log("无法匹配类型，使用默认题型:", 
-        questionType === QuestionType.FillInBlank ? "填空题" : "单选题");
+      // 尝试从内容和后续行推断题型
+      if (lines.some(l => l.match(/^[A-D][\.\．]/) || l.match(/\([A-D]\)/))) {
+        // 检测是否有多个答案标记
+        const multiAnswer = lines.some(l => 
+          l.match(/正确答案[:：]\s*[A-D][,，、][A-D]/) || 
+          l.match(/正确答案[:：]\s*\[[A-D][,，、][A-D]\]/));
+          
+        questionType = multiAnswer ? QuestionType.MultipleChoice : QuestionType.SingleChoice;
+      } else if (lines.some(l => l.includes('判断') || l.includes('正确答案:对') || l.includes('正确答案:错'))) {
+        questionType = QuestionType.TrueFalse;
+      } else if (questionContent.includes('____') || lines.some(l => l.includes('填空'))) {
+        questionType = QuestionType.FillInBlank;
+      } else {
+        questionType = QuestionType.SingleChoice; // 默认
+      }
+      
+      console.log("备用方法提取题目内容:", questionContent);
+      console.log("备用方法推断题型:", questionType);
     }
     
     if (!questionContent) {
