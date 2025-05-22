@@ -4,88 +4,43 @@
   "description": "题库练习应用 - 一个帮助学习与测试的工具",
   "author": "KurodaKayn",
   "private": true,
-  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "electron": "electron .",
-    "electron:dev": "concurrently \"pnpm run dev\" \"pnpm run electron\"",
-    "build:electron": "next build --no-lint && electron-builder --publish=never",
-    "dist": "electron-builder --publish=never",
-    "build:electron:win": "next build --no-lint && cross-env ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ electron-builder --win --x64 --publish=never"
-  },
-  "build": {
-    "appId": "com.ahf-qds-eoe",
-    "productName": "AHF QDS EOE",
-    "mac": {
-      "category": "public.app-category.utilities",
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "icon": "build/icon.icns"
-    },
-    "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ],
-      "icon": "build/icon.jpg",
-      "artifactName": "${productName}-Setup-${version}.${ext}"
-    },
-    "files": [
-      "electron/**/*",
-      "node_modules/**/*",
-      "public/**/*",
-      "package.json",
-      "out/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "out",
-        "to": "app.asar.unpacked/out"
-      },
-      {
-        "from": "public",
-        "to": "app.asar.unpacked/public"
-      }
-    ],
-    "asar": true,
-    "asarUnpack": [
-      "out/**/*"
-    ],
-    "directories": {
-      "buildResources": "resources",
-      "output": "dist"
-    },
-    "extraMetadata": {
-      "main": "electron/main.js"
-    }
+    "lint": "next lint"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.2",
+    "@prisma/client": "^6.8.2",
     "@radix-ui/react-checkbox": "^1.3.1",
     "@radix-ui/react-dialog": "^1.1.13",
+    "@radix-ui/react-icons": "^1.3.2",
+    "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-progress": "^1.1.6",
     "@radix-ui/react-scroll-area": "^1.2.8",
     "@radix-ui/react-select": "^2.2.4",
+    "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.2",
+    "@radix-ui/react-switch": "^1.2.5",
+    "@radix-ui/react-tooltip": "^1.2.7",
     "@tailwindcss/typography": "^0.5.16",
+    "@types/bcrypt": "^5.0.2",
     "@types/uuid": "^10.0.0",
     "axios": "^1.9.0",
+    "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "electron-serve": "^1.2.0",
     "express": "^4.18.3",
     "lucide-react": "^0.509.0",
     "next": "15.3.2",
+    "next-auth": "5.0.0-beta.28",
     "node-fetch": "^2.7.0",
     "openai": "^4.98.0",
     "papaparse": "^5.5.2",
     "portfinder": "^1.0.32",
+    "prisma": "^6.8.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
@@ -98,7 +53,7 @@
     "remark-html": "^16.0.1",
     "sharp": "^0.34.1",
     "sonner": "^2.0.3",
-    "tailwind-merge": "^3.2.0",
+    "tailwind-merge": "^3.3.0",
     "uuid": "^11.1.0",
     "xlsx": "^0.18.5",
     "zustand": "^5.0.4"
@@ -110,15 +65,10 @@
     "@types/papaparse": "^5.3.16",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "concurrently": "^8.2.2",
-    "cross-env": "^7.0.3",
-    "electron": "^30.0.4",
-    "electron-builder": "^24.9.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.2.9",
-    "typescript": "^5",
-    "wait-on": "^7.2.0"
+    "typescript": "^5"
   }
 }

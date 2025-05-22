@@ -21,7 +21,7 @@ out/
 # production
 build/
 dist/
-
+generated/
 # misc
 .DS_Store
 *.pem
@@ -32,8 +32,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-Frontend/.env*
+# env files
+.env*
 
 
 # typescript

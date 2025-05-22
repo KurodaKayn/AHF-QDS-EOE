@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型
+model User {
+  id            String    @id @default(uuid())
+  username      String    @unique
+  email         String    @unique
+  passwordHash  String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // 关联
+  questionBanks QuestionBank[]
+  records       QuestionRecord[]
+  settings      UserSettings?
+}
+
+// 用户设置模型
+model UserSettings {
+  id        String   @id @default(uuid())
+  settings  Json     // 存储所有设置的JSON对象
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关联
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// 问题银行模型
+model QuestionBank {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  // 关联
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions   Question[]
+
+  @@index([userId])
+}
+
+// 问题模型
+model Question {
+  id          String    @id @default(uuid())
+  content     String    @db.Text
+  type        String // 'single', 'multiple', 'truefalse', 'essay'
+  options     Json? // 存储选项数组
+  answer      String    @db.Text
+  explanation String?   @db.Text
+  difficulty  String?
+  tags        String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // 关联
+  bankId      String
+  bank        QuestionBank @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  records     QuestionRecord[]
+
+  @@index([bankId])
+}
+
+// 问题记录模型
+model QuestionRecord {
+  id          String    @id @default(uuid())
+  isCorrect   Boolean
+  answer      String    @db.Text
+  createdAt   DateTime  @default(now())
+
+  // 关联
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@index([userId])
+}
