@@ -137,6 +137,28 @@ function PracticeContent() {
     }
   }, [bankId, getQuestionBankById, isReviewMode, records, router, settings.shuffleReviewOptions, settings.shuffleReviewQuestionOrder, settings.markMistakeAsCorrectedOnReviewSuccess, quizCompleted]); // Added router to dependency array
 
+  // 添加自动继续相关的useEffect
+  useEffect(() => {
+    // 检查是否已经回答了当前问题
+    if (isCurrentQuestionAnswered && !showAnswer && (settings as any).autoContinue) {
+      // 自动显示答案
+      const timer = setTimeout(() => {
+        handleShowAnswer();
+        
+        // 如果不是最后一题，设置一个延迟后自动前进到下一题
+        if (!isLastQuestion) {
+          const nextTimer = setTimeout(() => {
+            handleNextQuestion();
+          }, 1500); // 1.5秒后自动进入下一题
+          
+          return () => clearTimeout(nextTimer);
+        }
+      }, 800); // 0.8秒后显示答案
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isCurrentQuestionAnswered, showAnswer, settings, isLastQuestion]);
+
   const handleNumQuestionsSubmit = (numToPractice: number) => {
     setIsNumQuestionsModalOpen(false);
     let questionsToSet = [...allBankQuestions];

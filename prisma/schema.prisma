@@ -43,6 +43,15 @@ model UserSettings {
   @@index([userId])
 }
 
+// 题目类型枚举
+enum QuestionType {
+  SINGLE_CHOICE // 单选题
+  MULTIPLE_CHOICE // 多选题
+  TRUE_FALSE // 判断题
+  SHORT_ANSWER // 简答题
+  FILL_IN_BLANK // 填空题
+}
+
 // 问题银行模型
 model QuestionBank {
   id          String     @id @default(uuid())
@@ -63,12 +72,11 @@ model QuestionBank {
 model Question {
   id          String    @id @default(uuid())
   content     String    @db.Text
-  type        String // 'single', 'multiple', 'truefalse', 'essay'
+  type        QuestionType
   options     Json? // 存储选项数组
-  answer      String    @db.Text
+  answer      Json     @db.Json // 可能是字符串或字符串数组
   explanation String?   @db.Text
-  difficulty  String?
-  tags        String
+  tags        Json?     @db.Json // 存储标签数组
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -84,7 +92,7 @@ model Question {
 model QuestionRecord {
   id          String    @id @default(uuid())
   isCorrect   Boolean
-  answer      String    @db.Text
+  answer      Json      @db.Json // 存储用户答案，可能是字符串或字符串数组
   createdAt   DateTime  @default(now())
 
   // 关联

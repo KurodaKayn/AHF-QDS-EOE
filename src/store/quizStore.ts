@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { Question, QuestionBank, QuestionRecord, QuestionType, QuestionOption } from '@/types/quiz';
 import { v4 as uuidv4 } from 'uuid';
 import { SIMILAR_QUESTIONS_PROMPT, callAI } from '@/constants/ai';
+import * as quizApi from '@/lib/api/quizApi';
 
 // 定义设置的接口
 export interface QuizSettings {
@@ -11,6 +12,10 @@ export interface QuizSettings {
   shufflePracticeQuestionOrder: boolean;
   shuffleReviewQuestionOrder: boolean;
   markMistakeAsCorrectedOnReviewSuccess: boolean;
+  checkDuplicateQuestion: boolean;
+  showDetailedExplanations: boolean;
+  autoContinue: boolean;
+  theme: 'light' | 'dark' | 'system';
 
   // 新的AI提供商设置
   aiProvider: 'deepseek' | 'alibaba';
@@ -18,7 +23,6 @@ export interface QuizSettings {
   deepseekBaseUrl: string; // 例如：https://api.deepseek.com
   alibabaApiKey: string;
   // 新增：题目查重开关
-  checkDuplicateQuestion: boolean;
   // 阿里巴巴基础URL是固定的："https://dashscope.aliyuncs.com/compatible-mode/v1"
   // 阿里巴巴模型可以在这里存储，例如：qwenModel: string;
 }
@@ -27,6 +31,9 @@ export interface QuizState {
   questionBanks: QuestionBank[];
   records: QuestionRecord[];
   settings: QuizSettings; // 设置状态，包括AI提供商配置
+  isCloudMode: boolean;
+  isLoadingCloud: boolean;
+  lastCloudSync: number | null;
 
   // >>> 新增状态，用于相似题目功能
   isSimilarQuestionsModalOpen: boolean;
@@ -35,17 +42,17 @@ export interface QuizState {
   selectedOriginalQuestionsForSimilarity: Question[]; 
   // <<< 新增状态结束
 
-  addQuestionBank: (name: string, description?: string) => QuestionBank;
+  addQuestionBank: (name: string, description?: string) => Promise<QuestionBank>;
   getQuestionBankById: (id: string) => QuestionBank | undefined;
-  updateQuestionBank: (id: string, name: string, description?: string) => void;
-  deleteQuestionBank: (id: string) => void;
-  addQuestionToBank: (bankId: string, question: Omit<Question, 'id'>) => { question: Question | null; isDuplicate: boolean };
-  updateQuestionInBank: (bankId: string, questionId: string, questionData: Partial<Omit<Question, 'id'>>) => Question | null;
-  deleteQuestionFromBank: (bankId: string, questionId: string) => void;
+  updateQuestionBank: (id: string, name: string, description?: string) => Promise<void>;
+  deleteQuestionBank: (id: string) => Promise<void>;
+  addQuestionToBank: (bankId: string, question: Omit<Question, 'id'>) => Promise<{ question: Question | null; isDuplicate: boolean }>;
+  updateQuestionInBank: (bankId: string, questionId: string, questionData: Partial<Omit<Question, 'id'>>) => Promise<Question | null>;
+  deleteQuestionFromBank: (bankId: string, questionId: string) => Promise<void>;
   getQuestionById: (questionId: string) => { question: Question, bank: QuestionBank } | undefined;
-  addRecord: (record: Omit<QuestionRecord, 'id'>) => void;
-  clearRecords: (bankId?: string) => void;
-  removeWrongRecordsByQuestionId: (questionIdToRemove: string) => void;
+  addRecord: (record: Omit<QuestionRecord, 'id'>) => Promise<void>;
+  clearRecords: (bankId?: string) => Promise<void>;
+  removeWrongRecordsByQuestionId: (questionIdToRemove: string) => Promise<void>;
   
   // 通用设置操作
   setQuizSetting: <K extends keyof QuizSettings>(key: K, value: QuizSettings[K]) => void;
@@ -57,15 +64,23 @@ export interface QuizState {
   generateSimilarQuestions: (originalQuestions: Question[]) => Promise<void>; 
   importGeneratedQuestions: (selectedQuestions: Question[], targetBankId: string) => Promise<{ success: boolean; importedCount: number; skippedCount: number; error?: string }>;
   // <<< 新增操作结束
+
+  setCloudMode: (cloud: boolean) => void;
+  syncFromCloud: () => Promise<void>;
+  uploadBankToCloud: (bankId: string) => Promise<void>;
 }
 
 // 初始设置
 const initialSettings: QuizSettings = {
-  shufflePracticeOptions: false,
-  shuffleReviewOptions: false,
+  shufflePracticeOptions: true,
+  shuffleReviewOptions: true,
   shufflePracticeQuestionOrder: false,
   shuffleReviewQuestionOrder: false,
   markMistakeAsCorrectedOnReviewSuccess: true,
+  checkDuplicateQuestion: true,
+  showDetailedExplanations: true,
+  autoContinue: false,
+  theme: 'system',
 
   // AI提供商默认值
   aiProvider: 'deepseek',
@@ -73,7 +88,7 @@ const initialSettings: QuizSettings = {
   deepseekBaseUrl: 'https://api.deepseek.com', // 默认为常用公共API
   alibabaApiKey: '',
   // 新增
-  checkDuplicateQuestion: true,
+  // 阿里巴巴模型可以在这里存储，例如：qwenModel: string;
 };
 
 export const useQuizStore = create<QuizState>()(
@@ -82,6 +97,9 @@ export const useQuizStore = create<QuizState>()(
       questionBanks: [],
       records: [],
       settings: initialSettings, // 初始化设置
+      isCloudMode: false,
+      isLoadingCloud: false,
+      lastCloudSync: null,
 
       // >>> 初始化新增状态
       isSimilarQuestionsModalOpen: false,
@@ -90,96 +108,109 @@ export const useQuizStore = create<QuizState>()(
       selectedOriginalQuestionsForSimilarity: [],
       // <<< 初始化新增状态结束
 
-      addQuestionBank: (name, description = '') => {
-        const newBank: QuestionBank = { id: uuidv4(), name, description, questions: [], createdAt: Date.now(), updatedAt: Date.now() };
-        set((state) => ({ questionBanks: [...state.questionBanks, newBank] }));
-        return newBank;
+      addQuestionBank: async (name, description) => {
+        if (get().isCloudMode) {
+          const bank = await quizApi.createQuestionBank({ name, description });
+          await get().syncFromCloud();
+          return bank;
+        } else {
+          const newBank: QuestionBank = { id: uuidv4(), name, description, questions: [], createdAt: Date.now(), updatedAt: Date.now() };
+          set((state) => ({ questionBanks: [...state.questionBanks, newBank] }));
+          return newBank;
+        }
       },
       getQuestionBankById: (id) => get().questionBanks.find(bank => bank.id === id),
-      updateQuestionBank: (id, name, description) => {
-        set((state) => ({
-          questionBanks: state.questionBanks.map(bank =>
-            bank.id === id ? { ...bank, name, description: description ?? bank.description, updatedAt: Date.now() } : bank
-          ),
-        }));
-      },
-      deleteQuestionBank: (id) => {
-        set((state) => ({
-          questionBanks: state.questionBanks.filter(bank => bank.id !== id),
-          records: state.records.filter(record => {
-            const questionBank = state.questionBanks.find(qb => qb.questions.some(q => q.id === record.questionId));
-            return questionBank ? questionBank.id !== id : true;
-          })
-        }));
-      },
-      addQuestionToBank: (bankId, questionData) => {
-        const bank = get().getQuestionBankById(bankId);
-        if (!bank) {
-          return { question: null, isDuplicate: false };
+      updateQuestionBank: async (id, name, description) => {
+        if (get().isCloudMode) {
+          await quizApi.updateQuestionBank({ id, name, description });
+          await get().syncFromCloud();
+        } else {
+          set((state) => ({
+            questionBanks: state.questionBanks.map(bank =>
+              bank.id === id ? { ...bank, name, description: description ?? bank.description, updatedAt: Date.now() } : bank
+            ),
+          }));
         }
-        // 只有开启查重时才查重
-        const checkDuplicate = get().settings.checkDuplicateQuestion;
-        let duplicateQuestion = undefined;
-        if (checkDuplicate) {
-          duplicateQuestion = bank.questions.find(
-            q => q.content.trim() === questionData.content.trim()
-          );
-        }
-        if (duplicateQuestion) {
-          return { question: null, isDuplicate: true };
-        }
-        // 不存在重复，添加新题目
-        const newQuestion: Question = { ...questionData, id: uuidv4() };
-        let updatedBank: QuestionBank | undefined;
-        set((state) => ({
-          questionBanks: state.questionBanks.map(bank => {
-            if (bank.id === bankId) {
-              updatedBank = { 
-                ...bank, 
-                questions: [...bank.questions, newQuestion], 
-                updatedAt: Date.now() 
-              };
-              return updatedBank;
-            }
-            return bank;
-          }),
-        }));
-        return { 
-          question: updatedBank ? newQuestion : null, 
-          isDuplicate: false 
-        };
       },
-      updateQuestionInBank: (bankId, questionId, questionData) => {
-        let updatedQuestion : Question | null = null;
-        set((state) => ({
-          questionBanks: state.questionBanks.map(bank => {
-            if (bank.id === bankId) {
-              return {
-                ...bank,
-                questions: bank.questions.map(q => {
-                  if (q.id === questionId) {
-                    updatedQuestion = { ...q, ...questionData, id: questionId };
-                    return updatedQuestion;
-                  }
-                  return q;
-                }),
-                updatedAt: Date.now(),
-              };
-            }
-            return bank;
-          }),
-        }));
-        return updatedQuestion;
+      deleteQuestionBank: async (id) => {
+        if (get().isCloudMode) {
+          await quizApi.deleteQuestionBank(id);
+          await get().syncFromCloud();
+        } else {
+          set((state) => ({
+            questionBanks: state.questionBanks.filter(bank => bank.id !== id),
+            records: state.records.filter(record => {
+              const questionBank = state.questionBanks.find(qb => qb.questions.some(q => q.id === record.questionId));
+              return questionBank ? questionBank.id !== id : true;
+            })
+          }));
+        }
       },
-      deleteQuestionFromBank: (bankId, questionId) => {
-        set((state) => ({
-          questionBanks: state.questionBanks.map(bank =>
-            bank.id === bankId
-              ? { ...bank, questions: bank.questions.filter(q => q.id !== questionId), updatedAt: Date.now() }
-              : bank
-          ),
-          records: state.records.filter(record => record.questionId !== questionId)
-        }));
+      addQuestionToBank: async (bankId, questionData) => {
+        if (get().isCloudMode) {
+          const res = await quizApi.createQuestion(bankId, questionData);
+          await get().syncFromCloud();
+          return { question: res, isDuplicate: false };
+        } else {
+          const bank = get().getQuestionBankById(bankId);
+          if (!bank) return { question: null, isDuplicate: false };
+          const checkDuplicate = get().settings.checkDuplicateQuestion;
+          let duplicateQuestion = undefined;
+          if (checkDuplicate) {
+            duplicateQuestion = bank.questions.find(q => q.content.trim() === questionData.content.trim());
+          }
+          if (duplicateQuestion) return { question: null, isDuplicate: true };
+          const newQuestion: Question = { ...questionData, id: uuidv4() };
+          set((state) => ({
+            questionBanks: state.questionBanks.map(bank =>
+              bank.id === bankId ? { ...bank, questions: [...bank.questions, newQuestion], updatedAt: Date.now() } : bank
+            ),
+          }));
+          return { question: newQuestion, isDuplicate: false };
+        }
+      },
+      updateQuestionInBank: async (bankId, questionId, questionData) => {
+        if (get().isCloudMode) {
+          const res = await quizApi.updateQuestion(bankId, questionId, questionData);
+          await get().syncFromCloud();
+          return res;
+        } else {
+          let updatedQuestion: Question | null = null;
+          set((state) => ({
+            questionBanks: state.questionBanks.map(bank => {
+              if (bank.id === bankId) {
+                return {
+                  ...bank,
+                  questions: bank.questions.map(q => {
+                    if (q.id === questionId) {
+                      updatedQuestion = { ...q, ...questionData, id: questionId };
+                      return updatedQuestion;
+                    }
+                    return q;
+                  }),
+                  updatedAt: Date.now(),
+                };
+              }
+              return bank;
+            }),
+          }));
+          return updatedQuestion;
+        }
+      },
+      deleteQuestionFromBank: async (bankId, questionId) => {
+        if (get().isCloudMode) {
+          await quizApi.deleteQuestion(bankId, questionId);
+          await get().syncFromCloud();
+        } else {
+          set((state) => ({
+            questionBanks: state.questionBanks.map(bank =>
+              bank.id === bankId
+                ? { ...bank, questions: bank.questions.filter(q => q.id !== questionId), updatedAt: Date.now() }
+                : bank
+            ),
+            records: state.records.filter(record => record.questionId !== questionId)
+          }));
+        }
       },
       getQuestionById: (questionId) => {
         for (const bank of get().questionBanks) {
@@ -190,28 +221,43 @@ export const useQuizStore = create<QuizState>()(
         }
         return undefined;
       },
-      addRecord: (record) => {
-        const newRecord: QuestionRecord = { ...record, id: uuidv4() };
-        set((state) => ({ records: [...state.records, newRecord] }));
+      addRecord: async (record) => {
+        if (get().isCloudMode) {
+          await quizApi.createQuestionRecord(record);
+          await get().syncFromCloud();
+        } else {
+          const newRecord: QuestionRecord = { ...record, id: uuidv4() };
+          set((state) => ({ records: [...state.records, newRecord] }));
+        }
       },
-      clearRecords: (bankId) => {
-        if (bankId) {
+      clearRecords: async (bankId) => {
+        if (get().isCloudMode) {
+          await quizApi.clearQuestionRecords(bankId);
+          await get().syncFromCloud();
+        } else {
+          if (bankId) {
             const bank = get().getQuestionBankById(bankId);
             if (!bank) return;
             const questionIdsInBank = bank.questions.map(q => q.id);
             set(state => ({
-                records: state.records.filter(r => !questionIdsInBank.includes(r.questionId))
+              records: state.records.filter(r => !questionIdsInBank.includes(r.questionId))
             }));
-        } else {
+          } else {
             set({ records: [] });
+          }
         }
       },
-      removeWrongRecordsByQuestionId: (questionIdToRemove) => {
-        set((state) => ({
-          records: state.records.filter(record => 
-            !(record.questionId === questionIdToRemove && !record.isCorrect)
-          ),
-        }));
+      removeWrongRecordsByQuestionId: async (questionIdToRemove) => {
+        if (get().isCloudMode) {
+          await quizApi.deleteWrongRecordsByQuestionId(questionIdToRemove);
+          await get().syncFromCloud();
+        } else {
+          set((state) => ({
+            records: state.records.filter(record =>
+              !(record.questionId === questionIdToRemove && !record.isCorrect)
+            ),
+          }));
+        }
       },
       
       // Settings actions
@@ -224,10 +270,7 @@ export const useQuizStore = create<QuizState>()(
         }));
       },
       resetQuizSettings: () => {
-        set((state) => ({ // Pass the current state to ensure other parts of the state are not affected
-            ...state, 
-            settings: initialSettings 
-        }));
+        set((state) => ({ ...state, settings: initialSettings }));
       },
 
       // >>> 实现新增操作
@@ -362,7 +405,7 @@ export const useQuizStore = create<QuizState>()(
 
         for (const question of selectedQuestions) {
           const { id, ...questionData } = question; // id is not needed for addQuestionToBank
-          const result = addQuestionToBank(targetBankId, questionData);
+          const result = await addQuestionToBank(targetBankId, questionData);
           if (result.question) {
             importedCount++;
           } else if (result.isDuplicate) {
@@ -375,6 +418,24 @@ export const useQuizStore = create<QuizState>()(
         return { success: true, importedCount, skippedCount };
       },
       // <<< 实现新增操作结束
+
+      setCloudMode: (cloud) => set({ isCloudMode: cloud }),
+      syncFromCloud: async () => {
+        set({ isLoadingCloud: true });
+        const banks = await quizApi.getUserQuestionBanks();
+        const records = await quizApi.getUserQuestionRecords();
+        set({ questionBanks: banks, records, isLoadingCloud: false, lastCloudSync: Date.now() });
+      },
+      uploadBankToCloud: async (bankId) => {
+        const bank = get().getQuestionBankById(bankId);
+        if (!bank) throw new Error('题库不存在');
+        const created = await quizApi.createQuestionBank({ name: bank.name, description: bank.description });
+        for (const q of bank.questions) {
+          const { id, createdAt, updatedAt, ...data } = q;
+          await quizApi.createQuestion(created.id, data);
+        }
+        await get().syncFromCloud();
+      },
     }),
     {
       name: 'quiz-storage', 
@@ -383,6 +444,8 @@ export const useQuizStore = create<QuizState>()(
         questionBanks: state.questionBanks, 
         records: state.records, 
         settings: state.settings, // Persist the entire settings object
+        isCloudMode: state.isCloudMode,
+        lastCloudSync: state.lastCloudSync,
       }),
       merge: (persistedState, currentState) => {
         const merged = { ...currentState, ...(persistedState as Partial<QuizState>) };

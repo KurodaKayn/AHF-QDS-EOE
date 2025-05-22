@@ -42,8 +42,8 @@ export interface UserSettingsData {
  */
 export const defaultSettings: UserSettingsData = {
   theme: 'system',
-  shufflePracticeOptions: false,
-  shuffleReviewOptions: false,
+  shufflePracticeOptions: true,
+  shuffleReviewOptions: true,
   shufflePracticeQuestionOrder: false,
   shuffleReviewQuestionOrder: false,
   markMistakeAsCorrectedOnReviewSuccess: true,
