@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   FaBook, 
   FaPencilAlt, 
@@ -15,10 +15,13 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaRandom,
-  FaSyncAlt
+  FaSyncAlt,
+  FaSignOutAlt
 } from 'react-icons/fa';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
 
 // 导航项定义
 const navItems = [
@@ -34,182 +37,102 @@ const navItems = [
  * 支持响应式设计，侧边栏可收起，移动端底部导航
  */
 export default function QuizLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  // 使用useAuth钩子保护路由，要求用户登录
+  const { isLoading, isVerified } = useAuth(true);
+  const { user, logout } = useAuthStore();
+  const router = useRouter();
   const pathname = usePathname();
+  
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // 检测屏幕尺寸
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
-        setSidebarCollapsed(true);
-      }
-    };
-
-    // 初始检查
-    checkIsMobile();
-
-    // 监听窗口大小变化
-    window.addEventListener('resize', checkIsMobile);
-    
-    // 清理
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
-
-  // 切换侧边栏状态
   const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+    setSidebarOpen(!sidebarOpen);
   };
 
-  // 切换移动菜单
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
+  const handleLogout = () => {
+    logout();
+    router.push('/');
   };
+
+  // 加载状态时显示加载指示器
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl">加载中...</div>
+      </div>
+    );
+  }
+
+  // 如果未通过认证验证，则不渲染内容（将由useAuth重定向）
+  if (!isVerified) {
+    return null;
+  }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* 移动端顶部导航栏 */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md">
-        <div className="flex items-center">
-          <button 
-            onClick={toggleMobileMenu} 
-            className="mr-3 text-gray-700 dark:text-gray-200"
-            aria-label="打开菜单"
-          >
-            {mobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-          </button>
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">刷题系统</h1>
-        </div>
-        <ThemeSwitcher />
-      </div>
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+      {/* 移动端菜单按钮 */}
+      <button
+        className="fixed z-30 bottom-4 right-4 p-3 rounded-full bg-blue-600 text-white shadow-lg block md:hidden"
+        onClick={toggleSidebar}
+        aria-label="Toggle Menu"
+      >
+        {sidebarOpen ? <FaTimes /> : <FaBars />}
+      </button>
 
-      {/* 侧边栏 - 桌面版 */}
-      <aside 
+      {/* 侧边栏 */}
+      <div
         className={cn(
-          "fixed md:static inset-y-0 left-0 z-30 bg-white dark:bg-gray-800 shadow-md transition-all duration-300",
-          sidebarCollapsed ? "w-16" : "w-64",
-          isMobile && "hidden"
+          "fixed inset-y-0 left-0 z-20 w-64 bg-white dark:bg-gray-800 transform transition-transform duration-300 ease-in-out shadow-lg md:relative md:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className={cn(
-          "p-4 border-b border-gray-200 dark:border-gray-700 flex items-center",
-          sidebarCollapsed ? "justify-center" : "justify-between"
-        )}>
-          {!sidebarCollapsed && <h1 className="text-xl font-bold text-gray-800 dark:text-white">刷题系统</h1>}
-          <div className="flex items-center">
-            {!sidebarCollapsed && <ThemeSwitcher />}
-            <button 
-              onClick={toggleSidebar} 
-              className={cn(
-                "ml-2 p-1 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700",
-                sidebarCollapsed && "mx-auto"
-              )}
-              aria-label={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
-            >
-              {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
-            </button>
+        <div className="h-full flex flex-col">
+          <div className="px-4 py-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">刷题系统</h2>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              {user?.username ? `欢迎，${user.username}` : '欢迎使用'}
+            </p>
           </div>
-        </div>
-        <nav className="p-2">
-          <ul className="space-y-2">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link 
-                  href={item.href} 
+
+          <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
                   className={cn(
-                    "flex items-center px-4 py-2 rounded-md transition-colors",
-                    "hover:bg-gray-100 dark:hover:bg-gray-700",
-                    pathname === item.href 
-                      ? "bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-400" 
-                      : "text-gray-700 dark:text-gray-200",
-                    sidebarCollapsed && "justify-center"
+                    "flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                    isActive && "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
                   )}
                 >
-                  <span className={sidebarCollapsed ? "text-lg" : "mr-3"}>{item.icon}</span>
-                  {!sidebarCollapsed && <span>{item.label}</span>}
+                  <span className="mr-3">{item.icon}</span>
+                  <span>{item.label}</span>
                 </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </aside>
-      
-      {/* 移动端菜单 - 侧滑抽屉 */}
-      {isMobile && mobileMenuOpen && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={toggleMobileMenu}
-          />
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h1 className="text-xl font-bold text-gray-800 dark:text-white">刷题系统</h1>
-              <button 
-                onClick={toggleMobileMenu}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                aria-label="关闭菜单"
-              >
-                <FaTimes size={20} />
-              </button>
-            </div>
-            <nav className="p-4">
-              <ul className="space-y-2">
-                {navItems.map((item) => (
-                  <li key={item.href}>
-                    <Link 
-                      href={item.href} 
-                      className={cn(
-                        "flex items-center px-4 py-3 rounded-md",
-                        "hover:bg-gray-100 dark:hover:bg-gray-700",
-                        pathname === item.href 
-                          ? "bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-400" 
-                          : "text-gray-700 dark:text-gray-200"
-                      )}
-                      onClick={toggleMobileMenu}
-                    >
-                      <span className="mr-3 text-lg">{item.icon}</span>
-                      <span>{item.label}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </aside>
-        </>
-      )}
-      
-      {/* 主内容区 */}
-      <main className={cn(
-        "flex-1 p-4 md:p-8 dark:text-gray-100 transition-all duration-300",
-        !isMobile && sidebarCollapsed && "md:ml-16"
-      )}>
-        {children}
-      </main>
+              );
+            })}
+            
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <span className="mr-3"><FaSignOutAlt /></span>
+              <span>退出登录</span>
+            </button>
+          </nav>
 
-      {/* 移动端底部导航 */}
-      {isMobile && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-30">
-          <div className="flex justify-around">
-            {navItems.map((item) => (
-              <Link 
-                key={item.href}
-                href={item.href} 
-                className={cn(
-                  "flex flex-col items-center py-3 px-2",
-                  pathname === item.href 
-                    ? "text-blue-600 dark:text-blue-400" 
-                    : "text-gray-600 dark:text-gray-400"
-                )}
-              >
-                <span className="text-lg">{item.icon}</span>
-                <span className="text-xs mt-1">{item.label}</span>
-              </Link>
-            ))}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <ThemeSwitcher />
           </div>
-        </nav>
-      )}
+        </div>
+      </div>
+
+      {/* 主内容区域 */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900">
+          {children}
+        </main>
+      </div>
     </div>
   );
 } 

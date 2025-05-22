@@ -1,10 +1,49 @@
 'use client';
 
 import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
+import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
+  const { isAuthenticated, user, logout, checkAuth } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const verifyAuth = async () => {
+      await checkAuth();
+      setIsLoading(false);
+    };
+    verifyAuth();
+  }, [checkAuth]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-50 dark:bg-gray-900">
+      <header className="w-full flex justify-end px-5 py-4">
+        {!isLoading && (
+          <div className="space-x-2">
+            {isAuthenticated ? (
+              <>
+                <span className="mr-2 text-gray-700 dark:text-gray-300">
+                  欢迎，{user?.username}
+                </span>
+                <Button variant="outline" onClick={logout}>
+                  退出登录
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="outline">登录</Button>
+                </Link>
+                <Link href="/register">
+                  <Button>注册</Button>
+                </Link>
+              </>
+            )}
+          </div>
+        )}
+      </header>
       <main className="flex flex-col items-center justify-center w-full flex-1 px-5 sm:px-20 text-center">
         <h1 className="text-4xl sm:text-6xl font-bold mt-10 mb-8 text-gray-900 dark:text-white">
           欢迎访问
