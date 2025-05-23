@@ -137,6 +137,8 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
   
   // 改进: 更精细地处理AI讲解，确保不会干扰题目识别
   // 先标记所有AI讲解的位置，而不是直接删除
+  // 这里处理的是题目文本中可能包含的"AI讲解"部分，通过将其替换为特殊标记
+  // 以便在后续处理中能够正确识别题目边界
   cleanedText = cleanedText.replace(/AI讲解/g, '###AI讲解###');
   
   // 打印调试信息
@@ -145,6 +147,7 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
   
   // 改进: 更精确的题目识别模式，使用多个策略匹配
   // 策略1: 按题号和类型匹配 - 例如 "3. (单选题)"
+  // 使用正则表达式匹配题目，并考虑AI讲解标记作为题目边界
   const questionRegex1 = /(\d+\s*\.\s*\([^)]+\)[^]*?)(?=\d+\s*\.\s*\(|\s*###AI讲解###|$)/g;
   // 策略2: 按题号和"我的答案"+"正确答案"模式匹配
   const questionRegex2 = /(\d+\s*\.\s*[^]*?我的答案[^]*?正确答案[^]*?)(?=\d+\s*\.\s*|\s*###AI讲解###|$)/g;
@@ -191,6 +194,8 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
   
   // 处理每个题目块
   for (let i = 0; i < questionBlocks.length; i++) {
+    // 从题目块中移除AI讲解部分，确保不影响题目内容的提取
+    // 这里使用正则表达式匹配并移除所有AI讲解标记及其后面的内容，直到下一个题目或文本结束
     const block = questionBlocks[i].replace(/###AI讲解###[^]*?(?=\d+\s*\.\s*|$)/g, '');
     if (!block.trim()) {
       console.log(`跳过空的题目块 ${i+1}`);

@@ -1,9 +1,15 @@
 /**
  * AI相关常量文件
+ * 该文件定义了项目中所有AI相关的常量和函数，是AI功能的核心模块
+ * 被以下组件调用:
+ * - src/lib/aiHelper.ts: 通过callAI函数实现用户配置的AI调用
+ * - src/store/quizStore.ts: 在generateSimilarQuestions方法中使用SIMILAR_QUESTIONS_PROMPT和callAI
  */
 
 /**
  * 题库转换AI的系统提示词
+ * 用于将文本转换为结构化题目数据
+ * 在题目导入功能中使用
  */
 export const CONVERT_SYSTEM_PROMPT = `你是一个专业的题库转换助手。请将用户提供的文本精准地转换为结构化的题目数据。
 题目类型包括单选题、多选题、判断题、简答题、填空题。请严格按照以下格式输出，每道题之间用空行分隔：
@@ -38,6 +44,8 @@ D. 选项4
 
 /**
  * 错题解析的AI提示词
+ * 用于生成详细的错题解析
+ * 在错题复习功能中使用
  */
 export const EXPLANATION_PROMPT = `你是一位专业的教育助手，请为以下题目提供一个详细的解析。不要复述题目内容，直接提供解析。
 
@@ -51,6 +59,8 @@ export const EXPLANATION_PROMPT = `你是一位专业的教育助手，请为以
 
 /**
  * 生成相似题目的AI系统提示词
+ * 用于基于现有题目生成相似的新题目
+ * 在quizStore.ts的generateSimilarQuestions方法中使用
  */
 export const SIMILAR_QUESTIONS_PROMPT = `你是一位专业的出题专家，我将提供一些题目，请你基于这些题目的知识点和考察内容生成相似的新题目，保持难度和风格一致，但避免简单地修改原题。
 
@@ -87,6 +97,9 @@ export const SIMILAR_QUESTIONS_PROMPT = `你是一位专业的出题专家，我
 /**
  * 直接调用AI API的函数
  * 支持流式响应和普通响应
+ * 这是项目中AI调用的核心函数，被以下组件调用:
+ * - src/lib/aiHelper.ts: callAiWithUserConfig函数
+ * - src/store/quizStore.ts: generateSimilarQuestions方法
  */
 export const callAI = async (
   provider: 'deepseek' | 'alibaba',
@@ -109,6 +122,8 @@ export const callAI = async (
     let requestBody;
 
     if (provider === 'deepseek') {
+      // DeepSeek API配置
+      // 使用提供的baseUrl或默认的DeepSeek API地址
       endpoint = `${baseUrl || 'https://api.deepseek.com'}/v1/chat/completions`;
       requestBody = {
         model: 'deepseek-chat',
@@ -120,6 +135,7 @@ export const callAI = async (
         'Authorization': `Bearer ${apiKey}`
       };
     } else if (provider === 'alibaba') {
+      // 阿里巴巴通义千问API配置
       endpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
       requestBody = {
         model: "qwen-turbo",
@@ -138,6 +154,7 @@ export const callAI = async (
 
     if (streaming && onStreamChunk) {
       // 流式处理
+      // 用于实时显示AI响应，如打字机效果
       const response = await fetch(endpoint, requestOptions);
 
       if (!response.ok) {
@@ -199,6 +216,7 @@ export const callAI = async (
       return completeResponse;
     } else {
       // 非流式处理
+      // 用于一次性获取完整的AI响应
       const response = await fetch(endpoint, requestOptions);
 
       if (!response.ok) {

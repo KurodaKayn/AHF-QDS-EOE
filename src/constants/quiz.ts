@@ -55,9 +55,16 @@ export const TAG_COLORS = [
 ];
 
 /**
- * 获取tag颜色
+ * 根据标签字符串获取对应的颜色样式
+ * @param tag 标签字符串，可选
+ * @returns 颜色样式类名
+ * @description 若 tag 为空或 undefined，返回默认颜色
  */
-export const getTagColor = (tag: string): string => {
+export const getTagColor = (tag?: string): string => {
+  if (!tag || tag.length === 0) {
+    // 默认颜色索引可配置到外部常量，便于扩展
+    return TAG_COLORS[0];
+  }
   // 根据字符串生成一个稳定的索引
   let hash = 0;
   for (let i = 0; i < tag.length; i++) {

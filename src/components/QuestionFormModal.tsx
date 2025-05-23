@@ -122,6 +122,11 @@ export default function QuestionFormModal({
     }
   };
 
+  /**
+   * 处理表单提交
+   * 根据模式不同执行添加或更新题目的操作
+   * 操作完成后会通过zustand store自动将数据保存到localStorage
+   */
   const handleSubmit = async () => {
     if (!content.trim()) {
       toast.error('题目内容不能为空。');
@@ -145,6 +150,9 @@ export default function QuestionFormModal({
     }
 
     setIsLoading(true);
+    
+    // 准备题目数据对象，不包含id字段
+    // id会在zustand store的addQuestionToBank方法中自动生成
     const questionData: Omit<Question, 'id'> = {
       content: content.trim(),
       type,
@@ -158,17 +166,24 @@ export default function QuestionFormModal({
 
     try {
       if (isEditMode && questionToEdit) {
-        updateQuestionInBank(bankId, questionToEdit.id, questionData);
+        // 更新现有题目
+        // updateQuestionInBank会更新zustand状态，然后persist中间件会自动将更新后的状态保存到localStorage
+        await updateQuestionInBank(bankId, questionToEdit.id, questionData);
         toast.success('题目已成功更新。');
       } else {
-        const result = addQuestionToBank(bankId, questionData);
+        // 添加新题目
+        // addQuestionToBank会更新zustand状态，然后persist中间件会自动将更新后的状态保存到localStorage
+        const result = await addQuestionToBank(bankId, questionData);
         if (result.isDuplicate) {
+          // 检测到重复题目（由zustand store中的checkDuplicateQuestion设置控制）
           toast.error('题目添加失败：题库中已存在相同题干的题目。');
           setIsLoading(false);
           return;
         } else if (result.question) {
+          // 题目添加成功，此时数据已经保存到localStorage
           toast.success('题目已成功添加。');
         } else {
+          // 添加失败
           toast.error('题目添加失败，请稍后重试。');
           setIsLoading(false);
           return;

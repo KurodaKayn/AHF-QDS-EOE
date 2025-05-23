@@ -77,6 +77,9 @@ function stripOpeningFenceForStream(markdown: string): string {
   return newMarkdown; // 如果不以```开头，或者不是完整代码块，直接返回处理过的字符串
 }
 
+/**
+ * 错题项组件，展示单个错题的详细信息
+ */
 export default function WrongQuestionItem({ 
   question: q, 
   formatDate, 

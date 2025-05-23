@@ -17,7 +17,7 @@ import Image from 'next/image';
 import { parseTextByScript, ScriptTemplate } from '@/utils/scriptParser';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CONVERT_SYSTEM_PROMPT } from '@/constants/ai';
+import { CONVERT_SYSTEM_PROMPT, callAI } from '@/constants/ai';
 
 /**
  * 题目转换页面
@@ -156,102 +156,58 @@ D. jsp:include
   };
 
   /**
-   * 处理题目转换
+   * 转换文本为结构化题目
+   * 使用AI将非结构化文本内容转换为标准化的题目格式
    */
   const handleConvert = async () => {
     if (!inputText.trim()) {
-      setError('请输入题目文本');
+      setError('请输入文本内容！');
       return;
     }
-    setError(null);
+    
+    if (inputText.length > 20000) {
+      setError('文本内容过长，请分段转换！');
+      return;
+    }
+    
+    setError('');
+    setIsLoading(true);
     setConvertedQuestions([]);
-
-    if (conversionMode === 'script') {
-      setIsLoadingScript(true);
-      try {
-        // 使用脚本解析 - 传入选择的模板
-        const parsedByScript = parseTextByScript(inputText, scriptTemplate);
-        if (parsedByScript.length === 0 && inputText.trim().length > 0) {
-          setError('脚本未能解析出任何题目，请检查输入格式是否符合脚本要求。');
-        }
-        setConvertedQuestions(parsedByScript);
-      } catch (e: any) {
-        setError(`脚本解析错误: ${e.message}`);
-        setConvertedQuestions([]);
-      } finally {
-        setIsLoadingScript(false);
-      }
-      return;
-    }
-
-    // AI Conversion (existing logic)
-    setIsLoading(true); // Use the original isLoading for AI
+    
     const { aiProvider, deepseekApiKey, deepseekBaseUrl, alibabaApiKey } = settings;
     
     if (aiProvider === 'deepseek' && !deepseekApiKey) {
-      setError('请先在应用设置中配置 Deepseek API 密钥');
-      setIsLoading(false);
-      return;
-    } else if (aiProvider === 'alibaba' && !alibabaApiKey) {
-      setError('请先在应用设置中配置通义千问 API 密钥');
+      setError('您尚未配置DeepSeek API密钥，请在设置页面进行配置。');
       setIsLoading(false);
       return;
     }
     
+    if (aiProvider === 'alibaba' && !alibabaApiKey) {
+      setError('您尚未配置阿里云API密钥，请在设置页面进行配置。');
+      setIsLoading(false);
+      return;
+    }
+    
+    // 使用CONVERT_SYSTEM_PROMPT作为系统提示词，用于指导AI将文本转换为结构化题目
     const systemPrompt = CONVERT_SYSTEM_PROMPT;
 
     try {
       let assistantResponse;
 
-      if (aiProvider === 'deepseek') {
-        // 使用后端代理调用 Deepseek API
-        const response = await fetch('/api/ai/deepseek', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            apiKey: deepseekApiKey,
-            baseUrl: deepseekBaseUrl,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: inputText },
-            ],
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `API请求失败，状态码: ${response.status}`);
-        }
-        const data = await response.json();
-        assistantResponse = data.choices[0]?.message?.content;
-      } 
-      else if (aiProvider === 'alibaba') {
-        // 使用后端代理调用通义千问 API
-        const response = await fetch('/api/ai/alibaba', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            apiKey: alibabaApiKey,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: inputText },
-            ],
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `API请求失败，状态码: ${response.status}`);
-        }
-        const data = await response.json();
-        assistantResponse = data.choices[0]?.message?.content;
-      }
+      // 使用统一的callAI函数代替API路由调用
+      // 该调用使用了src/constants/ai.ts中的callAI函数，传入AI提供商、消息和API密钥等参数
+      assistantResponse = await callAI(
+        aiProvider, 
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: inputText }
+        ],
+        aiProvider === 'deepseek' ? deepseekApiKey : alibabaApiKey,
+        aiProvider === 'deepseek' ? deepseekBaseUrl : undefined
+      );
 
       if (assistantResponse) {
+        // 解析AI返回的文本，转换为题目数据结构
         const parsed = parseQuestions(assistantResponse);
         setConvertedQuestions(parsed);
       } else {
@@ -412,6 +368,7 @@ D. jsp:include
   const countByType = (type: QuestionType) => convertedQuestions.filter(q => q.type === type).length;
 
   // 显示当前选中的 AI 提供商信息
+  // 该函数显示用户当前选择的AI模型信息和相应的Logo
   const renderProviderInfo = () => {
     const { aiProvider } = settings;
     // 使用相对路径直接加载Logo

@@ -11,7 +11,7 @@ import SimilarQuestionsModal from '@/components/quiz/SimilarQuestionsModal';
 import { EXPLANATION_PROMPT, callAI } from '@/constants/ai';
 
 /**
- * 错题本页面
+ * 错题本页面，展示所有做错的题目及相关操作
  */
 export default function ReviewPage() {
   const router = useRouter();
@@ -158,6 +158,8 @@ export default function ReviewPage() {
 
   /**
    * 使用 AI 生成解析
+   * 该函数调用src/constants/ai.ts中的callAI函数，使用EXPLANATION_PROMPT提示词
+   * 为单个题目生成详细解析，并更新题库中的题目解析
    */
   const processQuestionForExplanation = async (questionId: string) => {
     if (generatingExplanations.has(questionId) || completedExplanations[questionId]) return;
@@ -168,6 +170,7 @@ export default function ReviewPage() {
     setCurrentExplanations(prev => ({ ...prev, [questionId]: '' }));
 
     try {
+      // 构建题目信息，包括题目类型、选项、正确答案和用户答案
       let problemInfo = `### 题目信息\n- **题目类型**: ${QUESTION_TYPE_NAMES[questionInfo.type]}\n`;
       if (questionInfo.options && questionInfo.options.length > 0) {
         problemInfo += '- **选项**:\n';
@@ -178,9 +181,14 @@ export default function ReviewPage() {
       const userAnswerText = Array.isArray(questionInfo.userAnswer) ? questionInfo.userAnswer.map(ansId => questionInfo.options?.find(opt => opt.id === ansId)?.content || ansId).join(', ') : (questionInfo.type === QuestionType.TrueFalse ? (questionInfo.userAnswer === 'true' ? '正确' : '错误') : questionInfo.userAnswer);
       problemInfo += `- **用户答案**: ${userAnswerText}\n`;
       
+      // 构建消息数组，使用EXPLANATION_PROMPT作为系统提示词
       const messages = [{ role: 'system', content: EXPLANATION_PROMPT }, { role: 'user', content: `${problemInfo}\n${questionInfo.content}` }];
+      
+      // 从用户设置中获取AI提供商和API密钥信息
       const apiKey = settings.aiProvider === 'deepseek' ? settings.deepseekApiKey : settings.alibabaApiKey;
       const baseUrl = settings.aiProvider === 'deepseek' ? settings.deepseekBaseUrl : undefined;
+      
+      // 使用流式响应模式调用AI，实时更新解析内容
       let fullExplanation = '';
       await callAI(settings.aiProvider, messages, apiKey, baseUrl, true, (chunk) => {
         setCurrentExplanations(prev => {
@@ -188,8 +196,12 @@ export default function ReviewPage() {
           return { ...prev, [questionId]: fullExplanation };
         });
       });
+      
+      // 保存最终解析结果
       const finalExplanation = fullExplanation.trim();
       setCompletedExplanations(prev => ({ ...prev, [questionId]: finalExplanation }));
+      
+      // 更新题库中的题目解析
       if (questionInfo.bankId) {
          updateQuestionInBank(questionInfo.bankId, questionId, { explanation: finalExplanation });
       }

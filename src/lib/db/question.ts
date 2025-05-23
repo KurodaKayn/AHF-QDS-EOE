@@ -1,7 +1,9 @@
 import { prisma } from '../prisma';
 import { Question, QuestionOption, QuestionType } from '@/types/quiz';
 
-/*将前端的题目类型转换为Prisma枚举类型*/
+/*
+ * 将前端的题目类型转换为Prisma枚举类型
+ */
 function convertToPrismaQuestionType(type: QuestionType): any {
   const mapping: Record<QuestionType, string> = {
     [QuestionType.SingleChoice]: 'SINGLE_CHOICE',
@@ -13,7 +15,7 @@ function convertToPrismaQuestionType(type: QuestionType): any {
   return mapping[type];
 }
 
-/*将Prisma枚举类型转换为前端的题目类型*/
+//将Prisma枚举类型转换为前端的题目类型
 function convertFromPrismaQuestionType(type: string): QuestionType {
   const mapping: Record<string, QuestionType> = {
     'SINGLE_CHOICE': QuestionType.SingleChoice,
@@ -25,7 +27,9 @@ function convertFromPrismaQuestionType(type: string): QuestionType {
   return mapping[type];
 }
 
-/*创建题目*/
+/*
+ * 创建题目，包含查重逻辑
+ */
 export async function createQuestion(
   bankId: string, 
   questionData: Omit<Question, 'id' | 'createdAt' | 'updatedAt'>, 
@@ -75,12 +79,7 @@ export async function createQuestion(
 }
 
 /**
- * 更新题目
- * @param bankId 题库ID
- * @param questionId 题目ID
- * @param questionData 更新数据
- * @param userId 用户ID (权限验证)
- * @returns 更新后的题目
+ * 更新题目，包含权限校验
  */
 export async function updateQuestion(
   bankId: string,
@@ -125,11 +124,7 @@ export async function updateQuestion(
 }
 
 /**
- * 删除题目
- * @param bankId 题库ID
- * @param questionId 题目ID
- * @param userId 用户ID (权限验证)
- * @returns 是否成功
+ * 删除题目，包含权限校验
  */
 export async function deleteQuestion(bankId: string, questionId: string, userId: string) {
   // 首先验证题库属于该用户
@@ -159,7 +154,7 @@ export async function deleteQuestion(bankId: string, questionId: string, userId:
 }
 
 /**
- * 从数据库格式转换为前端格式
+ * 从数据库格式转换为前端格式，确保tags为数组
  */
 function formatQuestionFromDB(dbQuestion: any): Question {
   return {
