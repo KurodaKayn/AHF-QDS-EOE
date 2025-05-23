@@ -44,6 +44,12 @@ export default function ConvertPage() {
   const [bankName, setBankName] = useState(DEFAULT_BANK_NAME);
   const [bankDesc, setBankDesc] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  // 导入结果状态
+  const [importResult, setImportResult] = useState<{total: number; added: number; duplicates: number}>({
+    total: 0,
+    added: 0,
+    duplicates: 0
+  });
 
   const [newBankName, setNewBankName] = useState('');
   const [newBankDescription, setNewBankDescription] = useState('');
@@ -261,12 +267,12 @@ D. jsp:include
   /**
    * 将转换后的题目保存为题库
    */
-  const handleSaveToBank = () => {
+  const handleSaveToBank = async () => {
     if (convertedQuestions.length === 0) return;
     
     let targetBankId = selectedBankId;
     if (saveMode === 'new' && newBankName.trim()) { // Ensure saveMode is 'new' for creating new bank
-      const newBank = addQuestionBank(newBankName, newBankDescription);
+      const newBank = await addQuestionBank(newBankName, newBankDescription);
       targetBankId = newBank.id;
       setSelectedBankId(targetBankId); // Optionally select the new bank
       setNewBankName('');
@@ -282,9 +288,27 @@ D. jsp:include
         return;
     }
 
-    convertedQuestions.forEach(q => addQuestionToBank(targetBankId, q));
-
+    // 记录导入结果
+    let addedCount = 0;
+    let duplicateCount = 0;
+    
+    // 逐个添加题目并处理返回结果
+    const results = await Promise.all(convertedQuestions.map(q => addQuestionToBank(targetBankId, q)));
+    
+    results.forEach(result => {
+      if (result.isDuplicate) {
+        duplicateCount++;
+      } else if (result.question) {
+        addedCount++;
+      }
+    });
+    
     setIsSuccess(true);
+    setImportResult({
+      total: convertedQuestions.length,
+      added: addedCount,
+      duplicates: duplicateCount
+    });
     setConvertedQuestions([]); // Clear converted questions after saving
     setInputText(''); // Clear input text
     setTimeout(() => {
@@ -680,10 +704,15 @@ D. jsp:include
               <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg animate-fade-in">
                 <h3 className="text-lg font-semibold text-green-700 dark:text-green-400 mb-3 flex items-center">
                   <FaCheckCircle className="mr-2" /> 
-                  题目已成功保存！
+                  题目导入完成！
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  已将 {convertedQuestions.length} 道题目保存到题库: {getQuestionBankById(selectedBankId)?.name || newBankName}。
+                  已将 {importResult.added} 道题目成功导入到题库: {getQuestionBankById(selectedBankId)?.name || newBankName}。
+                  {importResult.duplicates > 0 && (
+                    <span className="block mt-1 text-amber-600 dark:text-amber-400">
+                      有 {importResult.duplicates} 道题目因重复而未导入。
+                    </span>
+                  )}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 mt-4">
                   <button 
