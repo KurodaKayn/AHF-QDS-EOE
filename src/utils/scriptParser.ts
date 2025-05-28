@@ -1,7 +1,4 @@
 import { Question, QuestionOption, QuestionType } from '@/types/quiz';
-// 假设来自quiz.ts的createOptionId是一个简单的ID生成器，不依赖于store上下文
-// 如果它依赖store，我们可能需要一个更简单的本地生成器或调整其使用方式
-// 目前，使用一个简单的本地GUID生成器
 const generateGuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
   const r = Math.random() * 16 | 0;
   const v = c === 'x' ? r : (r & 0x3 | 0x8);

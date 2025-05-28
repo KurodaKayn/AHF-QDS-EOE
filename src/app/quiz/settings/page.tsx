@@ -20,6 +20,7 @@ import { useUserSettings } from '@/hooks/useUserSettings';
 import { UserSettingsData } from '@/lib/userSettings';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { useQuizStore } from '@/store/quizStore';
 
 /**
  * API密钥设置接口
@@ -187,23 +188,34 @@ export default function SettingsPage() {
     resetSettings
   } = useUserSettings();
 
+  // 从useQuizStore导入setQuizSetting方法
+  const { setQuizSetting } = useQuizStore();
+
   /**
    * 从本地存储加载API密钥设置
    * 在客户端初始化完成且用户认证状态确定后执行
+   * 同时确保quizStore中的API密钥设置与localStorage同步
    */
   useEffect(() => {
     if (typeof window !== 'undefined' && status !== 'loading') {
       const storedSettings = localStorage.getItem('apiKeySettings');
       if (storedSettings) {
         try {
-          setApiKeySettings(JSON.parse(storedSettings));
+          const parsedSettings = JSON.parse(storedSettings);
+          setApiKeySettings(parsedSettings);
+          
+          // 同时更新quizStore中的API设置
+          setQuizSetting('aiProvider', parsedSettings.provider);
+          setQuizSetting('deepseekApiKey', parsedSettings.deepseekApiKey);
+          setQuizSetting('deepseekBaseUrl', parsedSettings.deepseekBaseUrl);
+          setQuizSetting('alibabaApiKey', parsedSettings.alibabaApiKey);
         } catch (e) {
           console.error('解析存储的 API 密钥设置时出错:', e);
         }
       }
       setIsReady(true);
     }
-  }, [status]);
+  }, [status, setQuizSetting]);
 
   /**
    * 保存API密钥到本地存储
@@ -212,7 +224,16 @@ export default function SettingsPage() {
   const saveApiKeys = async () => {
     try {
       setIsSaving(true);
+      // 保存到localStorage
       localStorage.setItem('apiKeySettings', JSON.stringify(apiKeySettings));
+      
+      // 同时更新quizStore中的设置
+      // 更新quizStore中的API设置
+      setQuizSetting('aiProvider', apiKeySettings.provider);
+      setQuizSetting('deepseekApiKey', apiKeySettings.deepseekApiKey);
+      setQuizSetting('deepseekBaseUrl', apiKeySettings.deepseekBaseUrl);
+      setQuizSetting('alibabaApiKey', apiKeySettings.alibabaApiKey);
+      
       toast.success('API 密钥已保存');
     } catch (error) {
       toast.error('保存 API 密钥失败');

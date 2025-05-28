@@ -224,16 +224,14 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
     setIsCreateBankModalOpen(true);
   };
 
-  const handleCreateBankSubmit = (name: string, description: string) => {
-    const newBank = addQuestionBank(name, description);
-    if (newBank && typeof newBank === 'object' && 'id' in newBank) {
+  const handleCreateBankSubmit = async (name: string, description: string) => {
+    try {
+      const newBank = await addQuestionBank(name, description);
       setSelectedBankId(newBank.id);
       toast.success(`新题库 "${name}" 已创建并选中。`);
-    } else if (newBank && typeof newBank === 'string') {
-      setSelectedBankId(newBank);
-      toast.success(`新题库 "${name}" 已创建并选中。`);
-    } else {
-      toast.success(`新题库 "${name}" 已创建。`);
+    } catch (error) {
+      console.error("创建题库失败:", error);
+      toast.error(`创建题库失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
 
