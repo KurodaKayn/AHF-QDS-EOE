@@ -194,7 +194,7 @@ export default function SettingsPage() {
   /**
    * 从本地存储加载API密钥设置
    * 在客户端初始化完成且用户认证状态确定后执行
-   * 同时确保quizStore中的API密钥设置与localStorage同步
+   * 同步本地组件状态与localStorage
    */
   useEffect(() => {
     if (typeof window !== 'undefined' && status !== 'loading') {
@@ -202,20 +202,16 @@ export default function SettingsPage() {
       if (storedSettings) {
         try {
           const parsedSettings = JSON.parse(storedSettings);
+          // 仅更新本地组件状态，而不是重复更新quizStore
+          // quizStore的API设置已经在应用初始化时由SettingsInitializer组件更新
           setApiKeySettings(parsedSettings);
-          
-          // 同时更新quizStore中的API设置
-          setQuizSetting('aiProvider', parsedSettings.provider);
-          setQuizSetting('deepseekApiKey', parsedSettings.deepseekApiKey);
-          setQuizSetting('deepseekBaseUrl', parsedSettings.deepseekBaseUrl);
-          setQuizSetting('alibabaApiKey', parsedSettings.alibabaApiKey);
         } catch (e) {
           console.error('解析存储的 API 密钥设置时出错:', e);
         }
       }
       setIsReady(true);
     }
-  }, [status, setQuizSetting]);
+  }, [status]);
 
   /**
    * 保存API密钥到本地存储
@@ -257,12 +253,15 @@ export default function SettingsPage() {
 
   /**
    * 处理主题设置变更
+   * 更新用户设置和QuizStore中的主题设置
    * 
    * @param value 新的主题值('light'|'dark'|'system')
    */
   const handleThemeChange = (value: 'light' | 'dark' | 'system') => {
     if (isReady) {
+      // 同时更新用户设置和QuizStore
       updateSetting('theme', value);
+      setQuizSetting('theme', value);
     }
   };
 
@@ -292,38 +291,6 @@ export default function SettingsPage() {
       console.error('重置用户设置失败:', error);
     }
   };
-
-  /**
-   * 根据主题设置应用相应的类
-   * 监听主题变化并应用到HTML文档
-   */
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    // 根据当前主题设置应用相应的类
-    if (settings.theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else if (settings.theme === 'light') {
-      document.documentElement.classList.remove('dark');
-    } else if (settings.theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      
-      // 初始设置
-      document.documentElement.classList.toggle('dark', mediaQuery.matches);
-      
-      // 监听系统主题变化
-      const handleChange = (e: MediaQueryListEvent) => {
-        document.documentElement.classList.toggle('dark', e.matches);
-      };
-      
-      mediaQuery.addEventListener('change', handleChange);
-      
-      // 清理监听器
-      return () => {
-        mediaQuery.removeEventListener('change', handleChange);
-      };
-    }
-  }, [settings.theme]);
 
   // 显示加载状态
   if (status === 'loading' || isLoading) {

@@ -157,7 +157,7 @@ D. jsp:include
 
   /**
    * 转换文本为结构化题目
-   * 使用AI将非结构化文本内容转换为标准化的题目格式
+   * 根据选择的模式使用AI或脚本解析文本内容
    */
   const handleConvert = async () => {
     if (!inputText.trim()) {
@@ -171,52 +171,78 @@ D. jsp:include
     }
     
     setError('');
-    setIsLoading(true);
     setConvertedQuestions([]);
-    
-    const { aiProvider, deepseekApiKey, deepseekBaseUrl, alibabaApiKey } = settings;
-    
-    if (aiProvider === 'deepseek' && !deepseekApiKey) {
-      setError('您尚未配置DeepSeek API密钥，请在设置页面进行配置。');
-      setIsLoading(false);
-      return;
-    }
-    
-    if (aiProvider === 'alibaba' && !alibabaApiKey) {
-      setError('您尚未配置阿里云API密钥，请在设置页面进行配置。');
-      setIsLoading(false);
-      return;
-    }
-    
-    // 使用CONVERT_SYSTEM_PROMPT作为系统提示词，用于指导AI将文本转换为结构化题目
-    const systemPrompt = CONVERT_SYSTEM_PROMPT;
 
-    try {
-      let assistantResponse;
-
-      // 使用统一的callAI函数代替API路由调用
-      // 该调用使用了src/constants/ai.ts中的callAI函数，传入AI提供商、消息和API密钥等参数
-      assistantResponse = await callAI(
-        aiProvider, 
-        [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: inputText }
-        ],
-        aiProvider === 'deepseek' ? deepseekApiKey : alibabaApiKey,
-        aiProvider === 'deepseek' ? deepseekBaseUrl : undefined
-      );
-
-      if (assistantResponse) {
-        // 解析AI返回的文本，转换为题目数据结构
-        const parsed = parseQuestions(assistantResponse);
-        setConvertedQuestions(parsed);
-      } else {
-        throw new Error('未能从API获取有效回复。');
+    // 根据转换模式处理
+    if (conversionMode === 'ai') {
+      // AI转换模式
+      setIsLoading(true);
+      
+      const { aiProvider, deepseekApiKey, deepseekBaseUrl, alibabaApiKey } = settings;
+      
+      if (aiProvider === 'deepseek' && !deepseekApiKey) {
+        setError('您尚未配置DeepSeek API密钥，请在设置页面进行配置。');
+        setIsLoading(false);
+        return;
       }
-    } catch (e: any) {
-      setError(e.message || '转换过程中发生未知错误。');
-    } finally {
-      setIsLoading(false);
+      
+      if (aiProvider === 'alibaba' && !alibabaApiKey) {
+        setError('您尚未配置阿里云API密钥，请在设置页面进行配置。');
+        setIsLoading(false);
+        return;
+      }
+      
+      // 使用CONVERT_SYSTEM_PROMPT作为系统提示词，用于指导AI将文本转换为结构化题目
+      const systemPrompt = CONVERT_SYSTEM_PROMPT;
+
+      try {
+        let assistantResponse;
+
+        // 使用统一的callAI函数代替API路由调用
+        // 该调用使用了src/constants/ai.ts中的callAI函数，传入AI提供商、消息和API密钥等参数
+        assistantResponse = await callAI(
+          aiProvider, 
+          [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: inputText }
+          ],
+          aiProvider === 'deepseek' ? deepseekApiKey : alibabaApiKey,
+          aiProvider === 'deepseek' ? deepseekBaseUrl : undefined
+        );
+
+        if (assistantResponse) {
+          // 解析AI返回的文本，转换为题目数据结构
+          const parsed = parseQuestions(assistantResponse);
+          setConvertedQuestions(parsed);
+        } else {
+          throw new Error('未能从API获取有效回复。');
+        }
+      } catch (e: any) {
+        setError(e.message || 'AI转换过程中发生未知错误。');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // 脚本转换模式
+      setIsLoadingScript(true);
+      
+      try {
+        // 使用parseTextByScript函数解析文本
+        console.log("开始脚本解析，使用模板:", scriptTemplate);
+        const parsedQuestions = parseTextByScript(inputText, scriptTemplate);
+        
+        if (parsedQuestions.length === 0) {
+          throw new Error('未能识别任何题目，请检查文本格式是否符合所选模板要求。');
+        }
+        
+        console.log(`脚本解析完成，识别到 ${parsedQuestions.length} 道题目`);
+        setConvertedQuestions(parsedQuestions);
+      } catch (e: any) {
+        console.error("脚本解析错误:", e);
+        setError(e.message || '脚本解析过程中发生未知错误。');
+      } finally {
+        setIsLoadingScript(false);
+      }
     }
   };
 

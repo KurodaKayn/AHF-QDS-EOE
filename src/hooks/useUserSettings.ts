@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { UserSettingsData, defaultSettings } from '@/lib/userSettings';
+import { useQuizStore } from '@/store/quizStore';
 
 /**
  * 用户设置管理Hook，提供获取、更新、重置等功能
@@ -41,6 +42,9 @@ export function useUserSettings() {
   // error: 记录最近一次操作的错误信息
   const [error, setError] = useState<string | null>(null);
 
+  // 获取QuizStore的setQuizSetting方法
+  const { setQuizSetting } = useQuizStore();
+
   /**
    * 获取当前用户的设置（从后端API）
    *
@@ -48,6 +52,7 @@ export function useUserSettings() {
    *   1. 如果未认证，直接用默认设置
    *   2. 已认证则请求 /api/settings，获取用户设置
    *   3. 请求失败时，回退到默认设置并记录错误
+   *   4. 设置加载完成后同步到QuizStore
    *
    * 异常处理：
    *   - 网络或API错误时，error会有提示，settings为默认值
@@ -60,6 +65,8 @@ export function useUserSettings() {
     if (status !== 'authenticated' || !session?.user?.id) {
       setSettings(defaultSettings);
       setIsLoading(false);
+      // 同步默认设置到QuizStore
+      syncSettingsToQuizStore(defaultSettings);
       return;
     }
 
@@ -80,17 +87,40 @@ export function useUserSettings() {
       // 解析响应数据并更新设置状态
       const data = await response.json();
       setSettings(data);
+      
+      // 同步用户设置到QuizStore
+      syncSettingsToQuizStore(data);
     } catch (err: any) {
       // 记录错误日志和状态
       console.error('获取设置失败:', err);
       setError(err.message || '获取设置失败');
       // 出错时使用默认设置
       setSettings(defaultSettings);
+      // 同步默认设置到QuizStore
+      syncSettingsToQuizStore(defaultSettings);
     } finally {
       // 无论成功失败，都结束加载状态
       setIsLoading(false);
     }
-  }, [session?.user?.id, status]);
+  }, [session?.user?.id, status, setQuizSetting]);
+
+  /**
+   * 将用户设置同步到QuizStore
+   * 
+   * @param settingsData 要同步的设置数据
+   */
+  const syncSettingsToQuizStore = useCallback((settingsData: UserSettingsData) => {
+    // 同步设置到QuizStore
+    setQuizSetting('theme', settingsData.theme);
+    setQuizSetting('shufflePracticeOptions', settingsData.shufflePracticeOptions);
+    setQuizSetting('shuffleReviewOptions', settingsData.shuffleReviewOptions);
+    setQuizSetting('shufflePracticeQuestionOrder', settingsData.shufflePracticeQuestionOrder);
+    setQuizSetting('shuffleReviewQuestionOrder', settingsData.shuffleReviewQuestionOrder);
+    setQuizSetting('markMistakeAsCorrectedOnReviewSuccess', settingsData.markMistakeAsCorrectedOnReviewSuccess);
+    setQuizSetting('checkDuplicateQuestion', settingsData.checkDuplicateQuestion);
+    setQuizSetting('showDetailedExplanations', settingsData.showDetailedExplanations);
+    setQuizSetting('autoContinue', settingsData.autoContinue);
+  }, [setQuizSetting]);
 
   /**
    * 批量更新用户设置（部分字段）
@@ -103,6 +133,7 @@ export function useUserSettings() {
    *   2. PUT /api/settings，body为要更新的字段
    *   3. 成功后自动刷新settings
    *   4. 失败时error有提示
+   *   5. 同步更新的设置到QuizStore
    * 
    * 异常处理：
    *   - 未认证时直接返回false
@@ -137,6 +168,17 @@ export function useUserSettings() {
       // 解析响应数据并更新设置状态
       const data = await response.json();
       setSettings(data);
+      
+      // 同步更新的设置到QuizStore
+      // 只同步本次更新的设置项
+      Object.keys(newSettings).forEach(key => {
+        const settingKey = key as keyof UserSettingsData;
+        const settingValue = data[settingKey];
+        if (settingValue !== undefined) {
+          setQuizSetting(settingKey as any, settingValue as any);
+        }
+      });
+      
       return true;
     } catch (err: any) {
       // 记录错误日志和状态
@@ -147,7 +189,7 @@ export function useUserSettings() {
       // 无论成功失败，都结束加载状态
       setIsLoading(false);
     }
-  }, [session?.user?.id, status]);
+  }, [session?.user?.id, status, setQuizSetting]);
 
   /**
    * 更新单个设置项
@@ -181,6 +223,7 @@ export function useUserSettings() {
    *   2. DELETE /api/settings，重置为defaultSettings
    *   3. 成功后settings为默认值
    *   4. 失败时error有提示
+   *   5. 同步重置的设置到QuizStore
    * 
    * 异常处理：
    *   - 未认证时直接返回false
@@ -211,6 +254,10 @@ export function useUserSettings() {
       // 解析响应数据并更新设置状态
       const data = await response.json();
       setSettings(data);
+      
+      // 同步重置的设置到QuizStore
+      syncSettingsToQuizStore(data);
+      
       return true;
     } catch (err: any) {
       // 记录错误日志和状态
@@ -221,7 +268,7 @@ export function useUserSettings() {
       // 无论成功失败，都结束加载状态
       setIsLoading(false);
     }
-  }, [session?.user?.id, status]);
+  }, [session?.user?.id, status, setQuizSetting, syncSettingsToQuizStore]);
 
   /**
    * 监听用户认证状态变化，自动加载或重置设置
