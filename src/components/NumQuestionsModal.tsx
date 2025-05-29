@@ -1,3 +1,23 @@
+/**
+ * 选择刷题数量的模态对话框组件
+ * 
+ * 该组件允许用户选择本次练习需要的题目数量，具有以下功能：
+ * 1. 显示当前题库信息（名称和总题目数）
+ * 2. 提供数字输入界面，限制用户输入范围
+ * 3. 执行数据验证（不能为空、不能超过题库总数、必须为正数）
+ * 4. 自动设置默认值（默认为10题或题库总数，取较小值）
+ * 
+ * 组件状态：
+ * - numQuestions: 用户选择的题目数量（字符串格式便于表单处理）
+ * - error: 表单验证错误信息
+ * 
+ * 组件接收的Props:
+ * - isOpen: 控制模态框显示/隐藏的布尔值
+ * - onClose: 关闭模态框的回调函数
+ * - onSubmit: 提交所选数量的回调函数，接收数字参数
+ * - totalQuestions: 题库中题目的总数，用于验证和显示
+ * - bankName: 可选，当前题库的名称，用于界面显示
+ */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -21,6 +41,17 @@ const NumQuestionsModal: React.FC<NumQuestionsModalProps> = ({
   const [numQuestions, setNumQuestions] = useState<string>('');
   const [error, setError] = useState<string>('');
 
+  /**
+   * 模态框打开或题库变化时初始化数量输入
+   * 
+   * 当isOpen状态变为true或totalQuestions变化时：
+   * 1. 计算默认题目数量（最多10题，或全部题目如果总数小于10）
+   * 2. 设置数量输入框的初始值
+   * 3. 清除任何之前的验证错误
+   * 
+   * 这种设计确保用户每次打开模态框时都能看到合理的默认值，
+   * 并且当切换到不同题库时能自动调整数量建议
+   */
   useEffect(() => {
     // 当模态框打开或总题目数量变化时重置输入
     if (isOpen) {
@@ -31,6 +62,18 @@ const NumQuestionsModal: React.FC<NumQuestionsModalProps> = ({
     }
   }, [isOpen, totalQuestions]);
 
+  /**
+   * 处理表单提交
+   * 
+   * 工作流程：
+   * 1. 将输入值转换为整数并验证
+   * 2. 检查数字是否有效（非NaN且大于0）
+   * 3. 验证是否超过题库总题目数
+   * 4. 如验证失败，设置相应错误信息
+   * 5. 如验证通过，清除错误并调用onSubmit回调
+   * 
+   * 提交成功后，父组件将通过onSubmit回调获取所选数量并开始刷题
+   */
   const handleSubmit = () => {
     const num = parseInt(numQuestions, 10);
     if (isNaN(num) || num <= 0) {

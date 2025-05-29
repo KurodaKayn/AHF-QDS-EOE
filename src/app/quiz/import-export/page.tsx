@@ -8,7 +8,18 @@ import { DEFAULT_EXPORT_FILENAME } from '@/constants/quiz';
 import { QuestionBank, Question, QuestionType } from '@/types/quiz';
 
 /**
- * 导入/导出题库页面
+ * 题库导入/导出页面组件
+ * 
+ * 该组件提供两个主要功能：
+ * 1. 从CSV或Excel文件导入题目到新建题库
+ * 2. 将现有题库导出为CSV或Excel文件
+ * 
+ * 组件状态：
+ * - selectedBankId: 当前选中的题库ID（用于导出）
+ * - importFormat/exportFormat: 导入/导出的文件格式（CSV或Excel）
+ * - importName: 导入时新建题库的名称
+ * - importSuccess/exportSuccess: 操作成功的状态标志
+ * - importResult: 导入操作的结果统计（总数、成功数、重复数）
  */
 export default function ImportExportPage() {
   const { questionBanks, addQuestionBank, addQuestionToBank } = useQuizStore();
@@ -22,7 +33,19 @@ export default function ImportExportPage() {
   const [importResult, setImportResult] = useState<{ total: number; added: number; duplicates: number } | null>(null);
 
   /**
-   * 处理文件导入
+   * 处理文件导入功能
+   * 
+   * @param event - 文件输入变更事件，包含用户选择的文件
+   * 
+   * 工作流程：
+   * 1. 检查文件和题库名称是否有效
+   * 2. 根据选择的格式（CSV/Excel）读取并解析文件内容
+   * 3. 创建新题库并添加解析出的题目
+   * 4. 处理单选题和多选题的特殊答案格式
+   * 5. 统计导入结果（总数、成功添加数、重复数）
+   * 6. 更新UI状态，显示导入结果
+   * 
+   * 导入过程中会进行重复检查，避免添加重复题目
    */
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -119,7 +142,17 @@ export default function ImportExportPage() {
   };
 
   /**
-   * 处理导出操作
+   * 处理题库导出功能
+   * 
+   * 工作流程：
+   * 1. 验证是否选择了有效的题库
+   * 2. 根据选择的格式（CSV/Excel）生成相应的文件内容
+   * 3. 创建Blob对象并生成下载链接
+   * 4. 触发文件下载并设置成功状态
+   * 5. 错误处理和用户反馈
+   * 
+   * 导出文件命名规则：使用题库名称，如未设置则使用默认文件名
+   * 支持的格式：CSV（逗号分隔值）和Excel（.xlsx）
    */
   const handleExport = () => {
     if (!selectedBankId) return;

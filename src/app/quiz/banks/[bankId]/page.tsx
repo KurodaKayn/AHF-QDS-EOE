@@ -1,8 +1,7 @@
 'use client';
-
-import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { useQuizStore } from '@/hooks/useQuizStore';
+import { useParams, useRouter } from 'next/navigation';//动态路由参数
+import { useState, useEffect } from 'react';//页面导航
+import { useQuizStore } from '@/store/quizStore';
 import { Question, QuestionType, QuestionOption } from '@/types/quiz';
 import { FaPlus, FaTrash, FaEdit, FaChevronLeft, FaFilter, FaSearch, FaSortAmountDown, FaSortAmountUp, FaSave, FaArrowLeft } from 'react-icons/fa';
 import { QUESTION_TYPE_NAMES } from '@/constants/quiz';
@@ -23,16 +22,16 @@ export default function BankDetailPage() {
   const { getQuestionBankById, updateQuestionInBank, deleteQuestionFromBank, addQuestionToBank } = useQuizStore();
   
   const bank = getQuestionBankById(bankId);
-  
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<QuestionType | 'all'>('all');
+  //分别控制编辑和添加题目的弹窗
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);// 控制编辑题目模态框的显示/隐藏状态
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);//存储当前正在编辑的题目对象
+  const [searchTerm, setSearchTerm] = useState('');//用于题目搜索功能
+  const [filterType, setFilterType] = useState<QuestionType | 'all'>('all');// 题目类型过滤状态
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc'); // 默认按更新时间降序
   
-  // 题目编辑状态
+  // 管理题目编辑状态
   const [questionContent, setQuestionContent] = useState('');
-  const [questionType, setQuestionType] = useState<QuestionType>(QuestionType.SingleChoice);
+  const [questionType, setQuestionType] = useState<QuestionType>(QuestionType.SingleChoice);//题目类型状态
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>([]);
   const [questionAnswer, setQuestionAnswer] = useState<string | string[]>('');
   const [questionExplanation, setQuestionExplanation] = useState('');
@@ -66,10 +65,10 @@ export default function BankDetailPage() {
     
     // 处理答案 - 转换字母答案为选项ID
     if (question.type === QuestionType.SingleChoice && typeof question.answer === 'string') {
-      // 如果答案是单个字母（A, B, C...）则转换为对应的选项ID
+      //单选题处理
       const answerLetter = question.answer.toUpperCase();
       if (answerLetter.length === 1 && answerLetter >= 'A' && answerLetter <= 'Z') {
-        const index = answerLetter.charCodeAt(0) - 65; // 'A'的ASCII码是65
+        const index = answerLetter.charCodeAt(0) - 65; // 'A'的ASCII码是65，得0为a
         if (question.options && index < question.options.length) {
           setQuestionAnswer(question.options[index].id);
         } else {
@@ -78,7 +77,9 @@ export default function BankDetailPage() {
       } else {
         setQuestionAnswer(question.answer);
       }
-    } else if (question.type === QuestionType.MultipleChoice && Array.isArray(question.answer)) {
+    } 
+    // 多选题答案处理
+    else if (question.type === QuestionType.MultipleChoice && Array.isArray(question.answer)) {
       // 如果多选题的答案包含字母，则转换为对应的选项ID
       const convertedAnswers: string[] = [];
       
@@ -104,9 +105,9 @@ export default function BankDetailPage() {
     setQuestionExplanation(question.explanation || '');
     setIsEditModalOpen(true);
   };
-  
+  //题目编辑和状态管理逻辑
   const handleOpenAddModal = () => {
-    // 重置所有题目相关状态
+    // 重置所有题目相关状态,使用crypto.randomUUID()生成唯一选项ID
     setEditingQuestion(null);
     setQuestionContent('');
     setQuestionType(QuestionType.SingleChoice);
@@ -120,17 +121,17 @@ export default function BankDetailPage() {
     setQuestionExplanation('');
     setIsAddModalOpen(true);
   };
-  
+  //关闭所有模态框
   const handleCloseModal = () => {
     setIsEditModalOpen(false);
     setIsAddModalOpen(false);
     setEditingQuestion(null);
   };
-  
+  //添加新选项
   const handleAddOption = () => {
     setQuestionOptions([...questionOptions, { id: crypto.randomUUID(), content: '' }]);
   };
-  
+  //删除选项
   const handleRemoveOption = (id: string) => {
     setQuestionOptions(questionOptions.filter(opt => opt.id !== id));
     
@@ -141,7 +142,7 @@ export default function BankDetailPage() {
       setQuestionAnswer(questionAnswer.filter(ans => ans !== id));
     }
   };
-  
+  //修改选项内容
   const handleOptionChange = (id: string, content: string) => {
     setQuestionOptions(
       questionOptions.map(opt => 
@@ -149,7 +150,7 @@ export default function BankDetailPage() {
       )
     );
   };
-  
+  //处理答案选择
   const handleAnswerChange = (id: string) => {
     if (questionType === QuestionType.SingleChoice) {
       setQuestionAnswer(id);
@@ -162,7 +163,7 @@ export default function BankDetailPage() {
       }
     }
   };
-  
+  //题目类型切换
   const handleTypeChange = (type: QuestionType) => {
     setQuestionType(type);
     
@@ -185,7 +186,7 @@ export default function BankDetailPage() {
       setQuestionAnswer('');
     }
   };
-  
+  //题目保存
   const handleSaveQuestion = () => {
     // 验证表单
     if (!questionContent.trim()) {
@@ -195,7 +196,7 @@ export default function BankDetailPage() {
     
     if ((questionType === QuestionType.SingleChoice || questionType === QuestionType.MultipleChoice) 
         && questionOptions.length < 2) {
-      alert('选择题至少需要两个选项');
+      alert('选择题至少需要两个选项'); 
       return;
     }
     
@@ -229,7 +230,7 @@ export default function BankDetailPage() {
     
     handleCloseModal();
   };
-  
+  //题目删除处理
   const handleDeleteQuestion = (questionId: string) => {
     if (confirm('确定要删除这个题目吗？此操作无法撤销。')) {
       deleteQuestionFromBank(bankId, questionId);

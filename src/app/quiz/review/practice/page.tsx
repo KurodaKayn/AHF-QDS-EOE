@@ -10,7 +10,7 @@ export default function ReviewPracticePage() {
 
   useEffect(() => {
     // 获取错题记录
-    const wrongRecords = records.filter(r => !r.isCorrect);
+    const wrongRecords = records;
     
     if (wrongRecords.length === 0) {
       // 如果没有错题，跳转回错题本页面

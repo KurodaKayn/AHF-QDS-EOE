@@ -31,31 +31,46 @@ function PracticeContent() {
   } = useQuizStore();
   const { theme } = useThemeStore();
 
-  const [currentBank, setCurrentBank] = useState<QuestionBank | null>(null);
-  const [allBankQuestions, setAllBankQuestions] = useState<Question[]>([]);
-  const [practiceQuestions, setPracticeQuestions] = useState<(Question & { originalUserAnswer?: string | string[] })[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<Record<string, string | string[]>>({});
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [quizCompleted, setQuizCompleted] = useState(false);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [elapsedTime, setElapsedTime] = useState<number>(0); // 新增状态：用于存储总用时（秒）
-  const [isLoading, setIsLoading] = useState(true);
-  const [isNumQuestionsModalOpen, setIsNumQuestionsModalOpen] = useState(false);
+  // 状态管理
+  const [currentBank, setCurrentBank] = useState<QuestionBank | null>(null); // 当前练习的题库
+  const [allBankQuestions, setAllBankQuestions] = useState<Question[]>([]); // 题库中的所有题目
+  const [practiceQuestions, setPracticeQuestions] = useState<(Question & { originalUserAnswer?: string | string[] })[]>([]); // 当前练习的题目集合
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // 当前题目索引
+  const [userAnswers, setUserAnswers] = useState<Record<string, string | string[]>>({}); // 用户的答案，键为题目ID
+  const [showAnswer, setShowAnswer] = useState(false); // 是否显示答案
+  const [quizCompleted, setQuizCompleted] = useState(false); // 练习是否完成
+  const [startTime, setStartTime] = useState<number | null>(null); // 开始时间戳
+  const [elapsedTime, setElapsedTime] = useState<number>(0); // 总用时（秒）
+  const [isLoading, setIsLoading] = useState(true); // 是否正在加载
+  const [isNumQuestionsModalOpen, setIsNumQuestionsModalOpen] = useState(false); // 是否显示题目数量选择对话框
 
-  // 提前定义 currentQuestion 和相关 useMemo Hooks
+  // 当前正在练习的题目
   const currentQuestion = practiceQuestions[currentQuestionIndex];
   
+  /**
+   * 判断当前题目是否已经作答
+   * 对于单选题和判断题，检查是否有非空字符串答案
+   * 对于多选题，检查是否有至少一个选项被选中
+   */
   const isCurrentQuestionAnswered = useMemo(() => {
     if (!currentQuestion || !userAnswers[currentQuestion.id]) return false;
     const answer = userAnswers[currentQuestion.id];
     return Array.isArray(answer) ? answer.length > 0 : answer !== '';
   }, [currentQuestion, userAnswers]);
 
+  /**
+   * 判断是否为最后一题
+   * 用于决定"下一题"按钮的行为（是否显示完成按钮）
+   */
   const isLastQuestion = useMemo(() => 
     currentQuestionIndex === practiceQuestions.length - 1 && practiceQuestions.length > 0
   , [currentQuestionIndex, practiceQuestions.length]);
 
+  /**
+   * 判断是否可以点击下一题按钮
+   * - 如果是最后一题，必须回答后才能完成
+   * - 如果不是最后一题，可以在回答后或显示答案后前进
+   */
   const canPressNext = useMemo(() => {
     if (isLastQuestion) {
       return isCurrentQuestionAnswered;
@@ -64,17 +79,45 @@ function PracticeContent() {
     }
   }, [isLastQuestion, isCurrentQuestionAnswered, showAnswer]);
 
+  /**
+   * 页面加载和参数变化时的副作用
+   * 处理题库加载、题目筛选、错题加载等逻辑
+   */
   useEffect(() => {
     if (!bankId) {
       router.push('/quiz');
       return;
     }
 
-      const bank = getQuestionBankById(bankId);
-      if (bank) {
+    const bank = getQuestionBankById(bankId);
+    if (bank) {
       setCurrentBank(bank);
       
       if (isReviewMode) {
+        // 错题复习模式初始化
+        /**
+         * 错题复习模式的初始化流程
+         * 
+         * 该代码块实现了错题复习功能的核心逻辑：
+         * 1. 从全局错题记录中筛选并加载当前题库的错题
+         * 2. 准备错题练习环境
+         * 3. 应用相关设置（随机排序等）
+         * 
+         * 详细流程：
+         * 1. 首先检查是否已完成练习，避免重新初始化已完成的练习
+         * 2. 筛选错误记录（records中isCorrect为false的记录）
+         * 3. 找出当前题库中与错误记录匹配的题目
+         * 4. 为错题添加originalUserAnswer字段，保存最初的错误答案
+         * 5. 如果没有错题，则导航回错题本页面
+         * 6. 根据设置决定是否随机排序错题和选项
+         * 7. 初始化练习状态（重置用户答案、当前题目索引等）
+         * 
+         * 特殊处理：
+         * - 记录原始错误答案：通过添加originalUserAnswer字段，让用户在复习时
+         *   能够看到自己最初的错误答案，有助于理解和改正
+         * - 状态重置：确保每次进入错题复习模式时都是新的练习环境
+         * - 空错题检查：当没有错题时自动返回错题本页面
+         */
         // 如果练习已完成，则不应在 useEffect 中自动重新开始
         // 允许总结页面显示，直到用户明确操作
         if (quizCompleted) {
@@ -82,6 +125,7 @@ function PracticeContent() {
             return; 
         }
 
+        // 筛选当前题库中的错题
         const wrongRecords = records.filter(r => !r.isCorrect);
         let wrongQuestionsFromBank = bank.questions
           .filter(question => wrongRecords.some(record => record.questionId === question.id))
@@ -100,13 +144,16 @@ function PracticeContent() {
           return;
         }
         
+        // 设置所有错题
         setAllBankQuestions(wrongQuestionsFromBank);
         let questionsToSet = [...wrongQuestionsFromBank];
         
+        // 根据设置决定是否打乱错题顺序
         if (settings.shuffleReviewQuestionOrder) {
           questionsToSet = shuffleArray([...questionsToSet]);
         }
         
+        // 根据设置决定是否打乱选项顺序（单选题和多选题）
         if (settings.shuffleReviewOptions) {
           questionsToSet = questionsToSet.map(q_item => {
             if (q_item.options && q_item.type !== QuestionType.TrueFalse && q_item.options.length > 1) {
@@ -117,6 +164,7 @@ function PracticeContent() {
           });
         }
         
+        // 初始化练习
         setPracticeQuestions(questionsToSet);
         setCurrentQuestionIndex(0);
         setUserAnswers({});
@@ -125,9 +173,11 @@ function PracticeContent() {
         setStartTime(Date.now());
         setIsLoading(false);
       } else {
+        // 普通练习模式
         const loadedQuestions = bank.questions.map(q => ({...q, options: q.options ? [...q.options] : []}));
         setAllBankQuestions(loadedQuestions);
         if (practiceQuestions.length === 0 && loadedQuestions.length > 0 && !quizCompleted) { 
+          // 首次加载或重新开始练习时，打开题目数量选择对话框
           setIsNumQuestionsModalOpen(true);
         }
         setIsLoading(false);
@@ -135,9 +185,12 @@ function PracticeContent() {
     } else {
       router.push('/quiz');
     }
-  }, [bankId, getQuestionBankById, isReviewMode, records, router, settings.shuffleReviewOptions, settings.shuffleReviewQuestionOrder, settings.markMistakeAsCorrectedOnReviewSuccess, quizCompleted]); // Added router to dependency array
+  }, [bankId, getQuestionBankById, isReviewMode, records, router, settings.shuffleReviewOptions, settings.shuffleReviewQuestionOrder, settings.markMistakeAsCorrectedOnReviewSuccess, quizCompleted]);
 
-  // 添加自动继续相关的useEffect
+  /**
+   * 自动继续功能的副作用
+   * 当启用自动继续设置时，自动显示答案并进入下一题
+   */
   useEffect(() => {
     // 检查是否已经回答了当前问题
     if (isCurrentQuestionAnswered && !showAnswer && (settings as any).autoContinue) {
@@ -159,6 +212,12 @@ function PracticeContent() {
     }
   }, [isCurrentQuestionAnswered, showAnswer, settings, isLastQuestion]);
 
+  /**
+   * 处理题目数量选择
+   * 根据用户选择的题目数量，初始化练习
+   * 
+   * @param {number} numToPractice - 用户选择的题目数量
+   */
   const handleNumQuestionsSubmit = (numToPractice: number) => {
     setIsNumQuestionsModalOpen(false);
     let questionsToSet = [...allBankQuestions];
@@ -168,6 +227,7 @@ function PracticeContent() {
       questionsToSet = shuffleArray([...questionsToSet]); // 使用更可靠的 shuffleArray 函数
     }
     
+    // 限制题目数量
     const finalNumToPractice = Math.max(1, Math.min(numToPractice, questionsToSet.length));
     questionsToSet = questionsToSet.slice(0, finalNumToPractice);
 
@@ -183,6 +243,7 @@ function PracticeContent() {
       });
     }
     
+    // 初始化练习
     setPracticeQuestions(questionsToSet);
     setUserAnswers({});
     setCurrentQuestionIndex(0);
@@ -191,6 +252,28 @@ function PracticeContent() {
     setStartTime(Date.now());
   };
   
+  /**
+   * 处理用户答案选择操作
+   * 
+   * 该函数负责处理用户在答题过程中选择/取消选择选项的逻辑，支持多种题型：
+   * 1. 单选题：直接设置所选选项ID为答案
+   * 2. 多选题：动态管理选项集合（选中则添加，再次点击则移除）
+   * 3. 判断题：与单选题处理逻辑相同，设置'true'或'false'为答案
+   * 
+   * 工作流程：
+   * 1. 验证前置条件（当前有题目且答案未显示）
+   * 2. 根据题目类型执行不同的答案处理逻辑：
+   *    - 多选题：检查选项是否已被选中，若已选中则移除，否则添加到选中集合
+   *    - 单选题/判断题：直接将选项ID设置为答案
+   * 3. 更新全局用户答案状态，使用不可变更新模式
+   * 
+   * 注意：
+   * - 当已显示正确答案时，此函数不会执行任何操作
+   * - 用户答案存储在userAnswers状态对象中，以题目ID为键
+   * - 多选题答案以字符串数组形式存储，单选题和判断题以字符串形式存储
+   * 
+   * @param {string} optionId - 用户选择/取消选择的选项ID
+   */
   const handleAnswerSelect = (optionId: string) => {
     if (!currentQuestion || showAnswer) return;
     let newAnswer: string | string[];
@@ -204,7 +287,10 @@ function PracticeContent() {
     } else {
       newAnswer = optionId;
     }
-    setUserAnswers(prev => ({ ...prev, [currentQuestion.id]: newAnswer }));
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentQuestion.id]: newAnswer
+    }));
   };
 
   const handleShowAnswer = () => {
@@ -212,6 +298,37 @@ function PracticeContent() {
     setShowAnswer(true);
   };
   
+  /**
+   * 检查用户答案是否正确
+   * 
+   * 该函数是错题判定的核心，负责根据不同题型比较用户答案和正确答案：
+   * 
+   * 支持的题目类型：
+   * 1. 多选题 (MultipleChoice)：
+   *    - 比较两个答案集合是否完全相同（不考虑顺序）
+   *    - 用户必须选择全部且仅选择全部正确选项才算正确
+   * 
+   * 2. 判断题 (TrueFalse)：
+   *    - 字符串比较（忽略大小写）
+   *    - 正确答案通常为"true"或"false"
+   * 
+   * 3. 填空题 (FillInBlank)：
+   *    - 支持多个可接受答案（用分号分隔）
+   *    - 用户答案与任一标准答案匹配即为正确
+   *    - 比较时忽略大小写，但必须完全匹配（不支持模糊匹配）
+   * 
+   * 4. 其他类型题目（如单选题、简答题）：
+   *    - 字符串比较（忽略大小写）
+   * 
+   * 该函数在多处使用：
+   * - 显示答案时判定正确/错误状态
+   * - 完成练习时决定是否记录错题
+   * - 练习总结页显示正确率统计
+   * 
+   * @param {Question} question - 当前题目对象
+   * @param {string | string[] | undefined} userAnswer - 用户答案
+   * @returns {boolean} 返回答案是否正确
+   */
   const checkIsCorrect = (question: Question, userAnswer: string | string[] | undefined): boolean => {
     if (userAnswer === undefined || userAnswer === null) return false;
     if (question.type === QuestionType.MultipleChoice) {
@@ -262,13 +379,39 @@ function PracticeContent() {
     }
   };
 
+  /**
+   * 处理练习完成的逻辑
+   * 
+   * 该函数在用户完成整个练习后执行，负责：
+   * 1. 批量处理所有题目的答题记录
+   * 2. 实现错题管理的核心逻辑
+   * 3. 设置练习完成状态和计算用时
+   * 
+   * 错题管理流程：
+   * 1. 对每个题目，首先检查答案是否正确
+   * 2. 通过removeWrongRecordsByQuestionId移除该题目的所有旧错误记录
+   *    (这确保了记录的一致性，防止重复记录)
+   * 3. 对于回答错误的题目：
+   *    - 添加一条isCorrect=false的记录到records
+   *    - 这条记录会使题目被标记为错题并出现在错题本中
+   * 4. 对于回答正确的题目：
+   *    - 在复习模式且开启了"复习成功自动纠正"设置时：
+   *      添加一条isCorrect=true的记录
+   *    - 不添加任何记录（普通模式或未开启设置）
+   * 
+   * 实现细节：
+   * - 采用批量处理而非即时记录，减少状态更新和网络请求
+   * - 先清除后添加的模式确保了记录的准确性
+   * - 通过addRecord和removeWrongRecordsByQuestionId函数间接操作zustand store
+   * - 这些操作通过store的persist中间件自动保存到localStorage
+   */
   const handleCompleteQuiz = () => {
     practiceQuestions.forEach(question => {
       const userAnswer = userAnswers[question.id];
       const isCorrect = checkIsCorrect(question, userAnswer);
 
       removeWrongRecordsByQuestionId(question.id);
-
+      // 如果用户答错了，记录错误答案
       if (!isCorrect) {
       addRecord({
           questionId: question.id,

@@ -1,3 +1,28 @@
+/**
+ * 题目创建/编辑模态对话框组件
+ * 
+ * 该组件提供题目管理的完整界面，支持以下功能：
+ * 1. 新建题目（单选题、多选题、判断题、简答题、填空题）
+ * 2. 编辑现有题目
+ * 3. 动态管理选项（添加/删除选项）
+ * 4. 选择和验证答案
+ * 5. 添加题目解析
+ * 
+ * 组件状态：
+ * - content: 题目内容
+ * - type: 题目类型（单选、多选、判断、简答、填空）
+ * - options: 选项列表（对于选择题和判断题）
+ * - answer: 正确答案（格式根据题型不同：字符串或字符串数组）
+ * - explanation: 题目解析（可选）
+ * - isLoading: 提交状态指示器
+ * 
+ * 组件设计特点：
+ * - 针对不同题型提供不同的表单界面
+ * - 表单验证确保数据完整性
+ * - 支持选项的动态添加和删除
+ * - 使用zustand store进行状态管理
+ * - 实现重复题目检测
+ */
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -46,6 +71,17 @@ export default function QuestionFormModal({
 
   const isEditMode = useMemo(() => !!questionToEdit, [questionToEdit]);
 
+  /**
+   * 模态框打开或编辑模式变化时初始化表单数据
+   * 
+   * 工作流程：
+   * 1. 检测模态框打开状态和编辑/新建模式
+   * 2. 编辑模式：加载现有题目数据到表单
+   * 3. 新建模式：重置表单为默认值
+   * 4. 重置加载状态为false
+   * 
+   * 这种设计确保表单始终显示正确的数据，无论是编辑现有题目还是创建新题目
+   */
   useEffect(() => {
     if (isOpen) {
       if (isEditMode && questionToEdit) {
@@ -66,6 +102,20 @@ export default function QuestionFormModal({
     }
   }, [isOpen, isEditMode, questionToEdit]);
 
+  /**
+   * 处理题目类型变更
+   * 
+   * 工作流程：
+   * 1. 更新题目类型状态
+   * 2. 根据新类型动态调整选项和答案格式：
+   *    - 判断题：设置固定的"正确/错误"选项，重置答案
+   *    - 简答题/填空题：清空选项，重置答案为空字符串
+   *    - 单选题/多选题：恢复默认选项（如需），设置适当答案格式
+   * 
+   * 该函数确保不同题型之间切换时，表单状态保持一致性，避免类型不匹配的数据
+   * 
+   * @param newType - 新的题目类型
+   */
   const handleTypeChange = (newType: QuestionType) => {
     setType(newType);
     // 根据类型重置选项和答案
@@ -87,16 +137,51 @@ export default function QuestionFormModal({
     }
   };
 
+  /**
+   * 处理选项内容变更
+   * 
+   * 工作流程：
+   * 1. 根据选项ID找到需要更新的选项
+   * 2. 更新该选项的内容，保持其他选项不变
+   * 
+   * 该函数允许用户编辑选项内容，同时保持选项ID不变，这对维护选项和答案的关联关系很重要
+   * 
+   * @param optionId - 要更新的选项ID
+   * @param value - 新的选项内容
+   */
   const handleOptionContentChange = (optionId: string, value: string) => {
     setOptions(prevOptions => 
       prevOptions.map(opt => opt.id === optionId ? { ...opt, content: value } : opt)
     );
   };
 
+  /**
+   * 添加新选项
+   * 
+   * 工作流程：
+   * 1. 生成唯一的选项ID
+   * 2. 创建一个空的新选项
+   * 3. 将新选项添加到当前选项列表末尾
+   * 
+   * 该函数使用不可变更新模式，创建新的选项数组而不是修改现有数组
+   */
   const handleAddOption = () => {
     setOptions(prevOptions => [...prevOptions, { id: uuidv4(), content: '' }]);
   };
 
+  /**
+   * 移除选项
+   * 
+   * 工作流程：
+   * 1. 从选项数组中过滤掉指定ID的选项
+   * 2. 如果被删选项是当前答案，同时更新答案状态：
+   *    - 单选题：如果当前答案是被删选项，清空答案
+   *    - 多选题：从答案数组中移除被删选项ID
+   * 
+   * 该函数确保选项删除后，答案状态保持一致性，防止引用不存在的选项
+   * 
+   * @param optionId - 要删除的选项ID
+   */
   const handleRemoveOption = (optionId: string) => {
     setOptions(prevOptions => prevOptions.filter(opt => opt.id !== optionId));
     // 如果被删除的选项是已选答案，也移除答案
@@ -108,6 +193,18 @@ export default function QuestionFormModal({
     }
   };
 
+  /**
+   * 处理答案选择
+   * 
+   * 工作流程：
+   * 1. 根据题目类型执行不同的答案处理逻辑：
+   *    - 单选题/判断题：直接设置选中的选项ID为答案
+   *    - 多选题：切换选中状态（已选则移除，未选则添加）
+   * 
+   * 该函数确保答案格式与题目类型匹配，并维护多选题答案的数组状态
+   * 
+   * @param optionId - 用户选择/取消选择的选项ID
+   */
   const handleAnswerSelection = (optionId: string) => {
     if (type === QuestionType.SingleChoice || type === QuestionType.TrueFalse) {
       setAnswer(optionId);
@@ -124,8 +221,24 @@ export default function QuestionFormModal({
 
   /**
    * 处理表单提交
-   * 根据模式不同执行添加或更新题目的操作
-   * 操作完成后会通过zustand store自动将数据保存到localStorage
+   * 
+   * 工作流程：
+   * 1. 表单验证：
+   *    - 检查题目内容是否为空
+   *    - 验证选择题选项是否完整
+   *    - 确认是否选择了答案
+   *    - 验证填空题/简答题是否有答案
+   * 2. 如验证失败，显示错误提示并中止提交
+   * 3. 设置加载状态为true
+   * 4. 准备题目数据对象（不包含id字段）
+   * 5. 根据编辑/新建模式选择合适的store方法：
+   *    - 编辑模式：调用updateQuestionInBank更新现有题目
+   *    - 新建模式：调用addQuestionToBank添加新题目
+   * 6. 处理操作结果（成功/失败/重复）
+   * 7. 成功时调用回调函数并关闭模态框
+   * 8. 设置加载状态为false
+   * 
+   * 该函数是表单的核心逻辑，负责数据验证、提交和反馈处理
    */
   const handleSubmit = async () => {
     if (!content.trim()) {
