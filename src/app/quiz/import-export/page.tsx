@@ -5,7 +5,7 @@ import { FaFileImport, FaFileExport, FaCheck, FaExclamationTriangle } from 'reac
 import { useQuizStore } from '@/hooks/useQuizStore';
 import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from '@/utils/quiz';
 import { DEFAULT_EXPORT_FILENAME } from '@/constants/quiz';
-import { QuestionBank, Question } from '@/types/quiz';
+import { QuestionBank, Question, QuestionType } from '@/types/quiz';
 
 /**
  * 导入/导出题库页面
@@ -24,7 +24,7 @@ export default function ImportExportPage() {
   /**
    * 处理文件导入
    */
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !importName.trim()) {
         alert('请输入题库名称并选择文件。');
@@ -33,7 +33,7 @@ export default function ImportExportPage() {
 
     const reader = new FileReader();
 
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         let importedData: QuestionBank | null = null; 
         
@@ -49,22 +49,46 @@ export default function ImportExportPage() {
             throw new Error('无法从文件解析数据。');
         }
 
-        const newBank: QuestionBank = addQuestionBank(importedData.name, importedData.description);
+        const newBank = await addQuestionBank(importedData.name, importedData.description);
         
         let addedCount = 0;
         let duplicateCount = 0;
         const totalCount = importedData.questions ? importedData.questions.length : 0;
 
         if (newBank && importedData.questions && importedData.questions.length > 0) {
-            importedData.questions.forEach((question: Question) => {
+            console.log('导入题目总数:', importedData.questions.length);
+            
+            for (let index = 0; index < importedData.questions.length; index++) {
+                const question = importedData.questions[index];
+                console.log(`处理第${index+1}题:`, question.content.substring(0, 30) + '...');
+                
                 const { id, ...questionData } = question;
-                const result = addQuestionToBank(newBank.id, questionData);
+                
+                if (question.type === QuestionType.SingleChoice && typeof question.answer === 'string' && question.options && question.options.length > 0) {
+                    const answerLetter = question.answer.trim();
+                    const matchingOption = question.options.find(opt => opt.id === answerLetter);
+                    if (matchingOption) {
+                        console.log(`单选题答案使用字母ID: ${answerLetter}`);
+                    } else {
+                        console.log(`单选题答案不匹配任何选项: ${answerLetter}`);
+                    }
+                }
+                
+                if (question.type === QuestionType.MultipleChoice && Array.isArray(question.answer) && question.options && question.options.length > 0) {
+                    console.log(`多选题答案: ${question.answer.join(',')}`);
+                }
+                
+                const result = await addQuestionToBank(newBank.id, questionData);
+                console.log('添加结果:', result.isDuplicate ? '重复' : (result.question ? '成功' : '失败'));
+                
                 if (result.isDuplicate) {
                     duplicateCount++;
                 } else if (result.question) {
                     addedCount++;
                 }
-            });
+            }
+            
+            console.log('导入结果: 总数', totalCount, '成功', addedCount, '重复', duplicateCount);
         }
         
         setImportResult({
@@ -79,7 +103,6 @@ export default function ImportExportPage() {
         setImportSuccess(true);
         setTimeout(() => {
             setImportSuccess(false);
-            // 5秒后清除导入结果
             setTimeout(() => setImportResult(null), 5000);
         }, 3000);
       } catch (error: any) {
