@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useQuizStore } from '@/store/quizStore';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useQuizStore } from '@/hooks/useQuizStore';
 
 export default function ReviewPracticePage() {
   const router = useRouter();

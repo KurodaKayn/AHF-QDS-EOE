@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useQuizStore } from '@/store/quizStore';
+import { useQuizStore } from '@/hooks/useQuizStore';
 import { Question, QuestionType, QuestionOption } from '@/types/quiz';
 import { FaPlus, FaTrash, FaEdit, FaChevronLeft, FaFilter, FaSearch, FaSortAmountDown, FaSortAmountUp, FaSave, FaArrowLeft } from 'react-icons/fa';
 import { QUESTION_TYPE_NAMES } from '@/constants/quiz';

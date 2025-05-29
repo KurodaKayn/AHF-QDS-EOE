@@ -99,11 +99,10 @@ export default function QuizLayout({ children }: { children: React.ReactNode }) 
         )}>
           {!sidebarCollapsed && <h1 className="text-xl font-bold text-gray-800 dark:text-white">刷题系统</h1>}
           <div className="flex items-center">
-            {!sidebarCollapsed && <ThemeSwitcher />}
             <button 
               onClick={toggleSidebar} 
               className={cn(
-                "ml-2 p-1 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700",
+                "p-1 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700",
                 sidebarCollapsed && "mx-auto"
               )}
               aria-label={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaMagic, FaKey, FaSave, FaEye, FaPlay, FaSpinner, FaCheckCircle, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { useQuizStore } from '@/store/quizStore';
+import { useQuizStore } from '@/hooks/useQuizStore';
 import { createEmptyBank } from '@/utils/quiz';
 import { EXAMPLE_QUESTION_TEXT, DEFAULT_BANK_NAME, QUESTION_TYPE_NAMES } from '@/constants/quiz';
 import { Question, QuestionBank, QuestionType, QuestionOption } from '@/types/quiz';

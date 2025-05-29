@@ -20,7 +20,7 @@ import { useUserSettings } from '@/hooks/useUserSettings';
 import { UserSettingsData } from '@/lib/userSettings';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
-import { useQuizStore } from '@/store/quizStore';
+import { useQuizStore } from '@/hooks/useQuizStore';
 
 /**
  * API密钥设置接口

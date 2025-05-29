@@ -2,7 +2,7 @@
 
 import { SessionProvider } from "next-auth/react";
 import { ReactNode, useEffect } from "react";
-import { useQuizStore } from "@/store/quizStore";
+import { useQuizStore } from "@/hooks/useQuizStore";
 import { useThemeStore } from "@/store/themeStore";
 
 /**

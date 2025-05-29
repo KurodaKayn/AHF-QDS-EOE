@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FaArrowLeft, FaArrowRight, FaLightbulb, FaCheckCircle, FaTimesCircle, FaRedo, FaCog } from 'react-icons/fa';
-import { useQuizStore } from '@/store/quizStore';
+import { useQuizStore } from '@/hooks/useQuizStore';
 import { Question, QuestionBank, QuestionType, QuestionOption } from '@/types/quiz';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';

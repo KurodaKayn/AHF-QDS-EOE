@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaExclamationTriangle, FaTrash, FaTimes, FaSearch, FaPlayCircle, FaListUl, FaCheck, FaMagic, FaRobot, FaSyncAlt } from 'react-icons/fa';
-import { useQuizStore } from '@/store/quizStore';
+import { useQuizStore } from '@/hooks/useQuizStore';
 import { Question, QuestionType, QuestionBank, QuestionOption } from '@/types/quiz';
 import { QUESTION_TYPE_NAMES, getTagColor } from '@/constants/quiz';
 import WrongQuestionItem, { WrongQuestionDisplay } from '@/components/quiz/WrongQuestionItem';

@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { FaFileImport, FaFileExport, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
-import { useQuizStore } from '@/store/quizStore';
+import { useQuizStore } from '@/hooks/useQuizStore';
 import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from '@/utils/quiz';
 import { DEFAULT_EXPORT_FILENAME } from '@/constants/quiz';
 import { QuestionBank, Question } from '@/types/quiz';

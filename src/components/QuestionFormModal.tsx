@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Question, QuestionType, QuestionOption } from '@/types/quiz';
 import { QUESTION_TYPE_NAMES } from '@/constants/quiz';
-import { useQuizStore } from '@/store/quizStore';
+import { useQuizStore } from '@/hooks/useQuizStore';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import { FaTrash, FaPlus } from 'react-icons/fa';

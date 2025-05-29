@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { UserSettingsData, defaultSettings } from '@/lib/userSettings';
-import { useQuizStore } from '@/store/quizStore';
+import { useQuizStore } from '@/hooks/useQuizStore';
 
 /**
  * 用户设置管理Hook，提供获取、更新、重置等功能

@@ -1,8 +1,8 @@
 'use client';
 
 import { Suspense, useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { useQuizStore } from '@/store/quizStore';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useQuizStore } from '@/hooks/useQuizStore';
 import { Question, QuestionBank, QuestionType, QuestionOption } from '@/types/quiz';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
