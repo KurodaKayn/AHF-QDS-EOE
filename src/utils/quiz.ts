@@ -1,12 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
-import Papa from 'papaparse';
+import { nanoid } from 'nanoid';
 import * as XLSX from 'xlsx';
 import { Question, QuestionBank, QuestionType } from '@/types/quiz';
 
 /**
  * 生成唯一ID
  */
-export const generateId = (): string => uuidv4();
+export const generateId = (): string => nanoid();
 
 /**
  * 创建空题库
@@ -63,7 +62,7 @@ export const exportToCSV = (bank: QuestionBank): string => {
       formattedAnswer = q.answer.toLowerCase();
     }
 
-    const baseRow = {
+    const baseRow: Record<string, any> = {
       type: q.type,
       content: q.content,
       answer: formattedAnswer,
@@ -73,18 +72,18 @@ export const exportToCSV = (bank: QuestionBank): string => {
     
     // 为选择题添加选项
     if (q.options && q.options.length > 0) {
-      const optionsObj = q.options.reduce((acc, opt, index) => {
+      q.options.forEach((opt, index) => {
         const optKey = `option${String.fromCharCode(65 + index)}`; // 选项A, B, C...
-        return { ...acc, [optKey]: opt.content };
-      }, {});
-   
-      return { ...baseRow, ...optionsObj };
+        baseRow[optKey] = opt.content;
+      });
     }
     
     return baseRow;
   });
   
-  return Papa.unparse(rows);
+  // 使用 xlsx 导出 CSV（统一使用一个库）
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  return XLSX.utils.sheet_to_csv(worksheet);
 };
 
 /**
@@ -133,8 +132,13 @@ export const exportToExcel = (bank: QuestionBank): Blob => {
  * 从CSV导入题库
  */
 export const importFromCSV = (csvString: string, bankName: string): QuestionBank => {
-  const parsed = Papa.parse(csvString, { header: true });
-  const questions: Question[] = parsed.data
+  // 使用 xlsx 解析 CSV（统一使用一个库）
+  const workbook = XLSX.read(csvString, { type: 'string' });
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json(worksheet);
+  
+  const questions: Question[] = data
     .filter((row: any) => row.content && row.type) // 过滤无效行
     .map((row: any) => {
       const type = row.type as QuestionType;

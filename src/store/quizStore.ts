@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Question, QuestionBank, QuestionRecord, QuestionType, QuestionOption } from '@/types/quiz';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 import { SIMILAR_QUESTIONS_PROMPT, callAI } from '@/constants/ai';
 
 // 定义设置的接口
@@ -91,7 +91,7 @@ export const useQuizStore = create<QuizState>()(
       // <<< 初始化新增状态结束
 
       addQuestionBank: (name, description = '') => {
-        const newBank: QuestionBank = { id: uuidv4(), name, description, questions: [], createdAt: Date.now(), updatedAt: Date.now() };
+        const newBank: QuestionBank = { id: nanoid(), name, description, questions: [], createdAt: Date.now(), updatedAt: Date.now() };
         set((state) => ({ questionBanks: [...state.questionBanks, newBank] }));
         return newBank;
       },
@@ -129,7 +129,7 @@ export const useQuizStore = create<QuizState>()(
           return { question: null, isDuplicate: true };
         }
         // 不存在重复，添加新题目
-        const newQuestion: Question = { ...questionData, id: uuidv4() };
+        const newQuestion: Question = { ...questionData, id: nanoid() };
         let updatedBank: QuestionBank | undefined;
         set((state) => ({
           questionBanks: state.questionBanks.map(bank => {
@@ -191,7 +191,7 @@ export const useQuizStore = create<QuizState>()(
         return undefined;
       },
       addRecord: (record) => {
-        const newRecord: QuestionRecord = { ...record, id: uuidv4() };
+        const newRecord: QuestionRecord = { ...record, id: nanoid() };
         set((state) => ({ records: [...state.records, newRecord] }));
       },
       clearRecords: (bankId) => {
@@ -314,7 +314,7 @@ export const useQuizStore = create<QuizState>()(
               processedOptions = q.options.map((opt: any, idx: number) => {
                 // 如果选项没有ID，生成一个
                 if (!opt.id) {
-                  return { ...opt, id: uuidv4() };
+                  return { ...opt, id: nanoid() };
                 }
                 return opt;
               });
@@ -322,7 +322,7 @@ export const useQuizStore = create<QuizState>()(
 
             // 填充完整的题目对象
             return {
-              id: uuidv4(),
+              id: nanoid(),
               content: q.content,
               type: q.type,
               options: processedOptions,
