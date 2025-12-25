@@ -8,7 +8,7 @@ import { Question, QuestionType, QuestionBank, QuestionOption } from '@/types/qu
 import { QUESTION_TYPE_NAMES, getTagColor } from '@/constants/quiz';
 import WrongQuestionItem, { WrongQuestionDisplay } from '@/components/quiz/WrongQuestionItem';
 import SimilarQuestionsModal from '@/components/quiz/SimilarQuestionsModal';
-import { EXPLANATION_PROMPT, callAI } from '@/constants/ai';
+import { EXPLANATION_PROMPT, callAI, callAIStream } from '@/constants/ai';
 
 /**
  * 错题本页面
@@ -182,12 +182,12 @@ export default function ReviewPage() {
       const apiKey = settings.aiProvider === 'deepseek' ? settings.deepseekApiKey : settings.alibabaApiKey;
       const baseUrl = settings.aiProvider === 'deepseek' ? settings.deepseekBaseUrl : undefined;
       let fullExplanation = '';
-      await callAI(settings.aiProvider, messages, apiKey, baseUrl, true, (chunk) => {
+      await callAIStream(settings.aiProvider, messages, apiKey, (chunk) => {
         setCurrentExplanations(prev => {
           fullExplanation = (prev[questionId] || '') + chunk;
           return { ...prev, [questionId]: fullExplanation };
         });
-      });
+      }, baseUrl);
       const finalExplanation = fullExplanation.trim();
       setCompletedExplanations(prev => ({ ...prev, [questionId]: finalExplanation }));
       if (questionInfo.bankId) {

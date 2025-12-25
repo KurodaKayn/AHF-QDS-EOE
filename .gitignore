@@ -48,3 +48,6 @@ next-env.d.ts
 *.dylib
 *.test
 *.out
+
+#idea
+.vscode

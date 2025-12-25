@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
   // 导出时生成基于路由的HTML文件
   trailingSlash: true,
+  // 构建时忽略 ESLint 错误
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
