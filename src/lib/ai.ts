@@ -1,33 +1,16 @@
-import { createOpenAI } from '@ai-sdk/openai';
-import { generateText, streamText } from 'ai';
-
 /**
- * 获取 AI 提供商实例
+ * AI 配置常量
  */
-export const getAIProvider = (
-  provider: 'deepseek' | 'alibaba',
-  apiKey: string,
-  baseUrl?: string
-) => {
-  if (provider === 'deepseek') {
-    return createOpenAI({
-      apiKey,
-      baseURL: baseUrl || 'https://api.deepseek.com/v1',
-    });
-  } else {
-    return createOpenAI({
-      apiKey,
-      baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-    });
-  }
-};
-
-/**
- * 获取模型名称
- */
-const getModelName = (provider: 'deepseek' | 'alibaba') => {
-  return provider === 'deepseek' ? 'deepseek-chat' : 'qwen-turbo';
-};
+const AI_CONFIG = {
+  deepseek: {
+    baseURL: 'https://api.deepseek.com/v1/chat/completions',
+    model: 'deepseek-chat',
+  },
+  alibaba: {
+    baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+    model: 'qwen-turbo',
+  },
+} as const;
 
 /**
  * 调用 AI 生成文本（非流式）
@@ -38,19 +21,33 @@ export const callAI = async (
   apiKey: string,
   baseUrl?: string
 ): Promise<string> => {
-  try {
-    const ai = getAIProvider(provider, apiKey, baseUrl);
-    const modelName = getModelName(provider);
+  const config = AI_CONFIG[provider];
+  const apiURL = baseUrl 
+    ? `${baseUrl}/v1/chat/completions`
+    : config.baseURL;
 
-    const { text } = await generateText({
-      model: ai(modelName),
-      messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  try {
+    const response = await fetch(apiURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages,
+      }),
     });
 
-    return text;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `API 请求失败: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : '调用 AI 服务失败';
-    console.error('AI API 调用错误:', error);
     throw new Error(errorMessage);
   }
 };
@@ -65,25 +62,65 @@ export const callAIStream = async (
   onChunk: (chunk: string) => void,
   baseUrl?: string
 ): Promise<string> => {
-  try {
-    const ai = getAIProvider(provider, apiKey, baseUrl);
-    const modelName = getModelName(provider);
+  const config = AI_CONFIG[provider];
+  const apiURL = baseUrl 
+    ? `${baseUrl}/v1/chat/completions`
+    : config.baseURL;
 
-    const { textStream } = streamText({
-      model: ai(modelName),
-      messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  try {
+    const response = await fetch(apiURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages,
+        stream: true,
+      }),
     });
 
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `API 请求失败: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('无法读取响应流');
+    }
+
+    const decoder = new TextDecoder();
     let fullText = '';
-    for await (const chunk of textStream) {
-      fullText += chunk;
-      onChunk(chunk);
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n').filter(line => line.trim().startsWith('data:'));
+
+      for (const line of lines) {
+        const data = line.replace(/^data: /, '');
+        if (data === '[DONE]') continue;
+
+        try {
+          const parsed = JSON.parse(data);
+          const content = parsed.choices[0]?.delta?.content || '';
+          if (content) {
+            fullText += content;
+            onChunk(content);
+          }
+        } catch (e) {
+          // 忽略解析错误
+        }
+      }
     }
 
     return fullText;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : '调用 AI 服务失败';
-    console.error('AI 流式调用错误:', error);
     throw new Error(errorMessage);
   }
 };

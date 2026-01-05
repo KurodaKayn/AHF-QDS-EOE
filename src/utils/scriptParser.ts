@@ -1,12 +1,5 @@
 import { Question, QuestionOption, QuestionType } from '@/types/quiz';
-// 假设来自quiz.ts的createOptionId是一个简单的ID生成器，不依赖于store上下文
-// 如果它依赖store，我们可能需要一个更简单的本地生成器或调整其使用方式
-// 目前，使用一个简单的本地GUID生成器
-const generateGuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-  const r = Math.random() * 16 | 0;
-  const v = c === 'x' ? r : (r & 0x3 | 0x8);
-  return v.toString(16);
-});
+import { generateId } from '@/utils/quiz';
 
 interface ParsedOption extends QuestionOption {
   letter?: string; // 临时存储原始字母如'A', 'B'
@@ -78,7 +71,7 @@ function parseOtherTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] {
       const optionMatch = line.match(/^([A-Z])\.\s+(.*)$/);
       if (optionMatch) {
         parsedOptions.push({
-          id: generateGuid(), 
+          id: generateId(), 
           content: optionMatch[2].trim(),
           letter: optionMatch[1],
         });
@@ -102,7 +95,6 @@ function parseOtherTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] {
     if (correctOption) {
       questionAnswer = correctOption.id;
     } else {
-      console.warn(`ScriptParser: Correct answer letter '${correctAnswerLetter}' not found in options for question: "${questionContent.substring(0, 50)}..."`);
       continue; 
     }
     
@@ -139,10 +131,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
   // 先标记所有AI讲解的位置，而不是直接删除
   cleanedText = cleanedText.replace(/AI讲解/g, '###AI讲解###');
   
-  // 打印调试信息
-  console.log("处理学习通格式文本，字符数：", cleanedText.length);
-  console.log("预处理后前100个字符:", cleanedText.substring(0, 100));
-  
   // 改进: 更精确的题目识别模式，使用多个策略匹配
   // 策略1: 按题号和类型匹配 - 例如 "3. (单选题)"
   const questionRegex1 = /(\d+\s*\.\s*\([^)]+\)[^]*?)(?=\d+\s*\.\s*\(|\s*###AI讲解###|$)/g;
@@ -153,13 +141,8 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
   
   // 尝试所有匹配策略
   let matches1 = Array.from(cleanedText.matchAll(questionRegex1));
-  console.log("策略1匹配到题目数量：", matches1.length);
-  
   let matches2 = Array.from(cleanedText.matchAll(questionRegex2));
-  console.log("策略2匹配到题目数量：", matches2.length);
-  
   let matches3 = Array.from(cleanedText.matchAll(questionRegex3));
-  console.log("策略3匹配到题目数量：", matches3.length);
   
   // 选择匹配数量最多的策略
   let questionBlocks: string[] = [];
@@ -169,36 +152,23 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
   
   if (bestMatches.length > 0) {
     questionBlocks = bestMatches.map(match => match[1].trim());
-    console.log("选择最佳匹配策略，匹配数量：", bestMatches.length);
   } else {
     // 如果所有策略都失败，回退到简单的题号分割
     questionBlocks = cleanedText.split(/(?=\d+\s*\.\s*\()/);
-    console.log("所有匹配策略失败，使用简单分割，块数：", questionBlocks.length);
   }
-  
-  // 记录每个题目块的前50个字符，帮助调试
-  console.log("题目块预览：");
-  questionBlocks.forEach((block, i) => {
-    console.log(`块${i+1}的前50个字符: "${block.substring(0, 50).replace(/\n/g, '\\n')}..."`);
-  });
   
   // 过滤掉过短或无效的块
   questionBlocks = questionBlocks.filter(block => {
     // 块至少应该包含题目标识和一些内容
     return block.trim().length > 10 && /\d+\s*\.\s*/.test(block);
   });
-  console.log("过滤后的有效题目块数量：", questionBlocks.length);
   
   // 处理每个题目块
   for (let i = 0; i < questionBlocks.length; i++) {
     const block = questionBlocks[i].replace(/###AI讲解###[^]*?(?=\d+\s*\.\s*|$)/g, '');
     if (!block.trim()) {
-      console.log(`跳过空的题目块 ${i+1}`);
       continue;
     }
-    
-    console.log(`\n处理第${i+1}个题目块：长度=${block.length}`);
-    console.log(`题目块前100字符: "${block.substring(0, 100).replace(/\n/g, '\\n')}..."`);
     
     // 按行拆分，清理每行
     const lines = block.split('\n')
@@ -206,7 +176,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
       .filter(line => line.length > 0);
     
     if (lines.length < 2) {
-      console.log("行数不足，跳过");
       continue;
     }
     
@@ -222,9 +191,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
       // questionTypeMatch[1]可能是undefined（如果没有括号类型）
       const typeText = questionTypeMatch[1] ? questionTypeMatch[1].toLowerCase() : '';
       questionContent = questionTypeMatch[2].trim();
-      
-      console.log("提取到题目类型:", typeText || '无类型标记');
-      console.log("提取到题目内容:", questionContent);
       
       if (typeText.includes('填空')) {
         questionType = QuestionType.FillInBlank;
@@ -248,11 +214,9 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
         } else {
           questionType = QuestionType.SingleChoice; // 默认
         }
-        console.log("从内容推断题型:", questionType);
       }
     } else {
       // 无法匹配标准格式，尝试更宽松的提取
-      console.log("无法匹配标准题目格式，尝试备用提取");
       
       // 查找第一行中的数字+点格式
       const basicMatch = lines[0].match(/^\d+\s*\.\s*(.+)$/);
@@ -277,13 +241,9 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
       } else {
         questionType = QuestionType.SingleChoice; // 默认
       }
-      
-      console.log("备用方法提取题目内容:", questionContent);
-      console.log("备用方法推断题型:", questionType);
     }
     
     if (!questionContent) {
-      console.log("未提取到题目内容，跳过");
       continue;
     }
     
@@ -300,14 +260,12 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
         
         // 模式1: 直接查找"正确答案："行后的内容
         if (line.match(/正确答案[:：]/i)) {
-          console.log("找到正确答案行:", line);
           
           // 尝试匹配学习通常见格式: "正确答案：(1) xxx"
           const regexWithNumber = /正确答案[:：]\s*\(?(?:\d+)\)?\s*(.+)/i;
           const answerMatch = line.match(regexWithNumber);
           if (answerMatch && answerMatch[1]) {
             correctAnswer = answerMatch[1].trim();
-            console.log("匹配到答案:", correctAnswer);
             foundAnswer = true;
             break;
           }
@@ -317,7 +275,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
           const simpleResult = line.match(simpleMatch);
           if (simpleResult && simpleResult[1]) {
             correctAnswer = simpleResult[1].trim();
-            console.log("匹配到简单格式答案:", correctAnswer);
             foundAnswer = true;
             break;
           }
@@ -328,14 +285,12 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
       if (!foundAnswer) {
         for (let j = 1; j < lines.length - 1; j++) {
           if (lines[j].match(/正确答案[:：]\s*$/i)) {
-            console.log("找到空的正确答案行，查看下一行");
             const nextLine = lines[j+1].trim();
             
             // 尝试匹配 (1) 开头的行
             const numAnswer = nextLine.match(/^\(?(\d+)\)?\s*(.+)$/);
             if (numAnswer) {
               correctAnswer = numAnswer[2].trim();
-              console.log("从下一行匹配到答案:", correctAnswer);
               foundAnswer = true;
               break;
             }
@@ -345,8 +300,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
       
       // 3. 如果还是没找到，尝试其他格式
       if (!foundAnswer) {
-        console.log("使用备用方法查找答案");
-        
         // 尝试先找到"我的答案"部分，然后查找之后的"正确答案"部分
         let myAnswerIndex = -1;
         for (let j = 1; j < lines.length; j++) {
@@ -365,7 +318,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
               const match = line.match(/正确答案[:：]\s*(?:\((?:\d+)\))?\s*(.+)/i);
               if (match && match[1]) {
                 correctAnswer = match[1].trim();
-                console.log("从我的答案后找到正确答案:", correctAnswer);
                 foundAnswer = true;
                 break;
               }
@@ -384,7 +336,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
                 const numMatch = nextLine.match(/^\((\d+)\)\s*(.+)$/);
                 if (numMatch && numMatch[2]) {
                   correctAnswer = numMatch[2].trim();
-                  console.log("从分数行后找到答案:", correctAnswer);
                   foundAnswer = true;
                   break;
                 }
@@ -404,7 +355,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
           const numAnswerMatch = line.match(/\(\d+\)\s*(.+)$/);
           if (numAnswerMatch && numAnswerMatch[1]) {
             correctAnswer = numAnswerMatch[1].trim();
-            console.log("匹配到任意(1)行作为答案:", correctAnswer);
             foundAnswer = true;
             break;
           }
@@ -412,13 +362,11 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
       }
       
       if (!correctAnswer) {
-        console.log("所有方法都未找到有效答案，跳过此题");
         continue;
       }
       
       // 处理可能有多个正确答案的情况 (分号分隔)
       const multipleAnswers = correctAnswer.split(/[;；]/).map(a => a.trim()).filter(Boolean);
-      console.log("处理后的答案列表:", multipleAnswers);
       
       // 创建填空题对象
       const now = Date.now();
@@ -433,7 +381,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
         updatedAt: now,
       });
       
-      console.log("成功添加填空题");
       continue;
     }
     
@@ -449,7 +396,7 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
       const optionMatch = line.match(/^([A-Z])\.\s+(.*)$/);
       if (optionMatch) {
         parsedOptions.push({
-          id: generateGuid(),
+          id: generateId(),
           content: optionMatch[2].trim(),
           letter: optionMatch[1]
         });
@@ -467,8 +414,8 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
         correctAnswerLetter = (line.includes('正确答案:对') || line.includes('正确答案：对')) ? 'A' : 'B';
         // 如果是判断题但还没有选项，自动添加"对错"选项
         if (parsedOptions.length === 0 && questionType === QuestionType.TrueFalse) {
-          parsedOptions.push({ id: generateGuid(), content: '对', letter: 'A' });
-          parsedOptions.push({ id: generateGuid(), content: '错', letter: 'B' });
+          parsedOptions.push({ id: generateId(), content: '对', letter: 'A' });
+          parsedOptions.push({ id: generateId(), content: '错', letter: 'B' });
         }
         break;
       }
@@ -476,14 +423,13 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
     
     // 验证解析结果
     if (!correctAnswerLetter) {
-      console.log("未找到正确答案字母，跳过此题");
       continue;
     }
     
     // 对于判断题，如果用户输入没有明确的A/B选项，但有"对/错"关键词，转换答案格式
     if (questionType === QuestionType.TrueFalse && parsedOptions.length === 0) {
-      parsedOptions.push({ id: generateGuid(), content: '对', letter: 'A' });
-      parsedOptions.push({ id: generateGuid(), content: '错', letter: 'B' });
+      parsedOptions.push({ id: generateId(), content: '对', letter: 'A' });
+      parsedOptions.push({ id: generateId(), content: '错', letter: 'B' });
       if (correctAnswerLetter.toUpperCase() === '对') {
         correctAnswerLetter = 'A';
       } else if (correctAnswerLetter.toUpperCase() === '错') {
@@ -493,7 +439,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
     
     // 确保有选项且找到正确答案
     if (parsedOptions.length === 0) {
-      console.log("未找到选项，跳过此题");
       continue;
     }
     
@@ -509,7 +454,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
       }).filter(Boolean);
       
       if (questionAnswer.length === 0) {
-        console.log("多选题未找到有效答案选项，跳过");
         continue;
       }
     } else {
@@ -518,7 +462,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
       if (correctOption) {
         questionAnswer = correctOption.id;
       } else {
-        console.log("单选题未找到对应选项，跳过");
         continue;
       }
     }
@@ -534,10 +477,8 @@ function parseChaoXingTemplate(text: string): Omit<Question, 'id' | 'bankId'>[] 
       createdAt: now,
       updatedAt: now,
     });
-    console.log("成功添加其他类型题目");
   }
   
-  console.log(`\n总共解析成功 ${questions.length} 道题目`);
   return questions;
 }
 

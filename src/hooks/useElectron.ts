@@ -28,8 +28,6 @@ export const useElectron = () => {
   const sendMessage = (channel: string, data: any) => {
     if (isElectronEnv) {
       (window as any).electron.sendMessage(channel, data);
-    } else {
-      console.warn('Electron API not available: sendMessage was called in non-Electron environment');
     }
   };
 
@@ -41,8 +39,6 @@ export const useElectron = () => {
   const receiveMessage = (channel: string, callback: (...args: any[]) => void) => {
     if (isElectronEnv) {
       (window as any).electron.receiveMessage(channel, callback);
-    } else {
-      console.warn('Electron API not available: receiveMessage was called in non-Electron environment');
     }
   };
 

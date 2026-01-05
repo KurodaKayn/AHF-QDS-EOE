@@ -47,7 +47,6 @@ export async function POST(request: NextRequest) {
     // 返回成功响应
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error('通义千问 API 代理错误:', error);
     return NextResponse.json(
       { error: error.message || '处理请求时发生未知错误' },
       { status: 500 }

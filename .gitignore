@@ -9,7 +9,6 @@ node_modules/
 !.yarn/versions
 .pnpm-store/
 .pnpm-debug.log*
-pnpm-lock.yaml
 
 # testing
 /coverage
@@ -33,7 +32,8 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-Frontend/.env*
+.env*
+!.env.example
 
 
 # typescript
@@ -49,5 +49,6 @@ next-env.d.ts
 *.test
 *.out
 
-#idea
-.vscode
+# IDE
+.vscode/
+.idea/

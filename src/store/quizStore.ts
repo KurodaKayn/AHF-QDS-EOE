@@ -270,15 +270,12 @@ export const useQuizStore = create<QuizState>()(
 
           // 构建消息
           const messages = [
-            { role: 'system', content: SIMILAR_QUESTIONS_PROMPT },
-            { role: 'user', content: `请基于以下题目生成相似题目：\n${JSON.stringify(originalQuestionsData, null, 2)}` }
+            { role: 'system' as const, content: SIMILAR_QUESTIONS_PROMPT },
+            { role: 'user' as const, content: `请基于以下题目生成相似题目：\n${JSON.stringify(originalQuestionsData, null, 2)}` }
           ];
 
-          console.log('Calling AI to generate similar questions based on:', originalQuestionsData);
           
-          // 调用AI接口
           const response = await callAI(aiProvider, messages, apiKey, baseUrl);
-          console.log('AI Response:', response);
           
           // 解析API返回的JSON
           let generatedQuestionsData;
@@ -286,15 +283,12 @@ export const useQuizStore = create<QuizState>()(
             // 尝试直接解析返回的内容为JSON
             generatedQuestionsData = JSON.parse(response);
           } catch (e) {
-            console.error('解析AI返回的JSON失败，尝试提取JSON部分', e);
-            
             // 如果直接解析失败，尝试从返回的文本中提取JSON部分
             const jsonMatch = response.match(/\[\s*\{[\s\S]*\}\s*\]/);
             if (jsonMatch) {
               try {
                 generatedQuestionsData = JSON.parse(jsonMatch[0]);
               } catch (e2) {
-                console.error('从返回文本中提取JSON失败', e2);
                 throw new Error('无法解析AI返回的数据');
               }
             } else {
@@ -334,15 +328,11 @@ export const useQuizStore = create<QuizState>()(
             };
           });
 
-          console.log('Processed generated questions:', processedQuestions);
-          
-          // 更新状态
           set({
             similarQuestionsList: processedQuestions,
             generatingSimilarQuestions: false,
           });
         } catch (error) {
-          console.error('生成相似题目失败:', error);
           // 出错时显示一个提示，并重置状态
           alert(`生成相似题目失败: ${error instanceof Error ? error.message : '未知错误'}`);
           set({
@@ -367,9 +357,8 @@ export const useQuizStore = create<QuizState>()(
             importedCount++;
           } else if (result.isDuplicate) {
             skippedCount++;
-            console.warn(`Question (content starting with "${question.content.substring(0,30)}...") was a duplicate and skipped.`);
           } else {
-            console.error(`Failed to import question (content starting with "${question.content.substring(0,30)}...") for unknown reasons.`);
+            // 导入失败但非重复
           }
         }
         return { success: true, importedCount, skippedCount };
