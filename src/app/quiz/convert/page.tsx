@@ -177,6 +177,8 @@ export default function ConvertPage() {
           value={inputText}
           onChange={setInputText}
           onLoadExample={() => setInputText(EXAMPLE_QUESTION_TEXT)}
+          onOCRError={(err) => setError(`OCR识别错误: ${err}`)}
+          showOCR={true}
         />
 
         {conversionMode === "ai" && activeConfig && (

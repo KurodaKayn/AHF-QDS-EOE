@@ -2,20 +2,34 @@
 
 import { IoDocumentText } from "react-icons/io5";
 import { FaKeyboard } from "react-icons/fa";
+import { ImageOCRUpload } from "./ImageOCRUpload";
 
 interface TextInputAreaProps {
   value: string;
   onChange: (value: string) => void;
   onLoadExample?: () => void;
+  onOCRError?: (error: string) => void;
   placeholder?: string;
+  showOCR?: boolean;
 }
 
 export function TextInputArea({
   value,
   onChange,
   onLoadExample,
+  onOCRError,
   placeholder = "在此粘贴题目文本，或尝试使用AI转换。支持单选题、多选题、判断题、简答题的自动识别。",
+  showOCR = true,
 }: TextInputAreaProps) {
+  const handleOCRText = (text: string) => {
+    // 如果已有内容，追加；否则直接设置
+    if (value.trim()) {
+      onChange(value + "\n\n" + text);
+    } else {
+      onChange(text);
+    }
+  };
+
   return (
     <div className="mb-6">
       <label
@@ -24,6 +38,11 @@ export function TextInputArea({
       >
         输入需要转换的题目文本:
       </label>
+
+      {showOCR && (
+        <ImageOCRUpload onTextExtracted={handleOCRText} onError={onOCRError} />
+      )}
+
       <textarea
         id="textToConvert"
         rows={10}
