@@ -95,16 +95,16 @@ export function QuestionPreview({ question, index }: QuestionPreviewProps) {
       {(type === QuestionType.SingleChoice ||
         type === QuestionType.MultipleChoice) &&
         options && (
-          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-1">
+          <div className="mt-2 space-y-2">
             {options.map((opt, i) => (
               <div
                 key={opt.id}
-                className="text-sm text-gray-700 dark:text-gray-300"
+                className="text-sm text-gray-700 dark:text-gray-300 p-2 bg-gray-50 dark:bg-gray-700 rounded"
               >
-                <span className="font-medium">
+                <span className="font-medium mr-2">
                   {String.fromCharCode(65 + i)}.
-                </span>{" "}
-                {opt.content}
+                </span>
+                <span className="whitespace-pre-wrap">{opt.content}</span>
               </div>
             ))}
           </div>

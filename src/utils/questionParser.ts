@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 /**
  * 解析 AI 返回的文本，转换为题目对象数组
+ * 支持多行选项内容（如代码块）
  */
 export const parseQuestions = (text: string): Omit<Question, "id">[] => {
   const questions: Omit<Question, "id">[] = [];
@@ -15,7 +16,7 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
         .split("\n")
         .map((line) => line.trim())
         .filter(Boolean);
-      if (lines.length < 2) continue; // 至少需要题目和答案两行
+      if (lines.length < 2) continue;
 
       let questionType: QuestionType;
       let content: string;
@@ -27,67 +28,22 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
       if (lines[0].includes("单选题：")) {
         questionType = QuestionType.SingleChoice;
         content = lines[0].replace(/^单选题：/, "").trim();
-
-        // 解析选项
-        const optionLines = lines.filter((line) => /^[A-Za-z]\./.test(line));
-        options = optionLines.map((line) => {
-          const match = line.match(/^([A-Za-z])\.(.+)$/);
-          if (!match) return { id: uuidv4(), content: line };
-          const optionId = match[1].toUpperCase();
-          return { id: optionId, content: match[2].trim() };
-        });
-
-        // 解析答案
-        const answerLine = lines.find((line) => line.startsWith("答案："));
-        if (answerLine) {
-          const answerMatch = answerLine.match(/答案：([A-Za-z])/);
-          if (answerMatch) {
-            answer = answerMatch[1].toUpperCase();
-          }
-        }
+        const result = parseOptions(lines, 1);
+        options = result.options;
+        answer = findAnswer(lines, result.options, questionType);
       } else if (lines[0].includes("多选题：")) {
         questionType = QuestionType.MultipleChoice;
         content = lines[0].replace(/^多选题：/, "").trim();
-
-        // 解析选项
-        const optionLines = lines.filter((line) => /^[A-Za-z]\./.test(line));
-        options = optionLines.map((line) => {
-          const match = line.match(/^([A-Za-z])\.(.+)$/);
-          if (!match) return { id: uuidv4(), content: line };
-          const optionId = match[1].toUpperCase();
-          return { id: optionId, content: match[2].trim() };
-        });
-
-        // 解析答案
-        const answerLine = lines.find((line) => line.startsWith("答案："));
-        if (answerLine) {
-          const answerText = answerLine.replace(/^答案：/, "").trim();
-          answer = answerText
-            .split(/[\s,，、]+/)
-            .map((a) => a.trim().toUpperCase())
-            .filter(Boolean);
-        }
+        const result = parseOptions(lines, 1);
+        options = result.options;
+        answer = findAnswer(lines, result.options, questionType);
       } else if (lines[0].includes("判断题：")) {
         questionType = QuestionType.TrueFalse;
         content = lines[0].replace(/^判断题：/, "").trim();
-
-        // 解析答案
-        const answerLine = lines.find((line) => line.startsWith("答案："));
-        if (answerLine) {
-          const answerText = answerLine.replace(/^答案：/, "").trim();
-          if (["对", "正确", "TRUE", "True", "true"].includes(answerText)) {
-            answer = "true";
-          } else if (
-            ["错", "错误", "FALSE", "False", "false"].includes(answerText)
-          ) {
-            answer = "false";
-          }
-        }
+        answer = parseTrueFalseAnswer(lines);
       } else if (lines[0].includes("简答题：")) {
         questionType = QuestionType.ShortAnswer;
         content = lines[0].replace(/^简答题：/, "").trim();
-
-        // 解析答案
         const answerIndex = lines.findIndex((line) =>
           line.startsWith("答案：")
         );
@@ -97,13 +53,9 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
       } else if (lines[0].includes("填空题：")) {
         questionType = QuestionType.FillInBlank;
         content = lines[0].replace(/^填空题：/, "").trim();
-
-        // 确保题目内容包含填空符号
         if (!content.includes("____") && !content.includes("_____")) {
-          content = content.replace(/\(([^)]+)\)/g, "____"); // 把括号中的内容替换为填空符
+          content = content.replace(/\(([^)]+)\)/g, "____");
         }
-
-        // 解析答案
         const answerIndex = lines.findIndex((line) =>
           line.startsWith("答案：")
         );
@@ -111,23 +63,20 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
           answer = lines[answerIndex].replace(/^答案：/, "").trim();
         }
       } else {
-        // 尝试自动判断类型
+        // 自动判断类型
         const hasOptions = lines.some((line) => /^[A-Za-z]\./.test(line));
         const hasFillBlank =
-          lines[0].includes("____") || lines[0].includes("_____"); // 检查是否包含填空符号
+          lines[0].includes("____") || lines[0].includes("_____");
 
         if (hasFillBlank) {
           questionType = QuestionType.FillInBlank;
         } else if (hasOptions) {
-          // 检查是否为多选
           const answerLine = lines.find((line) => line.startsWith("答案："));
-          if (answerLine && answerLine.includes(",")) {
-            questionType = QuestionType.MultipleChoice;
-          } else {
-            questionType = QuestionType.SingleChoice;
-          }
+          questionType =
+            answerLine && answerLine.includes(",")
+              ? QuestionType.MultipleChoice
+              : QuestionType.SingleChoice;
         } else {
-          // 判断是否为判断题
           const answerLine = lines.find((line) => line.startsWith("答案："));
           if (answerLine) {
             const answerText = answerLine.replace(/^答案：/, "").trim();
@@ -150,65 +99,28 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
               questionType = QuestionType.ShortAnswer;
             }
           } else {
-            // 默认为短答题
             questionType = QuestionType.ShortAnswer;
           }
         }
 
         content = lines[0].trim();
 
-        // 根据类型处理选项和答案
+        // 处理选项
         if (
           questionType === QuestionType.SingleChoice ||
           questionType === QuestionType.MultipleChoice
         ) {
-          // 解析选项
-          const optionLines = lines.filter((line) => /^[A-Za-z]\./.test(line));
-          options = optionLines.map((line) => {
-            const match = line.match(/^([A-Za-z])\.(.+)$/);
-            if (!match) return { id: uuidv4(), content: line };
-            const optionId = match[1].toUpperCase();
-            return { id: optionId, content: match[2].trim() };
-          });
-
-          // 解析答案
-          const answerLine = lines.find((line) => line.startsWith("答案："));
-          if (answerLine) {
-            const answerText = answerLine.replace(/^答案：/, "").trim();
-            if (questionType === QuestionType.SingleChoice) {
-              const answerMatch = answerText.match(/([A-Za-z])/);
-              if (answerMatch) {
-                answer = answerMatch[1].toUpperCase();
-              }
-            } else {
-              answer = answerText
-                .split(/[\s,，、]+/)
-                .map((a) => a.trim().toUpperCase())
-                .filter(Boolean);
-            }
-          }
+          const result = parseOptions(lines, 0);
+          options = result.options;
+          answer = findAnswer(lines, result.options, questionType);
         } else if (questionType === QuestionType.TrueFalse) {
-          // 解析答案
-          const answerLine = lines.find((line) => line.startsWith("答案："));
-          if (answerLine) {
-            const answerText = answerLine.replace(/^答案：/, "").trim();
-            if (["对", "正确", "TRUE", "True", "true"].includes(answerText)) {
-              answer = "true";
-            } else if (
-              ["错", "错误", "FALSE", "False", "false"].includes(answerText)
-            ) {
-              answer = "false";
-            }
-          }
+          answer = parseTrueFalseAnswer(lines);
         } else if (questionType === QuestionType.FillInBlank) {
-          // 解析填空题答案
           const answerLine = lines.find((line) => line.startsWith("答案："));
           if (answerLine) {
             answer = answerLine.replace(/^答案：/, "").trim();
           }
         } else {
-          // ShortAnswer
-          // 解析答案
           const answerIndex = lines.findIndex((line) =>
             line.startsWith("答案：")
           );
@@ -242,9 +154,112 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
       });
     } catch (error) {
       console.error("解析题目出错:", error);
-      // 继续处理下一个题目块
     }
   }
 
   return questions;
 };
+
+/**
+ * 解析选项 - 支持多行内容
+ */
+function parseOptions(
+  lines: string[],
+  startIndex: number
+): { options: QuestionOption[] } {
+  const options: QuestionOption[] = [];
+  let currentOption: { id: string; content: string } | null = null;
+
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i];
+
+    // 检查是否是答案行或解析行
+    if (line.startsWith("答案：") || line.startsWith("解析：")) {
+      // 保存当前选项
+      if (currentOption) {
+        options.push(currentOption);
+        currentOption = null;
+      }
+      break;
+    }
+
+    // 检查是否是新选项的开始
+    const optionMatch = line.match(/^([A-Za-z])\.(.*)$/);
+    if (optionMatch) {
+      // 保存前一个选项
+      if (currentOption) {
+        options.push(currentOption);
+      }
+      // 开始新选项
+      const optionId = optionMatch[1].toUpperCase();
+      const optionContent = optionMatch[2].trim();
+      currentOption = {
+        id: optionId,
+        content: optionContent,
+      };
+    } else if (currentOption) {
+      // 这是当前选项的续行（多行内容）
+      currentOption.content += "\n" + line;
+    }
+  }
+
+  // 保存最后一个选项
+  if (currentOption) {
+    options.push(currentOption);
+  }
+
+  return { options };
+}
+
+/**
+ * 查找答案
+ */
+function findAnswer(
+  lines: string[],
+  options: QuestionOption[],
+  questionType: QuestionType
+): string | string[] {
+  const answerLine = lines.find((line) => line.startsWith("答案："));
+  if (!answerLine) return "";
+
+  const answerText = answerLine.replace(/^答案：/, "").trim();
+
+  if (questionType === QuestionType.SingleChoice) {
+    const answerMatch = answerText.match(/([A-Za-z])/);
+    if (answerMatch) {
+      const letter = answerMatch[1].toUpperCase();
+      const option = options.find((opt) => opt.id === letter);
+      return option ? option.id : letter;
+    }
+  } else if (questionType === QuestionType.MultipleChoice) {
+    const letters = answerText
+      .split(/[\s,，、]+/)
+      .map((a) => a.trim().toUpperCase())
+      .filter(Boolean);
+    return letters
+      .map((letter) => {
+        const option = options.find((opt) => opt.id === letter);
+        return option ? option.id : letter;
+      })
+      .filter(Boolean);
+  }
+
+  return "";
+}
+
+/**
+ * 解析判断题答案
+ */
+function parseTrueFalseAnswer(lines: string[]): string {
+  const answerLine = lines.find((line) => line.startsWith("答案："));
+  if (!answerLine) return "";
+
+  const answerText = answerLine.replace(/^答案：/, "").trim();
+  if (["对", "正确", "TRUE", "True", "true"].includes(answerText)) {
+    return "true";
+  } else if (["错", "错误", "FALSE", "False", "false"].includes(answerText)) {
+    return "false";
+  }
+
+  return "";
+}
