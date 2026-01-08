@@ -1,6 +1,6 @@
 {
   "name": "ahf-qds-eoe",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "题库练习应用 - 一个帮助学习与测试的工具",
   "author": "KurodaKayn",
   "private": true,
@@ -73,6 +73,7 @@
     "@radix-ui/react-select": "^2.2.4",
     "@radix-ui/react-slot": "^1.2.2",
     "@tailwindcss/typography": "^0.5.16",
+    "@types/uuid": "^11.0.0",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -96,6 +97,7 @@
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.2.0",
     "tesseract.js": "^7.0.0",
+    "uuid": "^13.0.0",
     "xlsx": "^0.18.5",
     "zustand": "^5.0.4"
   },
