@@ -127,7 +127,7 @@ const convertImportRowToQuestion = (row: any): Question => {
         : row.answer;
   } else if (type === QuestionType.TrueFalse) {
     if (typeof row.answer === "string") {
-      const answerText = row.answer.toString().trim().toLowerCase();
+      const answerText = String(row.answer).trim().toLowerCase();
       if (
         ["true", "t", "1", "正确", "对", "yes", "y", "√"].includes(answerText)
       ) {
@@ -147,14 +147,19 @@ const convertImportRowToQuestion = (row: any): Question => {
     /^option[A-Z]$/.test(key)
   );
   const options = optionKeys
-    .filter((key) => row[key]?.trim())
+    .filter((key) => {
+      const val = row[key];
+      return val !== null && val !== undefined && String(val).trim() !== "";
+    })
     .map((key) => ({
       id: key.replace("option", ""), // 使用选项字母作为ID (A, B, C...)
-      content: row[key],
+      content: String(row[key]), // 强制转换为字符串
     }));
 
   const tags = row.tags
-    ? row.tags.split(",").map((tag: string) => tag.trim())
+    ? String(row.tags)
+        .split(",")
+        .map((tag: string) => tag.trim())
     : [];
 
   const now = Date.now();
