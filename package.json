@@ -1,6 +1,6 @@
 {
   "name": "ahf-qds-eoe",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "题库练习应用 - 一个帮助学习与测试的工具",
   "author": "KurodaKayn",
   "private": true,
@@ -25,14 +25,14 @@
         "dmg",
         "zip"
       ],
-      "icon": "build/icon.icns"
+      "icon": "public/logo/icon.icns"
     },
     "win": {
       "target": [
         "nsis",
         "portable"
       ],
-      "icon": "build/icon.jpg"
+      "icon": "public/logo/icon.jpg"
     },
     "nsis": {
       "artifactName": "${productName}-Setup-${version}.${ext}",
