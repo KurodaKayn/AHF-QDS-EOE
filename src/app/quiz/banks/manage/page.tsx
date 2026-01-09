@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Suspense, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuizStore } from "@/store/quizStore";
@@ -21,7 +22,7 @@ import CreateBankModal from "@/components/CreateBankModal";
 import { BeatLoader } from "react-spinners";
 import { useThemeStore } from "@/store/themeStore";
 import { useTranslation } from "react-i18next";
-import { BankSelector, SortType } from "@/components/quiz/manage/BankSelector";
+import { BankSelector } from "@/components/quiz/manage/BankSelector";
 import { QuestionListSection } from "@/components/quiz/manage/QuestionListSection";
 import { DuplicateQuestionsModal } from "@/components/quiz/manage/DuplicateQuestionsModal";
 import {
@@ -32,14 +33,6 @@ import { NoDuplicatesDialog } from "@/components/quiz/manage/NoDuplicatesDialog"
 import { findDuplicateQuestions } from "@/utils/duplicateDetection";
 
 // Helper component for static export paths
-const ManageIndexPage = () => {
-  return (
-    <div className="hidden">
-      <h1>题库管理页面</h1>
-      <p>如果看到这个页面，说明页面加载中或发生了错误。</p>
-    </div>
-  );
-};
 
 // Client component that uses useSearchParams() through props
 function ManageBanksPageContent({
@@ -76,35 +69,18 @@ function ManageBanksPageContent({
     content: string;
   } | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
-  const [sortType, setSortType] = useState<SortType>(SortType.NameAsc);
   const [duplicateGroups, setDuplicateGroups] = useState<
     Map<string, Question[]>
   >(new Map());
 
-  // Sorted banks
-  const sortedBanks = useMemo(() => {
-    if (!questionBanks) return [];
-    return [...questionBanks].sort((a, b) => {
-      switch (sortType) {
-        case SortType.NameAsc:
-          return a.name.localeCompare(b.name);
-        case SortType.NameDesc:
-          return b.name.localeCompare(a.name);
-        case SortType.DateAsc:
-          return (a.createdAt || 0) - (b.createdAt || 0);
-        case SortType.DateDesc:
-          return (b.createdAt || 0) - (a.createdAt || 0);
-        default:
-          return a.name.localeCompare(b.name);
-      }
-    });
-  }, [questionBanks, sortType]);
+  // Banks (no sorting needed)
+  const banks = questionBanks || [];
 
   // Selected bank
   const selectedBank = useMemo(() => {
     if (!selectedBankId) return null;
     return getQuestionBankById(selectedBankId) || null;
-  }, [selectedBankId, getQuestionBankById, questionBanks]);
+  }, [selectedBankId, getQuestionBankById]);
 
   // Initialize with URL parameter
   useEffect(() => {
@@ -169,12 +145,6 @@ function ManageBanksPageContent({
       setIsQuestionModalOpen(false);
       setEditingQuestion(null);
     }
-  };
-
-  const handleUpdateBank = (name: string, description: string) => {
-    if (!selectedBank) return;
-    updateQuestionBank(selectedBank.id, name, description);
-    toast.success(t("bankManage.alerts.bankUpdated", { name }));
   };
 
   const handleCreateNewBank = () => {
@@ -320,23 +290,90 @@ function ManageBanksPageContent({
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
           <BankSelector
-            banks={sortedBanks}
+            banks={banks}
             selectedBankId={selectedBankId}
-            sortType={sortType}
             onSelectBank={handleSelectBank}
             onCreateNew={handleCreateNewBank}
-            onSortChange={setSortType}
           />
 
-          {selectedBank ? (
-            <>
-              <div className="border-t dark:border-gray-700 pt-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl md:text-2xl font-semibold text-blue-700 dark:text-blue-400">
-                    {t("bankManage.bankLabel")}: {selectedBank.name}
-                  </h2>
-                  <div className="flex gap-2">
-                    {!isEditingBankDetails && (
+          {selectedBank && (
+            <div className="space-y-4">
+              {isEditingBankDetails ? (
+                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                  <div>
+                    <label
+                      htmlFor="bankName"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                      {t("bankManage.bankName")}
+                    </label>
+                    <Input
+                      id="bankName"
+                      value={editBankName}
+                      onChange={(e) => setEditBankName(e.target.value)}
+                      placeholder={t("bankManage.bankNamePlaceholder")}
+                      className="text-base"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="bankDescription"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                      {t("bankManage.bankDescription")}
+                    </label>
+                    <Textarea
+                      id="bankDescription"
+                      value={editBankDescription}
+                      onChange={(e) => setEditBankDescription(e.target.value)}
+                      placeholder={t("bankManage.bankDescPlaceholder")}
+                      rows={3}
+                      className="text-base"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditingBankDetails(false)}
+                      size="sm"
+                    >
+                      {t("bankManage.cancel")}
+                    </Button>
+                    <Button onClick={handleSaveBankDetails} size="sm">
+                      {t("bankManage.saveChanges")}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="space-y-1 flex-1">
+                      <p className="text-gray-600 dark:text-gray-300">
+                        <span className="font-semibold text-gray-700 dark:text-gray-200">
+                          {t("bankManage.description")}:
+                        </span>{" "}
+                        {selectedBank.description ||
+                          t("bankManage.noDescription")}
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-300">
+                        <span className="font-semibold text-gray-700 dark:text-gray-200">
+                          {t("bankManage.questionCount")}:
+                        </span>{" "}
+                        {selectedBank.questions
+                          ? selectedBank.questions.length
+                          : 0}{" "}
+                        {t("bankManage.questionUnit")}
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-300">
+                        <span className="font-semibold text-gray-700 dark:text-gray-200">
+                          {t("bankManage.createdAt")}
+                        </span>{" "}
+                        {selectedBank.createdAt
+                          ? new Date(selectedBank.createdAt).toLocaleString()
+                          : t("bankManage.unknown")}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 ml-4">
                       <Button
                         variant="outline"
                         onClick={() => setIsEditingBankDetails(true)}
@@ -344,93 +381,20 @@ function ManageBanksPageContent({
                       >
                         <FaEdit className="mr-2" /> {t("bankManage.editInfo")}
                       </Button>
-                    )}
-                    <Button
-                      variant="destructive"
-                      onClick={handleDeleteCurrentBank}
-                      size="sm"
-                    >
-                      <FaRegTrashAlt className="mr-2" />{" "}
-                      {t("bankManage.deleteBank")}
-                    </Button>
-                  </div>
-                </div>
-
-                {isEditingBankDetails ? (
-                  <div className="space-y-4 pb-6 mb-6 border-b dark:border-gray-700">
-                    <div>
-                      <label
-                        htmlFor="bankName"
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      >
-                        {t("bankManage.bankName")}
-                      </label>
-                      <Input
-                        id="bankName"
-                        value={editBankName}
-                        onChange={(e) => setEditBankName(e.target.value)}
-                        placeholder={t("bankManage.bankNamePlaceholder")}
-                        className="text-base"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="bankDescription"
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      >
-                        {t("bankManage.bankDescription")}
-                      </label>
-                      <Textarea
-                        id="bankDescription"
-                        value={editBankDescription}
-                        onChange={(e) => setEditBankDescription(e.target.value)}
-                        placeholder={t("bankManage.bankDescPlaceholder")}
-                        rows={3}
-                        className="text-base"
-                      />
-                    </div>
-                    <div className="flex justify-end gap-2">
                       <Button
-                        variant="outline"
-                        onClick={() => setIsEditingBankDetails(false)}
+                        variant="destructive"
+                        onClick={handleDeleteCurrentBank}
                         size="sm"
                       >
-                        {t("bankManage.cancel")}
-                      </Button>
-                      <Button onClick={handleSaveBankDetails} size="sm">
-                        {t("bankManage.saveChanges")}
+                        <FaRegTrashAlt className="mr-2" />{" "}
+                        {t("bankManage.deleteBank")}
                       </Button>
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-1 pb-6 mb-6 border-b dark:border-gray-700">
-                    <p className="text-gray-600 dark:text-gray-300">
-                      <span className="font-semibold text-gray-700 dark:text-gray-200">
-                        {t("bankManage.description")}:
-                      </span>{" "}
-                      {selectedBank.description ||
-                        t("bankManage.noDescription")}
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      <span className="font-semibold text-gray-700 dark:text-gray-200">
-                        {t("bankManage.questionCount")}:
-                      </span>{" "}
-                      {selectedBank.questions
-                        ? selectedBank.questions.length
-                        : 0}{" "}
-                      {t("bankManage.questionUnit")}
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      <span className="font-semibold text-gray-700 dark:text-gray-200">
-                        {t("bankManage.createdAt")}
-                      </span>{" "}
-                      {selectedBank.createdAt
-                        ? new Date(selectedBank.createdAt).toLocaleString()
-                        : t("bankManage.unknown")}
-                    </p>
-                  </div>
-                )}
+                </div>
+              )}
 
+              <div className="border-t dark:border-gray-700 pt-6">
                 <QuestionListSection
                   questions={selectedBank.questions || []}
                   onAddQuestion={handleOpenAddQuestionModal}
@@ -439,14 +403,18 @@ function ManageBanksPageContent({
                   onFindDuplicates={handleFindDuplicates}
                 />
               </div>
-            </>
-          ) : questionBanks && questionBanks.length > 0 ? (
+            </div>
+          )}
+
+          {!selectedBank && questionBanks && questionBanks.length > 0 && (
             <div className="text-center py-12">
               <p className="text-xl text-gray-600 dark:text-gray-400">
                 {t("bankManage.selectBankPrompt")}
               </p>
             </div>
-          ) : (
+          )}
+
+          {!selectedBank && (!questionBanks || questionBanks.length === 0) && (
             <div className="text-center py-12">
               <p className="text-xl text-gray-600 dark:text-gray-400">
                 {t("bankManage.noBanksPrompt")}
@@ -566,9 +534,9 @@ export default function ManageBanksPage() {
     >
       {/* Add hidden link elements to help static export system identify routes */}
       <div style={{ display: "none" }}>
-        <a href="/quiz/banks/manage">管理题库</a>
-        <a href="/quiz/banks/manage/">管理题库带斜杠</a>
-        <a href="/quiz/banks/manage/index.html">管理题库HTML</a>
+        <Link href="/quiz/banks/manage">管理题库</Link>
+        <Link href="/quiz/banks/manage/">管理题库带斜杠</Link>
+        <Link href="/quiz/banks/manage/index.html">管理题库HTML</Link>
       </div>
       <ManageBanksPageContent initialTempBankId={initialTempBankId} />
     </Suspense>
