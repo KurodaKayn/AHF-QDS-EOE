@@ -2,6 +2,7 @@
 
 import { useQuizStore, QuizSettings, AIConfig } from "@/store/quizStore";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Edit2,
   Plus,
@@ -37,6 +38,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
   currentValue,
   onToggle,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
       <div>
@@ -59,7 +61,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
           }
         `}
       >
-        {currentValue ? "已启用" : "已禁用"}
+        {currentValue ? t("settings.ai.enabled") : t("settings.ai.disabled")}
       </button>
     </div>
   );
@@ -77,6 +79,7 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
   onSave,
   onCancel,
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState(initialConfig?.name || "");
   const [type, setType] = useState<"preset" | "custom">(
     initialConfig?.type || "preset"
@@ -106,10 +109,6 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
   const handleProviderChange = (newProvider: "deepseek" | "alibaba") => {
     setProvider(newProvider);
     const preset = presets[newProvider];
-    // Auto-fill if empty or switching presets (optional: force override?)
-    // Let's force override for better UX when selecting a preset, but allow user to edit after?
-    // Usually presets imply fixed settings except API Key.
-    // user requirement: "select preset provider"
     setName(preset.name);
     setBaseUrl(preset.baseUrl);
     setModel(preset.model);
@@ -117,7 +116,7 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
 
   const handleSave = () => {
     if (!name || !baseUrl || !apiKey || !model) {
-      alert("请填写所有必填项");
+      alert(t("settings.ai.fillAll"));
       return;
     }
     onSave({
@@ -133,13 +132,13 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
   return (
     <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg border border-gray-200 dark:border-gray-600 space-y-4">
       <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-        {initialConfig ? "编辑模型配置" : "添加新模型"}
+        {initialConfig ? t("settings.ai.editModel") : t("settings.ai.newModel")}
       </h3>
 
       {/* Type Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          配置类型
+          {t("settings.ai.type")}
         </label>
         <div className="flex gap-4">
           <button
@@ -154,7 +153,7 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
                   : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
           >
-            预设服务商
+            {t("settings.ai.preset")}
           </button>
           <button
             onClick={() => setType("custom")}
@@ -165,7 +164,7 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
                   : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
           >
-            自定义服务
+            {t("settings.ai.custom")}
           </button>
         </div>
       </div>
@@ -173,7 +172,7 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
       {type === "preset" && (
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            选择服务商
+            {t("settings.ai.selectProvider")}
           </label>
           <select
             value={provider}
@@ -191,7 +190,7 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
       {/* Common Fields */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          配置名称
+          {t("settings.ai.name")}
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -202,14 +201,14 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="例如: My DeepSeek"
+            placeholder={t("settings.ai.namePlaceholder")}
           />
         </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          API Key
+          {t("settings.ai.apiKey")}
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -227,9 +226,11 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Base URL{" "}
+          {t("settings.ai.baseUrl")}{" "}
           {type === "preset" && (
-            <span className="text-xs text-gray-500">(通常无需修改)</span>
+            <span className="text-xs text-gray-500">
+              {t("settings.ai.baseUrlDesc")}
+            </span>
           )}
         </label>
         <div className="relative">
@@ -245,15 +246,17 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
           />
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          兼容 OpenAI 格式的 API 地址
+          {t("settings.ai.baseUrlHint")}
         </p>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          模型名称 (Model){" "}
+          {t("settings.ai.model")}{" "}
           {type === "preset" && (
-            <span className="text-xs text-gray-500">(通常无需修改)</span>
+            <span className="text-xs text-gray-500">
+              {t("settings.ai.baseUrlDesc")}
+            </span>
           )}
         </label>
         <div className="relative">
@@ -265,7 +268,7 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
             value={model}
             onChange={(e) => setModel(e.target.value)}
             className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="例如: gpt-4, deepseek-chat"
+            placeholder={t("settings.ai.modelPlaceholder")}
           />
         </div>
       </div>
@@ -275,13 +278,13 @@ const AiConfigForm: React.FC<AiConfigFormProps> = ({
           onClick={onCancel}
           className="px-4 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
         >
-          取消
+          {t("settings.ai.cancel")}
         </button>
         <button
           onClick={handleSave}
           className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
         >
-          保存配置
+          {t("settings.ai.save")}
         </button>
       </div>
     </div>
@@ -331,60 +334,103 @@ export default function SettingsPage() {
     }
   };
 
+  const { t, i18n } = useTranslation();
+
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
+  };
+
   return (
     <>
       <header className="mb-8">
         <div className="max-w-3xl mx-auto flex items-center justify-center">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">
-            应用设置
+            {t("settings.title")}
           </h1>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 md:p-8 divide-y divide-gray-200 dark:divide-gray-700 pb-20">
-        {/* General Practice/Review Settings */}
+        {/* Language Selection */}
         <div className="space-y-4 py-6">
           <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">
-            练习与复习设置
+            {t("settings.general")}
+          </h2>
+
+          <div className="py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100">
+                {t("settings.language")}
+              </h3>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleLanguageChange("zh")}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  i18n.language === "zh"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                }`}
+              >
+                中文
+              </button>
+              <button
+                onClick={() => handleLanguageChange("en")}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  i18n.language === "en"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                }`}
+              >
+                English
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Practice/Review Settings */}
+        <div className="space-y-4 py-6">
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">
+            {t("nav.practice")} / {t("nav.review")}
           </h2>
           <SettingRow
-            label="练习模式：打乱选项顺序"
-            description="单选题和多选题的选项将随机排列。"
+            label={t("settings.practice.shuffleOptions")}
+            description={t("settings.practice.shuffleOptionsDesc")}
             settingKey="shufflePracticeOptions"
             currentValue={settings.shufflePracticeOptions}
             onToggle={handleBooleanSettingToggle}
           />
           <SettingRow
-            label="错题回顾：打乱选项顺序"
-            description="错题练习中，单选题和多选题的选项将随机排列。"
+            label={t("settings.review.shuffleOptions")}
+            description={t("settings.review.shuffleOptionsDesc")}
             settingKey="shuffleReviewOptions"
             currentValue={settings.shuffleReviewOptions}
             onToggle={handleBooleanSettingToggle}
           />
           <SettingRow
-            label="练习模式：打乱题目顺序"
-            description="进入练习时，题库中的题目将以随机顺序出现。"
+            label={t("settings.practice.shuffleQuestions")}
+            description={t("settings.practice.shuffleQuestionsDesc")}
             settingKey="shufflePracticeQuestionOrder"
             currentValue={settings.shufflePracticeQuestionOrder}
             onToggle={handleBooleanSettingToggle}
           />
           <SettingRow
-            label="错题回顾：打乱题目顺序"
-            description="进行错题回顾时，错题将以随机顺序出现。"
+            label={t("settings.review.shuffleQuestions")}
+            description={t("settings.review.shuffleQuestionsDesc")}
             settingKey="shuffleReviewQuestionOrder"
             currentValue={settings.shuffleReviewQuestionOrder}
             onToggle={handleBooleanSettingToggle}
           />
           <SettingRow
-            label="错题订正后从错题本移除"
-            description="在错题回顾中答对题目后，是否将其视为已订正。"
+            label={t("settings.review.autoRemove")}
+            description={t("settings.review.autoRemoveDesc")}
             settingKey="markMistakeAsCorrectedOnReviewSuccess"
             currentValue={settings.markMistakeAsCorrectedOnReviewSuccess}
             onToggle={handleBooleanSettingToggle}
           />
           <SettingRow
-            label="导入题目时查重"
-            description="开启后，导入题库时会自动跳过重复题目（题干完全一致视为重复）"
+            label={t("settings.import.checkDuplicate")}
+            description={t("settings.import.checkDuplicateDesc")}
             settingKey={"checkDuplicateQuestion" as any}
             currentValue={settings.checkDuplicateQuestion}
             onToggle={handleBooleanSettingToggle as any}
@@ -395,14 +441,14 @@ export default function SettingsPage() {
         <div className="py-6 space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
-              题目转换 AI 模型
+              {t("settings.ai.title")}
             </h2>
             {!isAddingMode && !editingConfigId && (
               <button
                 onClick={() => setIsAddingMode(true)}
                 className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
               >
-                <Plus className="w-4 h-4" /> 添加模型
+                <Plus className="w-4 h-4" /> {t("settings.ai.addModel")}
               </button>
             )}
           </div>
@@ -464,7 +510,7 @@ export default function SettingsPage() {
                         {config.name}
                         {config.type === "preset" && (
                           <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 rounded-full font-normal">
-                            预设
+                            {t("settings.ai.preset")}
                           </span>
                         )}
                       </div>
@@ -486,13 +532,13 @@ export default function SettingsPage() {
                     <button
                       onClick={() => setEditingConfigId(config.id)}
                       className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-                      title="编辑"
+                      title={t("common.edit")}
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => {
-                        if (confirm("确定要删除这个配置吗？")) {
+                        if (confirm(t("settings.ai.deleteConfirm"))) {
                           deleteAiConfig(config.id);
                         }
                       }}
@@ -502,7 +548,7 @@ export default function SettingsPage() {
                           ? "text-gray-300 cursor-not-allowed"
                           : "text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-gray-700"
                       }`}
-                      title="删除"
+                      title={t("common.delete")}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -517,17 +563,13 @@ export default function SettingsPage() {
         <div className="mt-8 pt-6 flex justify-end">
           <button
             onClick={() => {
-              if (
-                confirm(
-                  "确定要恢复所有设置到默认状态吗？这将清除所有自定义 AI 配置。"
-                )
-              ) {
+              if (confirm(t("settings.reset.confirm"))) {
                 resetQuizSettings();
               }
             }}
             className="px-6 py-2 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-md font-medium transition-colors"
           >
-            恢复默认设置
+            {t("settings.reset.button")}
           </button>
         </div>
       </main>

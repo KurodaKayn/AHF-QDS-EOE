@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { AIConfig } from "@/store/quizStore";
+import { useTranslation } from "react-i18next";
 
 interface AIProviderInfoProps {
   config: AIConfig;
@@ -12,6 +13,7 @@ export function AIProviderInfo({
   config,
   showSettingsLink = true,
 }: AIProviderInfoProps) {
+  const { t } = useTranslation();
   // Determine logo
   let logoFileName = "Deepseek.jpg"; // default
   if (config.provider === "alibaba") logoFileName = "Qwen.jpg";
@@ -41,19 +43,19 @@ export function AIProviderInfo({
 
       <div>
         <h3 className="font-medium text-blue-800 dark:text-white">
-          正在使用 {config.name}{" "}
+          {t("convert.aiInfo.using", { name: config.name })}{" "}
           <span className="text-xs opacity-75">({config.model})</span>
         </h3>
         {showSettingsLink && (
           <p className="text-sm text-blue-600 dark:text-blue-400">
-            可在
+            {t("convert.aiInfo.settingsHint").split("[")[0]}
             <a
               href="/quiz/settings"
               className="underline hover:text-blue-800 dark:hover:text-blue-200"
             >
               应用设置
             </a>
-            中更改 AI 提供商
+            {t("convert.aiInfo.settingsHint").split("]")[1] || ""}
           </p>
         )}
       </div>

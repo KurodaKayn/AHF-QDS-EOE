@@ -1,3 +1,5 @@
+import { Providers } from "@/components/Providers";
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -13,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "刷题系统",
+  title: "刷题系统 (AHF QDS EOE)",
   description: "练习题目，记录错题并支持导入导出题库",
 };
 
@@ -27,7 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen dark:bg-gray-900`}
       >
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -27,6 +27,7 @@ import WrongQuestionItem, {
 } from "@/components/quiz/WrongQuestionItem";
 import SimilarQuestionsModal from "@/components/quiz/SimilarQuestionsModal";
 import { EXPLANATION_PROMPT, callAI, callAIStream } from "@/constants/ai";
+import { useTranslation } from "react-i18next";
 
 /**
  * 错题本页面
@@ -48,6 +49,7 @@ export default function ReviewPage() {
     generateSimilarQuestions,
     importGeneratedQuestions,
   } = useQuizStore();
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBankId, setFilterBankId] = useState<string | "all">("all");
   const [viewMode, setViewMode] = useState<"options" | "list">("options");
@@ -71,7 +73,7 @@ export default function ReviewPage() {
   const handleStartPractice = () => {
     const wrongRecs = records.filter((record) => !record.isCorrect);
     if (wrongRecs.length === 0) {
-      alert("没有错题可供练习！");
+      alert(t("review.alerts.noWrongQuestions"));
       return;
     }
     const bankWithWrong = questionBanks.find((bank) =>
@@ -80,7 +82,7 @@ export default function ReviewPage() {
     if (bankWithWrong) {
       router.push(`/quiz/practice?bankId=${bankWithWrong.id}&mode=review`);
     } else {
-      alert("找不到包含错题的题库！");
+      alert(t("review.alerts.noBankWithWrong"));
     }
   };
 
@@ -149,7 +151,7 @@ export default function ReviewPage() {
    * 清空错题本
    */
   const handleClearRecords = () => {
-    if (confirm("确定要清空错题本吗？此操作不可恢复。")) {
+    if (confirm(t("review.alerts.confirmClear"))) {
       clearRecords();
       setSelectedQuestions(new Set());
     }
@@ -266,7 +268,7 @@ export default function ReviewPage() {
       const activeConfig = aiConfigs.find((c) => c.id === activeAiConfigId);
 
       if (!activeConfig || !activeConfig.apiKey) {
-        throw new Error("未配置有效的 AI 密钥");
+        throw new Error(t("review.ai.noKey"));
       }
 
       let fullExplanation = "";
@@ -312,19 +314,19 @@ export default function ReviewPage() {
 
   const generateExplanationsForSelected = async () => {
     if (selectedQuestions.size === 0) {
-      alert("请先选择需要生成解析的题目！");
+      alert(t("review.alerts.selectToExplain"));
       return;
     }
     const { aiConfigs, activeAiConfigId } = settings;
     const activeConfig = aiConfigs.find((c) => c.id === activeAiConfigId);
 
     if (!activeConfig) {
-      setAiError("请先在应用设置中选择一个 AI 模型");
+      setAiError(t("review.ai.noModel"));
       return;
     }
 
     if (!activeConfig.apiKey) {
-      setAiError(`请先在应用设置中配置 ${activeConfig.name} 的 API 密钥`);
+      setAiError(t("review.ai.configKey", { name: activeConfig.name }));
       return;
     }
     setAiError(null);
@@ -362,14 +364,14 @@ export default function ReviewPage() {
    */
   const handleGenerateSimilarQuestions = async () => {
     if (selectedQuestions.size === 0) {
-      alert("请先选择需要生成相似题目的原始错题！");
+      alert(t("review.alerts.selectToSimilar"));
       return;
     }
     const selectedItems: WrongQuestionDisplay[] = wrongQuestions.filter((q) =>
       selectedQuestions.has(q.id)
     );
     if (selectedItems.length === 0) {
-      alert("未找到选中的题目详情。");
+      alert(t("review.alerts.noDetailsFound"));
       return;
     }
     // Map WrongQuestionDisplay[] to Question[] before passing to store actions
@@ -396,18 +398,18 @@ export default function ReviewPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
             <FaExclamationTriangle className="inline-block mr-2 text-yellow-600 dark:text-yellow-500" />
-            错题本
+            {t("review.pageTitle")}
           </h1>
         </div>
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
           <p className="text-gray-500 dark:text-gray-400 mb-4">
-            太棒了，您目前没有错题记录！
+            {t("review.emptyState")}
           </p>
           <button
             onClick={() => router.push("/quiz")}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-md"
           >
-            返回题库列表
+            {t("review.returnToHome")}
           </button>
         </div>
       </div>
@@ -418,10 +420,10 @@ export default function ReviewPage() {
     <div className="container mx-auto p-4 md:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <header className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-          错题回顾
+          {t("review.headerTitle")}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          温故而知新，巩固你的薄弱环节。
+          {t("review.headerSubtitle")}
         </p>
       </header>
 
@@ -448,7 +450,7 @@ export default function ReviewPage() {
             disabled={wrongQuestions.length === 0}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm disabled:bg-gray-400 dark:disabled:bg-gray-500 flex items-center gap-2 transition-colors"
           >
-            <FaPlayCircle /> 开始错题练习
+            <FaPlayCircle /> {t("review.actions.startPractice")}
           </button>
           <button
             onClick={handleSelectAll}
@@ -458,8 +460,8 @@ export default function ReviewPage() {
             <FaCheck />{" "}
             {selectedQuestions.size === filteredQuestions.length &&
             filteredQuestions.length > 0
-              ? "取消全选"
-              : "全选当前"}{" "}
+              ? t("review.actions.deselectAll")
+              : t("review.actions.selectAll")}{" "}
             ({selectedQuestions.size})
           </button>
           <button
@@ -469,9 +471,11 @@ export default function ReviewPage() {
             }
             className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md shadow-sm disabled:bg-gray-400 dark:disabled:bg-gray-500 flex items-center gap-2 transition-colors"
           >
-            <FaRobot /> AI生成解析{" "}
+            <FaRobot /> {t("review.actions.aiExplain")}{" "}
             {generatingExplanations.size > 0
-              ? `(${generatingExplanations.size}进行中)`
+              ? t("review.actions.aiExplainProgress", {
+                  count: generatingExplanations.size,
+                })
               : ""}
           </button>
           <button
@@ -481,8 +485,10 @@ export default function ReviewPage() {
             }
             className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-md shadow-sm disabled:bg-gray-400 dark:disabled:bg-gray-500 flex items-center gap-2 transition-colors"
           >
-            <FaSyncAlt /> AI生成相似题{" "}
-            {generatingSimilarQuestions ? "(生成中...)" : ""}
+            <FaSyncAlt /> {t("review.actions.aiSimilar")}{" "}
+            {generatingSimilarQuestions
+              ? t("review.actions.aiSimilarProgress")
+              : ""}
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -491,15 +497,15 @@ export default function ReviewPage() {
             onChange={(e) => setViewMode(e.target.value as "options" | "list")}
             className="px-3 py-2 text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="options">卡片视图</option>
-            <option value="list">列表视图</option>
+            <option value="options">{t("review.actions.viewCard")}</option>
+            <option value="list">{t("review.actions.viewList")}</option>
           </select>
           <button
             onClick={handleClearRecords}
             disabled={records.length === 0}
             className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm disabled:bg-gray-400 dark:disabled:bg-gray-500 flex items-center gap-2 transition-colors"
           >
-            <FaTrash /> 清空错题本
+            <FaTrash /> {t("review.actions.clearRecords")}
           </button>
         </div>
       </div>
@@ -509,7 +515,7 @@ export default function ReviewPage() {
         <div className="relative flex-grow">
           <input
             type="text"
-            placeholder="搜索题目内容、选项、解析..."
+            placeholder={t("review.search.placeholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500 shadow-sm"
@@ -521,7 +527,7 @@ export default function ReviewPage() {
           onChange={(e) => setFilterBankId(e.target.value)}
           className="px-3 py-2 text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500 shadow-sm sm:w-auto w-full"
         >
-          <option value="all">所有题库</option>
+          <option value="all">{t("review.search.allBanks")}</option>
           {questionBanks.map((bank) => (
             <option key={bank.id} value={bank.id}>
               {bank.name}
@@ -535,16 +541,16 @@ export default function ReviewPage() {
         <div className="text-center py-10">
           <FaListUl className="mx-auto text-5xl text-gray-400 dark:text-gray-500 mb-4" />
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            没有找到符合条件的错题。
+            {t("review.search.noResults")}
           </p>
           {wrongQuestions.length > 0 && (
             <p className="text-sm text-gray-500 dark:text-gray-500">
-              尝试调整搜索词或筛选条件。
+              {t("review.search.noResultsHint")}
             </p>
           )}
           {wrongQuestions.length === 0 && (
             <p className="text-sm text-gray-500 dark:text-gray-500">
-              太棒了，当前没有错题！
+              {t("review.search.greatNoMistakes")}
             </p>
           )}
         </div>

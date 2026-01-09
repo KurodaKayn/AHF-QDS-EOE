@@ -1,0 +1,320 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "back": "Back",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close"
+  },
+  "nav": {
+    "home": "Quiz, Start!",
+    "convert": "Converter",
+    "importExport": "Import/Export",
+    "practice": "Practice",
+    "review": "Review",
+    "settings": "Settings",
+    "management": "Management",
+    "title": "Quiz System",
+    "openMenu": "Open Menu",
+    "closeMenu": "Close Menu",
+    "expandSidebar": "Expand Sidebar",
+    "collapseSidebar": "Collapse Sidebar"
+  },
+  "home": {
+    "title": "AHF QDS EOE",
+    "subtitle": "Your Personal Quiz Assistant",
+    "pageTitle": "My Question Banks",
+    "pageSubtitle": "Select a bank to start learning, or go to \"Management\" to create and edit banks.",
+    "noDescription": "No description",
+    "questionCount": "{{count}} Questions",
+    "updatedAt": "Updated {{time}}",
+    "startPractice": "Start Practice",
+    "manageBank": "Manage Bank",
+    "noBanks": "You don't have any question banks yet.",
+    "createNewBank": "Create New Bank"
+  },
+  "importExport": {
+    "title": "Import/Export",
+    "import": {
+      "title": "Import Bank",
+      "bankName": "Bank Name",
+      "bankNamePlaceholder": "Enter bank name",
+      "format": "Import Format",
+      "selectFile": "Select File",
+      "success": "Import Successful",
+      "result": "Imported {{total}} questions, added {{added}}",
+      "skipped": "Skipped {{duplicates}} duplicates"
+    },
+    "export": {
+      "title": "Export Bank",
+      "selectBank": "Select Bank",
+      "selectPlaceholder": "-- Select Bank --",
+      "format": "Export Format",
+      "button": "Export",
+      "success": "Export Successful",
+      "bankInfo": "{{name}} ({{count}} q)"
+    },
+    "alerts": {
+      "inputRequired": "Please enter a bank name and select a file.",
+      "parseError": "Could not parse data from file.",
+      "importFailed": "Import Failed: {{error}}",
+      "exportFailed": "Export failed, please try again later."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "language": "Language",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "systemMode": "System",
+    "aiConfig": "AI Configuration",
+    "checkUpdate": "Check for Updates",
+    "about": "About",
+    "practice": {
+      "shuffleOptions": "Practice: Shuffle Options",
+      "shuffleOptionsDesc": "Options for single and multiple choice questions will be randomized.",
+      "shuffleQuestions": "Practice: Shuffle Questions",
+      "shuffleQuestionsDesc": "Questions in the bank will appear in random order during practice."
+    },
+    "review": {
+      "shuffleOptions": "Review: Shuffle Options",
+      "shuffleOptionsDesc": "Options in mistake review will be randomized.",
+      "shuffleQuestions": "Review: Shuffle Questions",
+      "shuffleQuestionsDesc": "Mistakes will appear in random order during review.",
+      "autoRemove": "Remove Corrected Mistakes",
+      "autoRemoveDesc": "Automatically remove mistakes from the list after answering correctly in review."
+    },
+    "import": {
+      "checkDuplicate": "Check Duplicates on Import",
+      "checkDuplicateDesc": "Automatically skip duplicate questions (identical content) when importing."
+    },
+    "ai": {
+      "title": "AI Model for Conversion",
+      "addModel": "Add Model",
+      "editModel": "Edit Model Config",
+      "newModel": "Add New Model",
+      "type": "Config Type",
+      "preset": "Preset Provider",
+      "custom": "Custom Service",
+      "selectProvider": "Select Provider",
+      "name": "Config Name",
+      "namePlaceholder": "e.g., My DeepSeek",
+      "apiKey": "API Key",
+      "baseUrl": "Base URL",
+      "baseUrlDesc": "(Optional for presets)",
+      "baseUrlHint": "Compatible with OpenAI API format",
+      "model": "Model Name",
+      "modelPlaceholder": "e.g., gpt-4, deepseek-chat",
+      "save": "Save Config",
+      "cancel": "Cancel",
+      "deleteConfirm": "Are you sure you want to delete this configuration?",
+      "fillAll": "Please fill in all required fields",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "reset": {
+      "button": "Reset Default Settings",
+      "confirm": "Are you sure you want to reset all settings? This will clear all custom AI configurations."
+    }
+  },
+  "convert": {
+    "pageTitle": "Convert to Quiz Bank",
+    "input": {
+      "label": "Input question text:",
+      "placeholder": "Paste text or image here. Supports auto-recognition of single/multiple choice, true/false, and short answer.",
+      "ocrFailed": "Failed to recognize text from image, please ensure the image is clear.",
+      "ocrErrorGeneric": "Image recognition failed",
+      "processingOCR": "Recognizing text...",
+      "loadExample": "Load Example",
+      "pasteHint": "Supports pasting text or images"
+    },
+    "mode": {
+      "title": "Select Mode",
+      "ai": "🧠 AI Conversion",
+      "script": "📜 Script Conversion"
+    },
+    "script": {
+      "title": "Script Settings",
+      "templateLabel": "Template:",
+      "viewExample": "View Example",
+      "templates": {
+        "chaoxing": "ChaoXing / XueXiTong",
+        "singleChoice1": "Single Choice 1",
+        "other": "Other"
+      }
+    },
+    "actions": {
+      "startAI": "Start AI Convert",
+      "startScript": "Start Script Convert",
+      "aiConverting": "Converting...",
+      "scriptParsing": "Parsing..."
+    },
+    "success": {
+      "title": "Saved Successfully!",
+      "message": "Saved {{count}} questions to bank: {{bank}}.",
+      "continue": "Continue Converting",
+      "practice": "Start Practice"
+    },
+    "save": {
+      "title": "Save Questions",
+      "newBank": "Create New Bank",
+      "existingBank": "Add to Existing Bank",
+      "bankName": "Bank Name",
+      "bankNamePlaceholder": "Enter new bank name",
+      "bankDesc": "Description (Optional)",
+      "bankDescPlaceholder": "Enter description",
+      "selectBank": "Select Bank",
+      "selectPlaceholder": "Select a bank",
+      "button": "Save Questions"
+    },
+    "errors": {
+      "noText": "Please enter question text",
+      "scriptFailed": "Script failed to parse any questions, please check input format",
+      "scriptError": "Script parsing error: {{error}}",
+      "noAIConfig": "Please configure AI model in settings first",
+      "aiParseFailed": "AI returned content but failed to parse into questions",
+      "noTargetBank": "Could not determine target bank",
+      "ocrError": "OCR Error: {{error}}"
+    },
+    "aiInfo": {
+      "using": "Using {{name}}",
+      "settingsHint": "Change AI provider in Settings"
+    },
+    "ocrUpload": {
+      "dragDrop": "Click, drag & drop, or paste image for OCR",
+      "supportHint": "Supports Chinese/English, clear screenshots recommended",
+      "processing": "Recognizing text...",
+      "errorType": "Please select an image file",
+      "errorDrag": "Please drag and drop an image file"
+    }
+  },
+  "review": {
+    "pageTitle": "Review Book",
+    "headerTitle": "Mistakes Review",
+    "headerSubtitle": "Review and consolidate your knowledge.",
+    "emptyState": "Great! You have no wrong questions yet!",
+    "returnToHome": "Back to Home",
+    "actions": {
+      "startPractice": "Practice Mistakes",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "aiExplain": "AI Explain",
+      "aiExplainProgress": "{{count}} processing",
+      "aiSimilar": "AI Similar Qs",
+      "aiSimilarProgress": "Generating...",
+      "clearRecords": "Clear Records",
+      "viewCard": "Card View",
+      "viewList": "List View"
+    },
+    "search": {
+      "placeholder": "Search content, options, explanation...",
+      "allBanks": "All Banks",
+      "noResults": "No matching wrong questions found.",
+      "noResultsHint": "Try adjusting your search or filters.",
+      "greatNoMistakes": "Great, no mistakes right now!"
+    },
+    "alerts": {
+      "noWrongQuestions": "No wrong questions available to practice!",
+      "noBankWithWrong": "No bank found containing these wrong questions!",
+      "confirmClear": "Are you sure you want to clear the review book? This cannot be undone.",
+      "selectToExplain": "Please select questions to generate explanations for!",
+      "selectToSimilar": "Please select original wrong questions to generate similar ones!",
+      "noDetailsFound": "Selected question details not found.",
+      "importSuccess": "Successfully imported {{imported}} questions.",
+      "importSkipped": "Skipped {{skipped}} duplicates.",
+      "importFailed": "Import Failed: {{error}}"
+    },
+    "ai": {
+      "noKey": "No valid AI API Key configured",
+      "noModel": "Please select an AI model in settings first",
+      "configKey": "Please configure API Key for {{name}} in settings first",
+      "parseError": "Failed to generate explanation for \"{{title}}...\"",
+      "generalError": "AI explanation generation failed, please try again later."
+    }
+  },
+  "bankManage": {
+    "pageTitle": "Bank Management",
+    "pageSubtitle": "Select a bank to edit, or create a new one.",
+    "backToList": "Back to Banks",
+    "selectPlaceholder": "Select a bank...",
+    "noBanks": "No banks yet, please create one",
+    "createNew": "Create New Bank",
+    "sortBy": "Sort by:",
+    "sortByName": "By Name",
+    "sortByDate": "By Creation Time",
+    "bankTitle": "Bank: {{name}}",
+    "editInfo": "Edit Info",
+    "deleteBank": "Delete This Bank",
+    "bankName": "Bank Name",
+    "bankNamePlaceholder": "Enter bank name",
+    "bankDescription": "Description (Optional)",
+    "bankDescPlaceholder": "Enter description",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "description": "Description:",
+    "noDescription": "No description provided",
+    "questionCount": "Question Count:",
+    "createdAt": "Created At:",
+    "unknown": "Unknown",
+    "questionList": "Question List ({{filtered}}/{{total}} questions)",
+    "findDuplicates": "Find Duplicates",
+    "addQuestion": "Add New Question",
+    "searchPlaceholder": "Search questions...",
+    "clear": "Clear",
+    "questionSort": "Sort questions:",
+    "sortByContent": "By Content",
+    "sortByType": "By Type",
+    "sortByAddTime": "By Add Time",
+    "editQuestion": "Edit Question",
+    "deleteQuestion": "Delete Question",
+    "noQuestionsFound": "No matching questions found.",
+    "noQuestionsYet": "No questions in this bank yet. Click \"Add New Question\" above to start.",
+    "selectBankPrompt": "Please select a bank from above to manage, or create a new one.",
+    "noBanksPrompt": "You don't have any banks yet. Click \"Create New Bank\" above to start.",
+    "loading": "Loading banks...",
+    "alerts": {
+      "bankNameRequired": "Bank name cannot be empty.",
+      "bankUpdated": "Bank \"{{name}}\" has been updated.",
+      "bankCreated": "New bank \"{{name}}\" has been created and selected.",
+      "bankDeleted": "Bank \"{{name}}\" has been deleted.",
+      "questionDeleted": "Question deleted.",
+      "duplicatesDeleted": "Deleted {{count}} duplicate questions."
+    },
+    "duplicates": {
+      "title": "Duplicate Questions Management",
+      "description": "The system has detected the following possible duplicate questions (ignoring case and punctuation). You can select which ones to delete.",
+      "group": "Group {{index}}",
+      "normalized": "Normalized as: \"{{text}}\"",
+      "type": "Type: {{type}}",
+      "addedAt": "Added at: {{time}}",
+      "selected": "Selected {{count}} questions",
+      "deleteSelected": "Delete Selected",
+      "noResults": "Search Results",
+      "notEnough": "Not enough questions to find duplicates.",
+      "noDuplicates": "No duplicates found. The system has normalized question content (ignoring case and punctuation) and found no substantially identical questions.",
+      "confirm": "OK"
+    },
+    "deleteConfirm": {
+      "bankTitle": "Delete Bank",
+      "bankMessage": "Are you sure you want to permanently delete bank \"{{name}}\"? This action cannot be undone, and all questions in the bank will also be deleted.",
+      "questionTitle": "Delete Question",
+      "questionMessage": "Are you sure you want to delete question \"{{content}}\"? This action cannot be undone.",
+      "duplicatesTitle": "Delete Duplicate Questions",
+      "duplicatesMessage": "Are you sure you want to delete the selected {{count}} duplicate questions? This action cannot be undone.",
+      "delete": "Delete"
+    }
+  }
+}

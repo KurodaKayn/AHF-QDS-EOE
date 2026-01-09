@@ -16,11 +16,13 @@ import {
 } from "@/utils/quiz";
 import { DEFAULT_EXPORT_FILENAME } from "@/constants/quiz";
 import { QuestionBank, Question } from "@/types/quiz";
+import { useTranslation } from "react-i18next";
 
 /**
  * 导入/导出题库页面
  */
 export default function ImportExportPage() {
+  const { t } = useTranslation();
   const { questionBanks, addQuestionBank, addQuestionToBank } = useQuizStore();
   const [selectedBankId, setSelectedBankId] = useState<string>("");
   const [importFormat, setImportFormat] = useState<"csv" | "excel">("csv");
@@ -41,7 +43,7 @@ export default function ImportExportPage() {
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !importName.trim()) {
-      alert("请输入题库名称并选择文件。");
+      alert(t("importExport.alerts.inputRequired"));
       return;
     }
 
@@ -60,7 +62,7 @@ export default function ImportExportPage() {
         }
 
         if (!importedData) {
-          throw new Error("无法从文件解析数据。");
+          throw new Error(t("importExport.alerts.parseError"));
         }
 
         const newBank: QuestionBank = addQuestionBank(
@@ -153,14 +155,14 @@ export default function ImportExportPage() {
       setTimeout(() => setExportSuccess(false), 3000);
     } catch (error) {
       console.error("导出失败:", error);
-      alert("导出失败，请稍后重试");
+      alert(t("importExport.alerts.exportFailed"));
     }
   };
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-8">
-        导入/导出题库
+        {t("importExport.title")}
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -171,26 +173,28 @@ export default function ImportExportPage() {
               className="text-blue-600 dark:text-blue-400 mr-2"
               size={20}
             />
-            <h2 className="text-lg font-semibold dark:text-white">导入题库</h2>
+            <h2 className="text-lg font-semibold dark:text-white">
+              {t("importExport.import.title")}
+            </h2>
           </div>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                题库名称
+                {t("importExport.import.bankName")}
               </label>
               <input
                 type="text"
                 value={importName}
                 onChange={(e) => setImportName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-                placeholder="输入导入后的题库名称"
+                placeholder={t("importExport.import.bankNamePlaceholder")}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                导入格式
+                {t("importExport.import.format")}
               </label>
               <div className="flex space-x-4">
                 <label className="inline-flex items-center">
@@ -218,7 +222,7 @@ export default function ImportExportPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                选择文件
+                {t("importExport.import.selectFile")}
               </label>
               <input
                 type="file"
@@ -237,20 +241,24 @@ export default function ImportExportPage() {
             {importSuccess && (
               <div className="flex items-center text-green-600 dark:text-green-400">
                 <FaCheck className="mr-1" />
-                <span>导入成功</span>
+                <span>{t("importExport.import.success")}</span>
               </div>
             )}
 
             {importResult && (
               <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-100 dark:border-blue-800">
                 <p className="text-blue-700 dark:text-blue-300 text-sm">
-                  共导入 {importResult.total} 题，成功添加 {importResult.added}{" "}
-                  题
+                  {t("importExport.import.result", {
+                    total: importResult.total,
+                    added: importResult.added,
+                  })}
                 </p>
                 {importResult.duplicates > 0 && (
                   <p className="flex items-center mt-1 text-amber-600 dark:text-amber-400 text-sm">
                     <FaExclamationTriangle className="mr-1" size={12} />
-                    跳过 {importResult.duplicates} 个重复题目
+                    {t("importExport.import.skipped", {
+                      duplicates: importResult.duplicates,
+                    })}
                   </p>
                 )}
               </div>
@@ -265,20 +273,24 @@ export default function ImportExportPage() {
               className="text-green-600 dark:text-green-400 mr-2"
               size={20}
             />
-            <h2 className="text-lg font-semibold dark:text-white">导出题库</h2>
+            <h2 className="text-lg font-semibold dark:text-white">
+              {t("importExport.export.title")}
+            </h2>
           </div>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                选择题库
+                {t("importExport.export.selectBank")}
               </label>
               <select
                 value={selectedBankId}
                 onChange={(e) => setSelectedBankId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
               >
-                <option value="">-- 请选择题库 --</option>
+                <option value="">
+                  {t("importExport.export.selectPlaceholder")}
+                </option>
                 {questionBanks.map((bank) => (
                   <option key={bank.id} value={bank.id}>
                     {bank.name} ({bank.questions.length}题)
@@ -289,7 +301,7 @@ export default function ImportExportPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                导出格式
+                {t("importExport.export.format")}
               </label>
               <div className="flex space-x-4">
                 <label className="inline-flex items-center">
@@ -326,13 +338,13 @@ export default function ImportExportPage() {
                         }`}
             >
               <FaFileExport className="mr-2" />
-              导出
+              {t("importExport.export.button")}
             </button>
 
             {exportSuccess && (
               <div className="flex items-center text-green-600 dark:text-green-400">
                 <FaCheck className="mr-1" />
-                <span>导出成功</span>
+                <span>{t("importExport.export.success")}</span>
               </div>
             )}
           </div>

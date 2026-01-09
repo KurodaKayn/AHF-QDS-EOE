@@ -22,6 +22,7 @@ import { QuestionList } from "@/components/quiz/QuestionList";
 import { SaveToBankForm } from "@/components/quiz/SaveToBankForm";
 import { ConversionSuccess } from "@/components/quiz/ConversionSuccess";
 import { ExampleModal } from "@/components/quiz/ExampleModal";
+import { useTranslation } from "react-i18next";
 
 export default function ConvertPage() {
   const router = useRouter();
@@ -32,6 +33,8 @@ export default function ConvertPage() {
     addQuestionToBank,
     getQuestionBankById,
   } = useQuizStore();
+
+  const { t } = useTranslation();
 
   // State
   const [inputText, setInputText] = useState("");
@@ -52,7 +55,7 @@ export default function ConvertPage() {
 
   const handleConvert = async () => {
     if (!inputText.trim()) {
-      setError("请输入题目文本");
+      setError(t("convert.errors.noText"));
       return;
     }
     setError(null);
@@ -63,11 +66,11 @@ export default function ConvertPage() {
       try {
         const parsed = parseTextByScript(inputText, scriptTemplate);
         if (parsed.length === 0 && inputText.trim().length > 0) {
-          setError("脚本未能解析出任何题目，请检查输入格式");
+          setError(t("convert.errors.scriptFailed"));
         }
         setConvertedQuestions(parsed);
       } catch (e: any) {
-        setError(`脚本解析错误: ${e.message}`);
+        setError(t("convert.errors.scriptError", { error: e.message }));
       } finally {
         setIsLoadingScript(false);
       }
@@ -80,7 +83,7 @@ export default function ConvertPage() {
     const activeConfig = aiConfigs.find((c) => c.id === activeAiConfigId);
 
     if (!activeConfig || !activeConfig.apiKey) {
-      setError("请先在设置中配置 AI 模型");
+      setError(t("convert.errors.noAIConfig"));
       setIsLoading(false);
       return;
     }
@@ -99,13 +102,13 @@ export default function ConvertPage() {
       if (response) {
         const parsed = parseQuestions(response);
         if (parsed.length === 0) {
-          setError("AI 返回了内容，但无法解析为题目");
+          setError(t("convert.errors.aiParseFailed"));
         } else {
           setConvertedQuestions(parsed);
         }
       }
     } catch (e: any) {
-      setError(e.message || "转换过程中发生错误");
+      setError(e.message || t("convert.errors.noText"));
     } finally {
       setIsLoading(false);
     }
@@ -133,7 +136,7 @@ export default function ConvertPage() {
     }
 
     if (!targetBankId) {
-      setError("未能确定目标题库");
+      setError(t("convert.errors.noTargetBank"));
       return;
     }
 
@@ -162,7 +165,7 @@ export default function ConvertPage() {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 flex flex-col items-center">
       <div className="w-full max-w-4xl bg-white dark:bg-gray-800 shadow-xl rounded-lg p-6 md:p-8">
         <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-8">
-          文本/AI 智能转换为题库
+          {t("convert.pageTitle")}
         </h1>
 
         <ConversionModeSelector
@@ -177,7 +180,9 @@ export default function ConvertPage() {
           value={inputText}
           onChange={setInputText}
           onLoadExample={() => setInputText(EXAMPLE_QUESTION_TEXT)}
-          onOCRError={(err) => setError(`OCR识别错误: ${err}`)}
+          onOCRError={(err) =>
+            setError(t("convert.errors.ocrError", { error: err }))
+          }
           showOCR={true}
         />
 
@@ -208,11 +213,11 @@ export default function ConvertPage() {
           )}
           {conversionMode === "ai"
             ? isLoading
-              ? "AI转换中..."
-              : "开始 AI 转换"
+              ? t("convert.actions.aiConverting")
+              : t("convert.actions.startAI")
             : isLoadingScript
-            ? "脚本解析中..."
-            : "开始脚本转换"}
+            ? t("convert.actions.scriptParsing")
+            : t("convert.actions.startScript")}
         </button>
 
         {error && (

@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { FaImage, FaSpinner } from "react-icons/fa";
 import { MdUpload } from "react-icons/md";
 import Tesseract from "tesseract.js";
+import { useTranslation } from "react-i18next";
 
 interface ImageOCRUploadProps {
   onTextExtracted: (text: string) => void;
@@ -14,6 +15,7 @@ export function ImageOCRUpload({
   onTextExtracted,
   onError,
 }: ImageOCRUploadProps) {
+  const { t } = useTranslation();
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,11 +37,11 @@ export function ImageOCRUpload({
       if (extractedText) {
         onTextExtracted(extractedText);
       } else {
-        onError?.("未能从图片中识别出文字，请确保图片清晰");
+        onError?.(t("convert.input.ocrFailed"));
       }
     } catch (error: any) {
       console.error("OCR Error:", error);
-      onError?.(error.message || "图片识别失败");
+      onError?.(error.message || t("convert.input.ocrErrorGeneric"));
     } finally {
       setIsProcessing(false);
       setProgress(0);
@@ -50,7 +52,7 @@ export function ImageOCRUpload({
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        onError?.("请选择图片文件");
+        onError?.(t("convert.ocrUpload.errorType"));
         return;
       }
       processImage(file);
@@ -79,7 +81,7 @@ export function ImageOCRUpload({
     if (file && file.type.startsWith("image/")) {
       await processImage(file);
     } else {
-      onError?.("请拖放图片文件");
+      onError?.(t("convert.ocrUpload.errorDrag"));
     }
   };
 
@@ -108,7 +110,7 @@ export function ImageOCRUpload({
           <div className="flex flex-col items-center justify-center py-2">
             <FaSpinner className="animate-spin text-blue-600 dark:text-blue-400 text-2xl mb-2" />
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              正在识别图片文字... {progress}%
+              {t("convert.ocrUpload.processing")} {progress}%
             </p>
             <div className="w-full max-w-xs mt-2 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
@@ -124,10 +126,10 @@ export function ImageOCRUpload({
               <MdUpload className="text-gray-400 text-xl" />
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-              点击上传、拖放或粘贴图片进行 OCR 识别
+              {t("convert.ocrUpload.dragDrop")}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500">
-              支持中英文识别，推荐使用清晰的截图
+              {t("convert.ocrUpload.supportHint")}
             </p>
           </div>
         )}
