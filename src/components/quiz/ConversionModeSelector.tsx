@@ -1,6 +1,7 @@
 "use client";
 
 import { FaEye } from "react-icons/fa";
+import { Icon } from "@iconify/react";
 import { ScriptTemplate } from "@/utils/scriptParser";
 import { useTranslation } from "react-i18next";
 
@@ -30,7 +31,7 @@ export function ConversionModeSelector({
           <button
             key={m}
             onClick={() => onModeChange(m)}
-            className={`px-4 py-2 rounded-md font-medium transition-colors flex-1 
+            className={`px-4 py-2 rounded-md font-medium transition-colors flex-1 flex items-center justify-center gap-2
               ${
                 mode === m
                   ? m === "ai"
@@ -40,7 +41,20 @@ export function ConversionModeSelector({
               }
             `}
           >
-            {m === "ai" ? t("convert.mode.ai") : t("convert.mode.script")}
+            {m === "ai" ? (
+              <>
+                <Icon icon="icon-park:brain" className="w-5 h-5" />
+                {t("convert.mode.ai")}
+              </>
+            ) : (
+              <>
+                <Icon
+                  icon="streamline-plump-color--script-2-flat"
+                  className="w-5 h-5"
+                />
+                {t("convert.mode.script")}
+              </>
+            )}
           </button>
         ))}
       </div>
@@ -66,7 +80,7 @@ export function ConversionModeSelector({
                 onChange={(e) =>
                   onScriptTemplateChange(e.target.value as ScriptTemplate)
                 }
-                className="flex-grow mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
+                className="grow mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
               >
                 <option value={ScriptTemplate.ChaoXing}>
                   {t("convert.script.templates.chaoxing")}

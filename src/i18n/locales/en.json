@@ -150,8 +150,8 @@
     },
     "mode": {
       "title": "Select Mode",
-      "ai": "🧠 AI Conversion",
-      "script": "📜 Script Conversion"
+      "ai": "AI Conversion",
+      "script": "Script Conversion"
     },
     "script": {
       "title": "Script Settings",
