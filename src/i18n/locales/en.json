@@ -17,6 +17,13 @@
     "no": "No",
     "close": "Close"
   },
+  "questionTypes": {
+    "single_choice": "Single Choice",
+    "multiple_choice": "Multiple Choice",
+    "true_false": "True/False",
+    "short_answer": "Short Answer",
+    "fill_in_blank": "Fill in Blank"
+  },
   "nav": {
     "home": "Quiz, Start!",
     "convert": "Converter",
@@ -255,6 +262,7 @@
     "sortBy": "Sort by:",
     "sortByName": "By Name",
     "sortByDate": "By Creation Time",
+    "bankLabel": "Bank",
     "bankTitle": "Bank: {{name}}",
     "editInfo": "Edit Info",
     "deleteBank": "Delete This Bank",
@@ -267,6 +275,7 @@
     "description": "Description:",
     "noDescription": "No description provided",
     "questionCount": "Question Count:",
+    "questionUnit": "questions",
     "createdAt": "Created At:",
     "unknown": "Unknown",
     "questionList": "Question List ({{filtered}}/{{total}} questions)",

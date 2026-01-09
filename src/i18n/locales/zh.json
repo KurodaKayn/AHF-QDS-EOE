@@ -17,6 +17,13 @@
     "no": "否",
     "close": "关闭"
   },
+  "questionTypes": {
+    "single_choice": "单选题",
+    "multiple_choice": "多选题",
+    "true_false": "判断题",
+    "short_answer": "简答题",
+    "fill_in_blank": "填空题"
+  },
   "nav": {
     "home": "刷题，启动！",
     "convert": "题目转换",
@@ -255,6 +262,7 @@
     "sortBy": "排序方式:",
     "sortByName": "按名称",
     "sortByDate": "按创建时间",
+    "bankLabel": "题库",
     "bankTitle": "题库: {{name}}",
     "editInfo": "编辑信息",
     "deleteBank": "删除此题库",
@@ -267,6 +275,7 @@
     "description": "描述:",
     "noDescription": "未提供描述",
     "questionCount": "题目数量:",
+    "questionUnit": "题",
     "createdAt": "创建时间:",
     "unknown": "未知",
     "questionList": "题目列表 ({{filtered}}/{{total}}题)",
