@@ -40,7 +40,6 @@ export function ImageOCRUpload({
         onError?.(t("convert.input.ocrFailed"));
       }
     } catch (error: any) {
-      console.error("OCR Error:", error);
       onError?.(error.message || t("convert.input.ocrErrorGeneric"));
     } finally {
       setIsProcessing(false);

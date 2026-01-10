@@ -1,0 +1,41 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "AHF QDS EOE",
+  "version": "1.0.0",
+  "identifier": "com.ahf-qds-eoe",
+  "build": {
+    "frontendDist": "../out",
+    "devUrl": "http://localhost:14823",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "AHF QDS EOE",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Utility",
+    "shortDescription": "题库练习应用 - 一个帮助学习与测试的工具",
+    "longDescription": "AHF QDS EOE 是一个专业的题库练习应用，帮助用户进行学习和测试。支持多种题目格式，提供完整的练习和复习功能。"
+  }
+}

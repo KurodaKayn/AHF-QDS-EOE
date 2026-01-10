@@ -7,6 +7,7 @@ import {
   FaCheck,
   FaExclamationTriangle,
 } from "react-icons/fa";
+import { toast } from "sonner";
 import { useQuizStore } from "@/store/quizStore";
 import {
   exportToCSV,
@@ -43,7 +44,7 @@ export default function ImportExportPage() {
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !importName.trim()) {
-      alert(t("importExport.alerts.inputRequired"));
+      toast.warning(t("importExport.alerts.inputRequired"));
       return;
     }
 
@@ -108,8 +109,8 @@ export default function ImportExportPage() {
           setTimeout(() => setImportResult(null), 5000);
         }, 3000);
       } catch (error: any) {
-        console.error("导入失败:", error);
-        alert(`导入失败: ${error.message || "请检查文件格式是否正确"}`);
+        // console.error("导入失败:", error);
+        toast.error(`导入失败: ${error.message || "请检查文件格式是否正确"}`);
       }
     };
 
@@ -154,8 +155,8 @@ export default function ImportExportPage() {
       setExportSuccess(true);
       setTimeout(() => setExportSuccess(false), 3000);
     } catch (error) {
-      console.error("导出失败:", error);
-      alert(t("importExport.alerts.exportFailed"));
+      // console.error("导出失败:", error);
+      toast.error(t("importExport.alerts.exportFailed"));
     }
   };
 

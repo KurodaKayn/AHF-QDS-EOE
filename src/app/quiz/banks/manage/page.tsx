@@ -93,7 +93,7 @@ function ManageBanksPageContent({
         setSelectedBankId(initialTempBankId);
       }
     } catch (error) {
-      console.error("处理题库ID出错:", error);
+      // toast.error("处理题库ID出错");
     }
   }, [initialTempBankId, questionBanks]);
 
@@ -490,7 +490,7 @@ export default function ManageBanksPage() {
       "/quiz/banks/manage/index",
       "/quiz/banks/manage",
     ];
-    console.log("可用的静态路径:", paths);
+    // console.log("可用的静态路径:", paths);
 
     if (typeof window !== "undefined") {
       try {
@@ -516,7 +516,7 @@ export default function ManageBanksPage() {
           window.history.replaceState({}, "", url.toString());
         }
       } catch (error) {
-        console.error("获取URL参数出错:", error);
+        // console.error("获取URL参数出错:", error);
       }
     }
   }, []);

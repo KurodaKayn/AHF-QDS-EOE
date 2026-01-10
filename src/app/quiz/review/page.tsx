@@ -14,6 +14,7 @@ import {
   FaRobot,
   FaSyncAlt,
 } from "react-icons/fa";
+import { toast } from "sonner";
 import { useQuizStore } from "@/store/quizStore";
 import {
   Question,
@@ -73,7 +74,7 @@ export default function ReviewPage() {
   const handleStartPractice = () => {
     const wrongRecs = records.filter((record) => !record.isCorrect);
     if (wrongRecs.length === 0) {
-      alert(t("review.alerts.noWrongQuestions"));
+      toast.info(t("review.alerts.noWrongQuestions"));
       return;
     }
     const bankWithWrong = questionBanks.find((bank) =>
@@ -82,7 +83,7 @@ export default function ReviewPage() {
     if (bankWithWrong) {
       router.push(`/quiz/practice?bankId=${bankWithWrong.id}&mode=review`);
     } else {
-      alert(t("review.alerts.noBankWithWrong"));
+      toast.warning(t("review.alerts.noBankWithWrong"));
     }
   };
 
@@ -295,10 +296,10 @@ export default function ReviewPage() {
         });
       }
     } catch (error) {
-      console.error("AI解析生成失败:", error);
       setAiError(
         `题目 "${questionInfo.content.substring(0, 20)}..." 解析生成失败。`
       );
+      // console.error("AI解析生成失败:", error);
       setCurrentExplanations((prev) => ({
         ...prev,
         [questionId]: "AI解析生成失败，请稍后再试。",
@@ -314,7 +315,7 @@ export default function ReviewPage() {
 
   const generateExplanationsForSelected = async () => {
     if (selectedQuestions.size === 0) {
-      alert(t("review.alerts.selectToExplain"));
+      toast.warning(t("review.alerts.selectToExplain"));
       return;
     }
     const { aiConfigs, activeAiConfigId } = settings;
@@ -364,14 +365,14 @@ export default function ReviewPage() {
    */
   const handleGenerateSimilarQuestions = async () => {
     if (selectedQuestions.size === 0) {
-      alert(t("review.alerts.selectToSimilar"));
+      toast.warning(t("review.alerts.selectToSimilar"));
       return;
     }
     const selectedItems: WrongQuestionDisplay[] = wrongQuestions.filter((q) =>
       selectedQuestions.has(q.id)
     );
     if (selectedItems.length === 0) {
-      alert(t("review.alerts.noDetailsFound"));
+      toast.warning(t("review.alerts.noDetailsFound"));
       return;
     }
     // Map WrongQuestionDisplay[] to Question[] before passing to store actions
@@ -592,7 +593,7 @@ export default function ReviewPage() {
             bankId
           );
           if (result.success) {
-            alert(
+            toast.success(
               `成功导入 ${result.importedCount} 道题目。${
                 result.skippedCount > 0
                   ? `跳过 ${result.skippedCount} 道重复题目。`
@@ -600,7 +601,7 @@ export default function ReviewPage() {
               }`
             );
           } else {
-            alert(`导入失败: ${result.error || "未知错误"}`);
+            toast.error(`导入失败: ${result.error || "未知错误"}`);
           }
         }}
       />

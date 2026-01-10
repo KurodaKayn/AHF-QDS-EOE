@@ -153,7 +153,7 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
         updatedAt: Date.now(),
       });
     } catch (error) {
-      console.error("解析题目出错:", error);
+      // console.error("解析题目出错:", error);
     }
   }
 

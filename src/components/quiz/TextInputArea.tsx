@@ -48,7 +48,6 @@ export function TextInputArea({
         onOCRError?.(t("convert.input.ocrFailed"));
       }
     } catch (error: any) {
-      console.error("OCR Error:", error);
       onOCRError?.(error.message || t("convert.input.ocrErrorGeneric"));
     } finally {
       setIsProcessingPaste(false);

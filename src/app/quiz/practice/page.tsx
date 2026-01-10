@@ -414,7 +414,7 @@ function PracticeContent() {
 
   const handleManageBankClick = () => {
     if (bankId) {
-      console.log("使用表单提交传递 bankId:", bankId);
+      // console.log("使用表单提交传递 bankId:", bankId);
 
       // 创建一个临时表单元素
       const form = document.createElement("form");

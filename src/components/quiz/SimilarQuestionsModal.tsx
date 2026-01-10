@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Question, QuestionBank, QuestionType } from '@/types/quiz'; // 假设 QuestionBank 类型已定义
-import { FaTimes } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import { Question, QuestionBank, QuestionType } from "@/types/quiz"; // 假设 QuestionBank 类型已定义
+import { FaTimes } from "react-icons/fa";
+import { toast } from "sonner";
 // import QuestionItemDisplay from './QuestionItemDisplay'; // 假设有一个通用的题目展示组件
 
 interface SimilarQuestionsModalProps {
@@ -10,7 +11,10 @@ interface SimilarQuestionsModalProps {
   generatedQuestions: Question[];
   isLoading: boolean;
   availableBanks: QuestionBank[]; // 题库列表
-  onImport: (selectedQuestions: Question[], targetBankId: string) => Promise<void>;
+  onImport: (
+    selectedQuestions: Question[],
+    targetBankId: string
+  ) => Promise<void>;
 }
 
 /**
@@ -25,8 +29,10 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
   availableBanks,
   onImport,
 }) => {
-  const [selectedQuestionsMap, setSelectedQuestionsMap] = useState<Record<string, boolean>>({});
-  const [targetBankId, setTargetBankId] = useState<string>('');
+  const [selectedQuestionsMap, setSelectedQuestionsMap] = useState<
+    Record<string, boolean>
+  >({});
+  const [targetBankId, setTargetBankId] = useState<string>("");
   const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
@@ -34,7 +40,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
     if (availableBanks && availableBanks.length > 0) {
       setTargetBankId(availableBanks[0].id);
     } else {
-      setTargetBankId('');
+      setTargetBankId("");
     }
   }, [availableBanks]);
 
@@ -50,22 +56,25 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
   }, [isOpen, availableBanks, targetBankId]);
 
   const handleToggleSelectQuestion = (questionId: string) => {
-    setSelectedQuestionsMap(prev => ({
+    setSelectedQuestionsMap((prev) => ({
       ...prev,
       [questionId]: !prev[questionId],
     }));
   };
 
-  const selectedCount = Object.values(selectedQuestionsMap).filter(Boolean).length;
+  const selectedCount =
+    Object.values(selectedQuestionsMap).filter(Boolean).length;
 
   const handleImportClick = async () => {
-    const questionsToImport = generatedQuestions.filter(q => q.id && selectedQuestionsMap[q.id]);
+    const questionsToImport = generatedQuestions.filter(
+      (q) => q.id && selectedQuestionsMap[q.id]
+    );
     if (questionsToImport.length === 0) {
-      alert('请至少选择一道题目进行导入。'); // 后续可以替换为更友好的提示组件
+      toast.warning("请至少选择一道题目进行导入。"); // 后续可以替换为更友好的提示组件
       return;
     }
     if (!targetBankId) {
-      alert('请选择目标题库。');
+      toast.warning("请选择目标题库。");
       return;
     }
 
@@ -75,8 +84,9 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
       // 可以在这里添加成功提示，然后关闭Modal或清空列表
       onClose(); // 导入成功后关闭 Modal
     } catch (error) {
-      console.error('Failed to import questions:', error);
-      alert('导入题目失败，请稍后再试。'); // 错误处理
+      toast.error(
+        error instanceof Error ? error.message : "导入题目失败，请稍后再试。"
+      );
     } finally {
       setIsImporting(false);
     }
@@ -105,23 +115,27 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
         {isLoading && (
           <div className="flex flex-col items-center justify-center h-64">
             <div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-300">正在努力生成相似题目，请稍候...</p>
+            <p className="text-gray-600 dark:text-gray-300">
+              正在努力生成相似题目，请稍候...
+            </p>
           </div>
         )}
 
         {!isLoading && generatedQuestions.length === 0 && (
           <div className="text-center py-10 flex-grow flex flex-col justify-center items-center">
-            <p className="text-lg text-gray-500 dark:text-gray-400">未能生成相似题目。</p>
+            <p className="text-lg text-gray-500 dark:text-gray-400">
+              未能生成相似题目。
+            </p>
             {originalQuestions.length > 0 && (
-                 <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-                    基于 {originalQuestions.length} 道原始题目尝试生成。
-                 </p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                基于 {originalQuestions.length} 道原始题目尝试生成。
+              </p>
             )}
-             <button 
-                onClick={onClose}
-                className="mt-6 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            <button
+              onClick={onClose}
+              className="mt-6 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-                关闭
+              关闭
             </button>
           </div>
         )}
@@ -129,92 +143,130 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
         {!isLoading && generatedQuestions.length > 0 && (
           <>
             <div className="mb-3">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                基于 {originalQuestions.length} 道原始题目，为您生成了以下 <span className="font-semibold text-blue-600 dark:text-blue-400">{generatedQuestions.length}</span> 道相似题目：
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                基于 {originalQuestions.length} 道原始题目，为您生成了以下{" "}
+                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                  {generatedQuestions.length}
+                </span>{" "}
+                道相似题目：
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 请勾选您想要保留的题目，并选择目标题库进行导入。
-                </p>
+              </p>
             </div>
             <div className="overflow-y-auto flex-grow mb-4 pr-2 -mr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-700">
               {generatedQuestions.map((q, index) => (
-                <div 
-                  key={q.id || `gen-q-${index}`} 
-                  className={`p-3 border rounded-md transition-all duration-150 ease-in-out ${selectedQuestionsMap[q.id ?? ''] ? 'border-blue-500 bg-blue-50 dark:bg-gray-700 shadow-md' : 'border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:shadow-sm'}`}
+                <div
+                  key={q.id || `gen-q-${index}`}
+                  className={`p-3 border rounded-md transition-all duration-150 ease-in-out ${
+                    selectedQuestionsMap[q.id ?? ""]
+                      ? "border-blue-500 bg-blue-50 dark:bg-gray-700 shadow-md"
+                      : "border-gray-200 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:shadow-sm"
+                  }`}
                 >
                   <label className="flex items-start space-x-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={!!selectedQuestionsMap[q.id ?? '']}
+                      checked={!!selectedQuestionsMap[q.id ?? ""]}
                       onChange={() => q.id && handleToggleSelectQuestion(q.id)}
                       disabled={!q.id}
                       className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <div className="flex-1 text-sm">
-                       <p className="font-medium text-gray-800 dark:text-white">{index + 1}. {q.content}</p>
-                       
-                       {/* Options for Single/Multiple Choice */}
-                       {(q.type === QuestionType.SingleChoice || q.type === QuestionType.MultipleChoice) && q.options && q.options.length > 0 && (
-                        <div className="mt-2 space-y-1 text-xs pl-4">
+                      <p className="font-medium text-gray-800 dark:text-white">
+                        {index + 1}. {q.content}
+                      </p>
+
+                      {/* Options for Single/Multiple Choice */}
+                      {(q.type === QuestionType.SingleChoice ||
+                        q.type === QuestionType.MultipleChoice) &&
+                        q.options &&
+                        q.options.length > 0 && (
+                          <div className="mt-2 space-y-1 text-xs pl-4">
                             {q.options.map((opt, optIdx) => {
-                                const isCorrectOption = Array.isArray(q.answer)
-                                                        ? q.answer.includes(opt.id)
-                                                        : q.answer === opt.id;
-                                
-                                let optionStyle = "block text-gray-600 dark:text-gray-400 py-0.5";
-                                if (isCorrectOption) {
-                                    optionStyle = "block font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-0.5 rounded-sm";
-                                }
-                                return (
-                                    <span key={opt.id || `opt-${optIdx}`} className={optionStyle}>
-                                        {String.fromCharCode(65 + optIdx)}. {opt.content}
-                                    </span>
-                                );
+                              const isCorrectOption = Array.isArray(q.answer)
+                                ? q.answer.includes(opt.id)
+                                : q.answer === opt.id;
+
+                              let optionStyle =
+                                "block text-gray-600 dark:text-gray-400 py-0.5";
+                              if (isCorrectOption) {
+                                optionStyle =
+                                  "block font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-0.5 rounded-sm";
+                              }
+                              return (
+                                <span
+                                  key={opt.id || `opt-${optIdx}`}
+                                  className={optionStyle}
+                                >
+                                  {String.fromCharCode(65 + optIdx)}.{" "}
+                                  {opt.content}
+                                </span>
+                              );
                             })}
-                        </div>
-                       )}
+                          </div>
+                        )}
 
-                       {/* Answer for True/False if no options shown */}
-                       {q.type === QuestionType.TrueFalse && (!q.options || q.options.length === 0) && (
-                         <div className="mt-2 text-xs pl-4">
-                           <p className="font-semibold text-gray-700 dark:text-gray-300">参考答案：
-                             <span className="text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-0.5 rounded-sm ml-1">
-                               {q.answer === 'true' ? '正确' : (q.answer === 'false' ? '错误' : String(q.answer))}
-                             </span>
-                           </p>
-                         </div>
-                       )}
-
-                       {/* Answer for Fill-in-the-Blank */}
-                       {q.type === QuestionType.FillInBlank && Array.isArray(q.answer) && q.answer.length > 0 && (
-                        <div className="mt-2 text-xs pl-4">
-                          <p className="font-semibold text-gray-700 dark:text-gray-300">参考答案：
-                            {q.answer.map((ans, ansIdx) => (
-                              <span key={ansIdx} className="text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-0.5 rounded-sm ml-1 mb-0.5 inline-block">
-                                {ans}
+                      {/* Answer for True/False if no options shown */}
+                      {q.type === QuestionType.TrueFalse &&
+                        (!q.options || q.options.length === 0) && (
+                          <div className="mt-2 text-xs pl-4">
+                            <p className="font-semibold text-gray-700 dark:text-gray-300">
+                              参考答案：
+                              <span className="text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-0.5 rounded-sm ml-1">
+                                {q.answer === "true"
+                                  ? "正确"
+                                  : q.answer === "false"
+                                  ? "错误"
+                                  : String(q.answer)}
                               </span>
-                            ))}
-                          </p>
-                        </div>
-                       )}
+                            </p>
+                          </div>
+                        )}
 
-                       {/* Answer for Short Answer */}
-                       {q.type === QuestionType.ShortAnswer && typeof q.answer === 'string' && q.answer.trim() !== '' && (
-                        <div className="mt-2 text-xs pl-4">
-                          <p className="font-semibold text-gray-700 dark:text-gray-300">参考答案：
-                            <span className="block whitespace-pre-wrap text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-1 rounded-sm mt-1">
-                              {q.answer}
-                            </span>
-                          </p>
-                        </div>
-                       )}
+                      {/* Answer for Fill-in-the-Blank */}
+                      {q.type === QuestionType.FillInBlank &&
+                        Array.isArray(q.answer) &&
+                        q.answer.length > 0 && (
+                          <div className="mt-2 text-xs pl-4">
+                            <p className="font-semibold text-gray-700 dark:text-gray-300">
+                              参考答案：
+                              {q.answer.map((ans, ansIdx) => (
+                                <span
+                                  key={ansIdx}
+                                  className="text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-0.5 rounded-sm ml-1 mb-0.5 inline-block"
+                                >
+                                  {ans}
+                                </span>
+                              ))}
+                            </p>
+                          </div>
+                        )}
 
-                       <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-2 gap-y-1 items-center">
-                            <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-sm">类型: {q.type}</span>
-                            {q.tags && q.tags.length > 0 && 
-                                <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-sm">考点: {q.tags.join(', ')}</span>
-                            }
-                       </div>
+                      {/* Answer for Short Answer */}
+                      {q.type === QuestionType.ShortAnswer &&
+                        typeof q.answer === "string" &&
+                        q.answer.trim() !== "" && (
+                          <div className="mt-2 text-xs pl-4">
+                            <p className="font-semibold text-gray-700 dark:text-gray-300">
+                              参考答案：
+                              <span className="block whitespace-pre-wrap text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-1 rounded-sm mt-1">
+                                {q.answer}
+                              </span>
+                            </p>
+                          </div>
+                        )}
+
+                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-2 gap-y-1 items-center">
+                        <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-sm">
+                          类型: {q.type}
+                        </span>
+                        {q.tags && q.tags.length > 0 && (
+                          <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-sm">
+                            考点: {q.tags.join(", ")}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </label>
                 </div>
@@ -224,7 +276,10 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
             <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <label htmlFor="targetBank" className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  <label
+                    htmlFor="targetBank"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+                  >
                     导入到题库:
                   </label>
                   <select
@@ -234,26 +289,53 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                     disabled={availableBanks.length === 0 || isImporting}
                     className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md disabled:opacity-50"
                   >
-                    {availableBanks.length === 0 && <option value="">暂无可用题库</option>}
-                    {availableBanks.map(bank => (
-                      <option key={bank.id} value={bank.id}>{bank.name}</option>
+                    {availableBanks.length === 0 && (
+                      <option value="">暂无可用题库</option>
+                    )}
+                    {availableBanks.map((bank) => (
+                      <option key={bank.id} value={bank.id}>
+                        {bank.name}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <button
                   onClick={handleImportClick}
-                  disabled={selectedCount === 0 || !targetBankId || isImporting || isLoading}
+                  disabled={
+                    selectedCount === 0 ||
+                    !targetBankId ||
+                    isImporting ||
+                    isLoading
+                  }
                   className="w-full sm:w-auto px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
                 >
                   {isImporting ? (
                     <span className="flex items-center justify-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        正在导入...
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      正在导入...
                     </span>
-                  ) : `导入选中的 ${selectedCount} 道题目`}
+                  ) : (
+                    `导入选中的 ${selectedCount} 道题目`
+                  )}
                 </button>
               </div>
             </div>
@@ -264,4 +346,4 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
   );
 };
 
-export default SimilarQuestionsModal; 
+export default SimilarQuestionsModal;

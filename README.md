@@ -2,7 +2,8 @@
 
 ![Next.js](https://img.shields.io/badge/Next.js-15.x-000000?logo=nextdotjs&logoColor=white)
 ![React](https://img.shields.io/badge/React-19.x-61DAFB?logo=react&logoColor=white)
-![Electron](https://img.shields.io/badge/Electron-30.x-47848F?logo=electron&logoColor=white)
+![Tauri](https://img.shields.io/badge/Tauri-2.x-FFC131?logo=tauri&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-1.77+-000000?logo=rust&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?logo=tailwindcss&logoColor=white)
 ![Zustand](https://img.shields.io/badge/Zustand-5.x-443E38?logo=react&logoColor=white)
@@ -37,15 +38,15 @@ windows 的.exe 和 Mac 的
 
 ## 技术栈
 
-Next.js 作为全栈框架，最终用 Electron 打包生成桌面应用。因为 Electron 打包 next.js 的路由似乎有点问题，所以最后只能用 Fetch API 了(其实也只有调用 LLM 的时候会向外部发出请求，其他时候都是在本地进行操作)。
+Next.js 作为全栈框架，最终用 Tauri 打包生成桌面应用。Tauri 使用 Rust 作为后端，提供更小的应用体积和更好的性能。前端使用静态导出模式，确保与 Tauri 的完美兼容。
 辅助美化的库有 tailwindcss
 AI 辅助导入题库目前只有 deepseek 和 Qwen，未来有空或许会支持更多的 AI 或者是说调用来自其他平台 AI 的 API
 
 ## 数据存储
 
-因为是网页的技术栈，所以数据是存在网页的 localstorage 里的。但是因为最后用 Electron 打包了，所以数据会存在：
-Windows:%USERPROFILE%\AppData\Local\ahf-qds-eoe\Local Storage\
-Mac OS:~/Library/Application Support/ahf-qds-eoe/Local Storage/
+因为是网页的技术栈，所以数据是存在网页的 localstorage 里的。但是因为最后用 Tauri 打包了，所以数据会存在：
+Windows: %USERPROFILE%\AppData\Roaming\com.ahf-qds-eoe\
+Mac OS: ~/Library/Application Support/com.ahf-qds-eoe/
 
 ## 项目特色
 
@@ -57,43 +58,76 @@ Mac OS:~/Library/Application Support/ahf-qds-eoe/Local Storage/
 
 ### 2.也许在很遥远的未来，会搞手机 APP(目前已经有了响应式布局，只要导出就行了，但是 app 的存储挺麻烦的)
 
-#开发者食用指南
-本项目支持打包成桌面应用，可以在 Windows 和 macOS 系统上运行。当然如果你不是开发者直接就从我放在 Releases 的包直接拿来用就行了
+# 开发者食用指南
 
-## 开发环境运行桌面应用
+本项目使用 Tauri 打包成桌面应用，可以在 Windows、macOS 和 Linux 系统上运行。当然如果你不是开发者直接就从我放在 Releases 的包直接拿来用就行了
+
+## 环境要求
+
+### 前置依赖
+- **Node.js** (推荐 18+)
+- **pnpm** (包管理器)
+- **Rust** (1.77.2+)
+- **Tauri CLI**
+
+## 开发环境运行
 
 ```bash
-# 安装依赖
-npm install
+# 安装前端依赖
+pnpm install
 
-# 开发模式运行桌面应用
-npm run electron:dev
+# 开发模式运行桌面应用 (会自动启动前端开发服务器)
+pnpm tauri:dev
+
+# 或者分别运行
+pnpm dev          # 启动 Next.js 开发服务器
+cargo tauri dev   # 启动 Tauri 开发模式
 ```
 
-## 打包桌面应用
+## 构建和打包
 
 ```bash
-# 构建并打包桌面应用
-npm run build:electron
+# 构建前端并打包桌面应用
+pnpm build:tauri
 
-# 或者，先构建然后再打包
-npm run build
-npm run dist
+# 或者分步执行
+pnpm build        # 构建 Next.js 静态文件
+cargo tauri build # 打包 Tauri 应用
 ```
 
-打包后的应用将会在`dist`目录中生成。
+打包后的应用将会在 `src-tauri/target/release/bundle/` 目录中生成。
 
 ### 打包选项
 
-- macOS: 打包为.dmg 安装文件和.app 应用程序
-- Windows: 打包为.exe 安装文件
+- **macOS**: 打包为 .app 应用程序和 .dmg 安装文件
+- **Windows**: 打包为 .exe 安装文件和 .msi 安装包
+- **Linux**: 打包为 .deb、.rpm 和 .AppImage 格式
 
-## 自定义应用图标
+## 项目结构
 
-1. 在项目根目录创建`build`文件夹
-2. 添加以下图标文件:
-   - icon.icns (macOS)
-   - icon.ico (Windows)
-   - icon.png (通用)
+```
+├── src/                    # Next.js 前端代码
+├── src-tauri/             # Tauri 后端代码
+│   ├── src/               # Rust 源代码
+│   ├── icons/             # 应用图标
+│   ├── Cargo.toml         # Rust 依赖配置
+│   └── tauri.conf.json    # Tauri 应用配置
+├── out/                   # Next.js 静态导出目录
+└── package.json           # 前端依赖配置
+```
 
-更多详细信息请参考`electron/icon.txt`文件。
+## 自定义应用配置
+
+### 应用图标
+图标文件位于 `src-tauri/icons/` 目录：
+- `icon.icns` (macOS)
+- `icon.ico` (Windows)  
+- `icon.png` (Linux/通用)
+- `32x32.png`, `128x128.png`, `128x128@2x.png` (各种尺寸)
+
+### 应用信息
+在 `src-tauri/tauri.conf.json` 中修改：
+- 应用名称、版本号
+- 窗口大小和行为
+- 权限和安全设置
+- 打包选项

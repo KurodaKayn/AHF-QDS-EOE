@@ -31,20 +31,32 @@ jobs:
         with:
           version: 8
 
-      - name: Install Dependencies
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Those targets are usually included by default in the stable toolchain
+          # but let's be explicitly.
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install Frontend Dependencies
         run: pnpm install
 
       - name: Build Next.js
         run: pnpm run build
 
-      - name: Build & Publish Application
+      - name: Build and Release Tauri
+        uses: tauri-apps/tauri-action@v0
         env:
-          # GitHub Token 自动由 Actions 提供，用于上传 Release
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            npx electron-builder --win --x64 --publish always
-          else
-            npx electron-builder --mac --publish always
-          fi
-        shell: bash
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
+          releaseName: "App v__VERSION__"
+          releaseBody: "See the assets to download this version and install."
+          releaseDraft: true
+          prerelease: false
