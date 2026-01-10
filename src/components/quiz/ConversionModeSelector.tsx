@@ -1,6 +1,6 @@
 "use client";
 
-import { FaEye } from "react-icons/fa";
+import { FaEye, FaFileCode } from "react-icons/fa";
 import { Icon } from "@iconify/react";
 import { ScriptTemplate } from "@/utils/scriptParser";
 import { useTranslation } from "react-i18next";
@@ -48,10 +48,7 @@ export function ConversionModeSelector({
               </>
             ) : (
               <>
-                <Icon
-                  icon="streamline-plump-color--script-2-flat"
-                  className="w-5 h-5"
-                />
+                <FaFileCode className="w-5 h-5" />
                 {t("convert.mode.script")}
               </>
             )}

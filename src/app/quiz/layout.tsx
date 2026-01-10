@@ -17,7 +17,7 @@ import {
   FaRandom,
   FaSyncAlt,
 } from "react-icons/fa";
-import ThemeSwitcher from "@/components/ThemeSwitcher";
+
 import { cn } from "@/lib/utils";
 
 import { useTranslation } from "react-i18next";
@@ -100,7 +100,6 @@ export default function QuizLayout({
             {t("nav.title")}
           </h1>
         </div>
-        <ThemeSwitcher />
       </div>
 
       {/* 侧边栏 - 桌面版 */}
@@ -123,7 +122,6 @@ export default function QuizLayout({
             </h1>
           )}
           <div className="flex items-center">
-            {!sidebarCollapsed && <ThemeSwitcher />}
             <button
               onClick={toggleSidebar}
               className={cn(
