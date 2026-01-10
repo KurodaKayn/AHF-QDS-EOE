@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FaMagic, FaSpinner } from "react-icons/fa";
 import { MdCode } from "react-icons/md";
@@ -9,8 +9,9 @@ import { useQuizStore } from "@/store/quizStore";
 import { EXAMPLE_QUESTION_TEXT } from "@/constants/quiz";
 import { Question } from "@/types/quiz";
 import { parseTextByScript, ScriptTemplate } from "@/utils/scriptParser";
-import { CONVERT_SYSTEM_PROMPT, callAI } from "@/constants/ai";
+import { CONVERT_SYSTEM_PROMPT } from "@/constants/ai";
 import { parseQuestions } from "@/utils/questionParser";
+import { conversionService } from "@/services/conversionService";
 import {
   SCRIPT_EXAMPLES,
   getScriptExampleTitle,
@@ -32,6 +33,8 @@ export default function ConvertPage() {
     addQuestionBank,
     addQuestionToBank,
     getQuestionBankById,
+    conversionState,
+    setConversionState,
   } = useQuizStore();
 
   const { t } = useTranslation();
@@ -52,6 +55,58 @@ export default function ConvertPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [savedBankId, setSavedBankId] = useState("");
   const [savedBankName, setSavedBankName] = useState("");
+
+  // Ref to prevent circular updates
+  const isUpdatingFromStore = useRef(false);
+
+  // Load state from store on mount
+  useEffect(() => {
+    if (conversionState) {
+      isUpdatingFromStore.current = true;
+      setInputText(conversionState.inputText || "");
+      setConversionMode(conversionState.mode || "ai");
+      setScriptTemplate(
+        (conversionState.scriptTemplate as ScriptTemplate) ||
+          ScriptTemplate.ChaoXing
+      );
+      setConvertedQuestions(conversionState.generatedQuestions || []);
+      setIsLoading(conversionState.isConverting || false);
+      setTimeout(() => {
+        isUpdatingFromStore.current = false;
+      }, 0);
+    }
+  }, []);
+
+  // Watch for Store updates (e.g., from Worker callback)
+  useEffect(() => {
+    isUpdatingFromStore.current = true;
+    setConvertedQuestions(conversionState.generatedQuestions || []);
+    setIsLoading(conversionState.isConverting || false);
+    setTimeout(() => {
+      isUpdatingFromStore.current = false;
+    }, 0);
+  }, [conversionState.generatedQuestions, conversionState.isConverting]);
+
+  // Sync local state to store when changed (but not when updating from store)
+  useEffect(() => {
+    if (isUpdatingFromStore.current) return;
+
+    setConversionState({
+      inputText,
+      mode: conversionMode,
+      scriptTemplate,
+      generatedQuestions: convertedQuestions as Question[],
+      isConverting: isLoading || isLoadingScript,
+    });
+  }, [
+    inputText,
+    conversionMode,
+    scriptTemplate,
+    convertedQuestions,
+    isLoading,
+    isLoadingScript,
+    setConversionState,
+  ]);
 
   const handleConvert = async () => {
     if (!inputText.trim()) {
@@ -93,22 +148,47 @@ export default function ConvertPage() {
         { role: "system" as const, content: CONVERT_SYSTEM_PROMPT },
         { role: "user" as const, content: inputText },
       ];
-      const response = await callAI(
-        activeConfig.baseUrl,
-        activeConfig.apiKey,
-        activeConfig.model,
-        messages
+
+      const result = await conversionService.convert(
+        {
+          baseUrl: activeConfig.baseUrl,
+          apiKey: activeConfig.apiKey,
+          model: activeConfig.model,
+          messages,
+        },
+        // Callback to persist results to store even if component unmounts
+        (result) => {
+          if (result.success && result.content) {
+            const parsed = parseQuestions(result.content);
+            setConversionState({
+              generatedQuestions: parsed as Question[],
+              isConverting: false,
+            });
+          } else {
+            setConversionState({
+              isConverting: false,
+            });
+          }
+        }
       );
-      if (response) {
-        const parsed = parseQuestions(response);
+
+      // Also update local state if component is still mounted
+      if (result.success && result.content) {
+        const parsed = parseQuestions(result.content);
         if (parsed.length === 0) {
           setError(t("convert.errors.aiParseFailed"));
         } else {
           setConvertedQuestions(parsed);
         }
+      } else {
+        setError(result.error || t("convert.errors.aiParseFailed"));
       }
     } catch (e: any) {
-      setError(e.message || t("convert.errors.noText"));
+      if (e.message && e.message.includes("message channel closed")) {
+        // Silently ignore interrupted requests
+      } else {
+        setError(e.message || t("convert.errors.noText"));
+      }
     } finally {
       setIsLoading(false);
     }

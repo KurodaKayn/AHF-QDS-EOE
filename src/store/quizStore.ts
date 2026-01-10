@@ -97,6 +97,16 @@ export interface QuizState {
     error?: string;
   }>;
   // <<< 新增操作结束
+
+  // Conversion State Persistence
+  conversionState: {
+    inputText: string;
+    mode: "ai" | "script";
+    scriptTemplate: string;
+    generatedQuestions: Question[];
+    isConverting: boolean;
+  };
+  setConversionState: (state: Partial<QuizState["conversionState"]>) => void;
 }
 
 // 初始设置
@@ -148,6 +158,19 @@ export const useQuizStore = create<QuizState>()(
       similarQuestionsList: [],
       selectedOriginalQuestionsForSimilarity: [],
       // <<< 初始化新增状态结束
+
+      conversionState: {
+        inputText: "",
+        mode: "ai",
+        scriptTemplate: "chaoxing",
+        generatedQuestions: [],
+        isConverting: false,
+      },
+      setConversionState: (newState) => {
+        set((state) => ({
+          conversionState: { ...state.conversionState, ...newState },
+        }));
+      },
 
       addQuestionBank: (name, description = "") => {
         const newBank: QuestionBank = {
@@ -532,7 +555,8 @@ export const useQuizStore = create<QuizState>()(
       partialize: (state) => ({
         questionBanks: state.questionBanks,
         records: state.records,
-        settings: state.settings, // Persist the entire settings object
+        settings: state.settings,
+        conversionState: state.conversionState, // Persist conversion state
       }),
       merge: (persistedState, currentState) => {
         const merged = {
@@ -613,6 +637,16 @@ export const useQuizStore = create<QuizState>()(
               initialSettings.aiConfigs,
           };
         }
+
+        // Merge conversionState if exists
+        // 'persisted' is already declared above for migration logic
+        if (persisted.conversionState) {
+          merged.conversionState = {
+            ...currentState.conversionState,
+            ...persisted.conversionState,
+          };
+        }
+
         return merged;
       },
     }
