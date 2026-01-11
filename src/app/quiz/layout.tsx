@@ -7,7 +7,6 @@ import {
   FaBook,
   FaPencilAlt,
   FaExchangeAlt,
-  FaExclamationTriangle,
   FaCog,
   FaListUl,
   FaBars,
@@ -17,6 +16,7 @@ import {
   FaRandom,
   FaSyncAlt,
 } from "react-icons/fa";
+import { Icon } from "@iconify/react";
 
 import { cn } from "@/lib/utils";
 
@@ -48,7 +48,7 @@ export default function QuizLayout({
     },
     {
       href: "/quiz/review",
-      icon: <FaExclamationTriangle />,
+      icon: <Icon icon="mdi:note-remove-outline" className="text-xl" />,
       label: t("nav.review"),
     },
     { href: "/quiz/convert", icon: <FaSyncAlt />, label: t("nav.convert") },
@@ -85,9 +85,9 @@ export default function QuizLayout({
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
       {/* 移动端顶部导航栏 */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md">
+      <div className="md:hidden flex-none flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md z-20">
         <div className="flex items-center">
           <button
             onClick={toggleMobileMenu}
@@ -105,19 +105,18 @@ export default function QuizLayout({
       {/* 侧边栏 - 桌面版 */}
       <aside
         className={cn(
-          "fixed md:static inset-y-0 left-0 z-30 bg-white dark:bg-gray-800 shadow-md transition-all duration-300",
-          sidebarCollapsed ? "w-16" : "w-64",
-          isMobile && "hidden"
+          "hidden md:flex flex-col flex-none h-full bg-white dark:bg-gray-800 shadow-md transition-all duration-300 border-r dark:border-gray-700 overflow-y-auto custom-scrollbar",
+          sidebarCollapsed ? "w-16" : "w-64"
         )}
       >
         <div
           className={cn(
-            "p-4 border-b border-gray-200 dark:border-gray-700 flex items-center",
+            "flex-none p-4 border-b border-gray-200 dark:border-gray-700 flex items-center sticky top-0 bg-white dark:bg-gray-800 z-10",
             sidebarCollapsed ? "justify-center" : "justify-between"
           )}
         >
           {!sidebarCollapsed && (
-            <h1 className="text-xl font-bold text-gray-800 dark:text-white">
+            <h1 className="text-xl font-bold text-gray-800 dark:text-white truncate">
               {t("nav.title")}
             </h1>
           )}
@@ -138,22 +137,28 @@ export default function QuizLayout({
             </button>
           </div>
         </div>
-        <nav className="p-2">
+        <nav className="flex-1 p-2">
           <ul className="space-y-2">
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-center px-4 py-2 rounded-md transition-colors",
+                    "flex items-center px-4 py-2 rounded-md transition-colors whitespace-nowrap",
                     "hover:bg-gray-100 dark:hover:bg-gray-700",
                     pathname === item.href
                       ? "bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-400"
                       : "text-gray-700 dark:text-gray-200",
                     sidebarCollapsed && "justify-center"
                   )}
+                  title={sidebarCollapsed ? item.label : undefined}
                 >
-                  <span className={sidebarCollapsed ? "text-lg" : "mr-3"}>
+                  <span
+                    className={cn(
+                      "flex-none",
+                      sidebarCollapsed ? "text-lg" : "mr-3"
+                    )}
+                  >
                     {item.icon}
                   </span>
                   {!sidebarCollapsed && <span>{item.label}</span>}
@@ -171,8 +176,8 @@ export default function QuizLayout({
             className="fixed inset-0 bg-black bg-opacity-50 z-40"
             onClick={toggleMobileMenu}
           />
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+          <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col h-full">
+            <div className="flex-none p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <h1 className="text-xl font-bold text-gray-800 dark:text-white">
                 {t("nav.title")}
               </h1>
@@ -184,7 +189,7 @@ export default function QuizLayout({
                 <FaTimes size={20} />
               </button>
             </div>
-            <nav className="p-4">
+            <nav className="flex-1 p-4 overflow-y-auto">
               <ul className="space-y-2">
                 {navItems.map((item) => (
                   <li key={item.href}>
@@ -213,8 +218,9 @@ export default function QuizLayout({
       {/* 主内容区 */}
       <main
         className={cn(
-          "flex-1 p-4 md:p-8 dark:text-gray-100 transition-all duration-300",
-          !isMobile && sidebarCollapsed && "md:ml-16"
+          "flex-1 h-full overflow-y-auto overflow-x-hidden p-4 md:p-8 dark:text-gray-100 transition-all duration-300 relative custom-scrollbar",
+          // Mobile bottom padding to avoid nav overlap
+          isMobile && "pb-24"
         )}
       >
         {children}
@@ -222,14 +228,14 @@ export default function QuizLayout({
 
       {/* 移动端底部导航 */}
       {isMobile && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-30">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-30 border-t dark:border-gray-700">
           <div className="flex justify-around">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center py-3 px-2",
+                  "flex flex-col items-center py-3 px-2 flex-1",
                   pathname === item.href
                     ? "text-blue-600 dark:text-blue-400"
                     : "text-gray-600 dark:text-gray-400"

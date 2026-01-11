@@ -396,9 +396,8 @@ export default function ReviewPage() {
   if (wrongQuestions.length === 0 && viewMode === "options") {
     return (
       <div className="dark:bg-gray-900 min-h-screen p-4 md:p-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-            <FaExclamationTriangle className="inline-block mr-2 text-yellow-600 dark:text-yellow-500" />
             {t("review.pageTitle")}
           </h1>
         </div>
@@ -419,7 +418,7 @@ export default function ReviewPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <header className="mb-6">
+      <header className="mb-6 text-center">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
           {t("review.headerTitle")}
         </h1>
