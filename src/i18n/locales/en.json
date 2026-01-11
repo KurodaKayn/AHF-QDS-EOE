@@ -57,6 +57,7 @@
       "title": "Import Bank",
       "bankName": "Bank Name",
       "bankNamePlaceholder": "Enter bank name",
+      "optional": "(Optional, leave empty to use filename)",
       "format": "Import Format",
       "selectFile": "Select File",
       "success": "Import Successful",
@@ -66,17 +67,21 @@
     "export": {
       "title": "Export Bank",
       "selectBank": "Select Bank",
-      "selectPlaceholder": "-- Select Bank --",
+      "selectBankPlaceholder": "-- Select Bank --",
+      "questions": "questions",
       "format": "Export Format",
       "button": "Export",
       "success": "Export Successful",
       "bankInfo": "{{name}} ({{count}} q)"
     },
     "alerts": {
-      "inputRequired": "Please enter a bank name and select a file.",
+      "inputRequired": "Please select a file",
+      "noBanks": "No banks available, please create or import one first",
       "parseError": "Could not parse data from file.",
       "importFailed": "Import Failed: {{error}}",
-      "exportFailed": "Export failed, please try again later."
+      "exportFailed": "Export failed, please try again later.",
+      "importSuccess": "Import successful!",
+      "exportSuccess": "Export successful!"
     }
   },
   "settings": {

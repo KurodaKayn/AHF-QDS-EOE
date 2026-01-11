@@ -9,6 +9,7 @@ import {
 } from "@/types/quiz";
 import { nanoid } from "nanoid";
 import { SIMILAR_QUESTIONS_PROMPT, callAI } from "@/constants/ai";
+import { createStorage } from "@/lib/storage";
 
 // AI Config Interface
 export interface AIConfig {
@@ -551,7 +552,7 @@ export const useQuizStore = create<QuizState>()(
     }),
     {
       name: "quiz-storage",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => createStorage()),
       partialize: (state) => ({
         questionBanks: state.questionBanks,
         records: state.records,

@@ -1,164 +1,37 @@
 "use client";
 
-import { useState, useRef } from "react";
 import {
   FaFileImport,
   FaFileExport,
   FaCheck,
   FaExclamationTriangle,
 } from "react-icons/fa";
-import { toast } from "sonner";
-import { useQuizStore } from "@/store/quizStore";
-import {
-  exportToCSV,
-  exportToExcel,
-  importFromCSV,
-  importFromExcel,
-} from "@/utils/quiz";
-import { DEFAULT_EXPORT_FILENAME } from "@/constants/quiz";
-import { QuestionBank, Question } from "@/types/quiz";
+import { useImportExport } from "@/hooks/useImportExport";
 import { useTranslation } from "react-i18next";
 
-/**
- * 导入/导出题库页面
- */
 export default function ImportExportPage() {
   const { t } = useTranslation();
-  const { questionBanks, addQuestionBank, addQuestionToBank } = useQuizStore();
-  const [selectedBankId, setSelectedBankId] = useState<string>("");
-  const [importFormat, setImportFormat] = useState<"csv" | "excel">("csv");
-  const [exportFormat, setExportFormat] = useState<"csv" | "excel">("csv");
-  const [importName, setImportName] = useState<string>("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [importSuccess, setImportSuccess] = useState(false);
-  const [exportSuccess, setExportSuccess] = useState(false);
-  const [importResult, setImportResult] = useState<{
-    total: number;
-    added: number;
-    duplicates: number;
-  } | null>(null);
 
-  /**
-   * 处理文件导入
-   */
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !importName.trim()) {
-      toast.warning(t("importExport.alerts.inputRequired"));
-      return;
-    }
+  const {
+    // State
+    selectedBankId,
+    importFormat,
+    exportFormat,
+    importName,
+    importSuccess,
+    exportSuccess,
+    importResult,
+    fileInputRef,
+    questionBanks,
 
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-      try {
-        let importedData: QuestionBank | null = null;
-
-        if (importFormat === "csv") {
-          const content = e.target?.result as string;
-          importedData = importFromCSV(content, importName.trim());
-        } else {
-          const content = e.target?.result as ArrayBuffer;
-          importedData = importFromExcel(content, importName.trim());
-        }
-
-        if (!importedData) {
-          throw new Error(t("importExport.alerts.parseError"));
-        }
-
-        const newBank: QuestionBank = addQuestionBank(
-          importedData.name,
-          importedData.description
-        );
-
-        let addedCount = 0;
-        let duplicateCount = 0;
-        const totalCount = importedData.questions
-          ? importedData.questions.length
-          : 0;
-
-        if (
-          newBank &&
-          importedData.questions &&
-          importedData.questions.length > 0
-        ) {
-          importedData.questions.forEach((question: Question) => {
-            const { id, ...questionData } = question;
-            const result = addQuestionToBank(newBank.id, questionData);
-            if (result.isDuplicate) {
-              duplicateCount++;
-            } else if (result.question) {
-              addedCount++;
-            }
-          });
-        }
-
-        setImportResult({
-          total: totalCount,
-          added: addedCount,
-          duplicates: duplicateCount,
-        });
-
-        setImportName("");
-        if (fileInputRef.current) fileInputRef.current.value = "";
-
-        setImportSuccess(true);
-        setTimeout(() => {
-          setImportSuccess(false);
-          // 5秒后清除导入结果
-          setTimeout(() => setImportResult(null), 5000);
-        }, 3000);
-      } catch (error: any) {
-        // console.error("导入失败:", error);
-        toast.error(`导入失败: ${error.message || "请检查文件格式是否正确"}`);
-      }
-    };
-
-    if (importFormat === "csv") {
-      reader.readAsText(file);
-    } else {
-      reader.readAsArrayBuffer(file);
-    }
-  };
-
-  /**
-   * 处理导出操作
-   */
-  const handleExport = () => {
-    if (!selectedBankId) return;
-
-    const bank = questionBanks.find((b) => b.id === selectedBankId);
-    if (!bank) return;
-
-    try {
-      if (exportFormat === "csv") {
-        const csv = exportToCSV(bank);
-        // 添加 UTF-8 BOM 防止中文乱码
-        const BOM = "\uFEFF";
-        const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${bank.name || DEFAULT_EXPORT_FILENAME}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-      } else {
-        const blob = exportToExcel(bank);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${bank.name || DEFAULT_EXPORT_FILENAME}.xlsx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-
-      setExportSuccess(true);
-      setTimeout(() => setExportSuccess(false), 3000);
-    } catch (error) {
-      // console.error("导出失败:", error);
-      toast.error(t("importExport.alerts.exportFailed"));
-    }
-  };
+    // Actions
+    setSelectedBankId,
+    setImportFormat,
+    setExportFormat,
+    setImportName,
+    handleImport,
+    handleExport,
+  } = useImportExport();
 
   return (
     <div>
@@ -167,7 +40,7 @@ export default function ImportExportPage() {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* 导入题库 */}
+        {/* Import Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center mb-4">
             <FaFileImport
@@ -180,94 +53,94 @@ export default function ImportExportPage() {
           </div>
 
           <div className="space-y-4">
+            {/* Format Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t("importExport.import.format")}
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="importFormat"
+                    value="csv"
+                    checked={importFormat === "csv"}
+                    onChange={() => setImportFormat("csv")}
+                    className="mr-2"
+                  />
+                  <span className="text-gray-700 dark:text-gray-300">CSV</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="importFormat"
+                    value="excel"
+                    checked={importFormat === "excel"}
+                    onChange={() => setImportFormat("excel")}
+                    className="mr-2"
+                  />
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Excel
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* Bank Name Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t("importExport.import.bankName")}
               </label>
               <input
                 type="text"
                 value={importName}
                 onChange={(e) => setImportName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                 placeholder={t("importExport.import.bankNamePlaceholder")}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {t("importExport.import.optional")}
+              </p>
             </div>
 
+            {/* File Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t("importExport.import.format")}
-              </label>
-              <div className="flex space-x-4">
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    className="form-radio"
-                    name="importFormat"
-                    checked={importFormat === "csv"}
-                    onChange={() => setImportFormat("csv")}
-                  />
-                  <span className="ml-2 dark:text-gray-300">CSV</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    className="form-radio"
-                    name="importFormat"
-                    checked={importFormat === "excel"}
-                    onChange={() => setImportFormat("excel")}
-                  />
-                  <span className="ml-2 dark:text-gray-300">Excel</span>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t("importExport.import.selectFile")}
               </label>
               <input
-                type="file"
                 ref={fileInputRef}
+                type="file"
                 accept={importFormat === "csv" ? ".csv" : ".xlsx,.xls"}
                 onChange={handleImport}
-                className="w-full text-sm text-gray-500 dark:text-gray-400
-                         file:mr-4 file:py-2 file:px-4
-                         file:rounded-md file:border-0
-                         file:text-sm file:font-semibold
-                         file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900 dark:file:text-blue-300
-                         hover:file:bg-blue-100 dark:hover:file:bg-blue-800"
+                className="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-300"
               />
             </div>
 
+            {/* Import Success Message */}
             {importSuccess && (
-              <div className="flex items-center text-green-600 dark:text-green-400">
-                <FaCheck className="mr-1" />
-                <span>{t("importExport.import.success")}</span>
+              <div className="flex items-center p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-md">
+                <FaCheck className="mr-2" />
+                <span>{t("importExport.alerts.importSuccess")}</span>
               </div>
             )}
 
+            {/* Import Result Stats */}
             {importResult && (
-              <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-100 dark:border-blue-800">
-                <p className="text-blue-700 dark:text-blue-300 text-sm">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
                   {t("importExport.import.result", {
                     total: importResult.total,
                     added: importResult.added,
+                    duplicates: importResult.duplicates,
                   })}
                 </p>
-                {importResult.duplicates > 0 && (
-                  <p className="flex items-center mt-1 text-amber-600 dark:text-amber-400 text-sm">
-                    <FaExclamationTriangle className="mr-1" size={12} />
-                    {t("importExport.import.skipped", {
-                      duplicates: importResult.duplicates,
-                    })}
-                  </p>
-                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* 导出题库 */}
+        {/* Export Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center mb-4">
             <FaFileExport
@@ -280,72 +153,87 @@ export default function ImportExportPage() {
           </div>
 
           <div className="space-y-4">
+            {/* Format Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t("importExport.export.format")}
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="exportFormat"
+                    value="csv"
+                    checked={exportFormat === "csv"}
+                    onChange={() => setExportFormat("csv")}
+                    className="mr-2"
+                  />
+                  <span className="text-gray-700 dark:text-gray-300">CSV</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="exportFormat"
+                    value="excel"
+                    checked={exportFormat === "excel"}
+                    onChange={() => setExportFormat("excel")}
+                    className="mr-2"
+                  />
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Excel
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* Bank Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t("importExport.export.selectBank")}
               </label>
               <select
                 value={selectedBankId}
                 onChange={(e) => setSelectedBankId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">
-                  {t("importExport.export.selectPlaceholder")}
+                  {t("importExport.export.selectBankPlaceholder")}
                 </option>
                 {questionBanks.map((bank) => (
                   <option key={bank.id} value={bank.id}>
-                    {bank.name} ({bank.questions.length}题)
+                    {bank.name} ({bank.questions.length}{" "}
+                    {t("importExport.export.questions")})
                   </option>
                 ))}
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t("importExport.export.format")}
-              </label>
-              <div className="flex space-x-4">
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    className="form-radio"
-                    name="exportFormat"
-                    checked={exportFormat === "csv"}
-                    onChange={() => setExportFormat("csv")}
-                  />
-                  <span className="ml-2 dark:text-gray-300">CSV</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    className="form-radio"
-                    name="exportFormat"
-                    checked={exportFormat === "excel"}
-                    onChange={() => setExportFormat("excel")}
-                  />
-                  <span className="ml-2 dark:text-gray-300">Excel</span>
-                </label>
-              </div>
-            </div>
-
+            {/* Export Button */}
             <button
               onClick={handleExport}
               disabled={!selectedBankId}
-              className={`w-full flex items-center justify-center px-4 py-2 rounded-md text-white font-medium
-                        ${
-                          !selectedBankId
-                            ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
-                            : "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
-                        }`}
+              className={`w-full px-4 py-2 rounded-md font-semibold transition-colors ${
+                selectedBankId
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+              }`}
             >
-              <FaFileExport className="mr-2" />
               {t("importExport.export.button")}
             </button>
 
+            {/* Export Success Message */}
             {exportSuccess && (
-              <div className="flex items-center text-green-600 dark:text-green-400">
-                <FaCheck className="mr-1" />
-                <span>{t("importExport.export.success")}</span>
+              <div className="flex items-center p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-md">
+                <FaCheck className="mr-2" />
+                <span>{t("importExport.alerts.exportSuccess")}</span>
+              </div>
+            )}
+
+            {/* No Banks Warning */}
+            {questionBanks.length === 0 && (
+              <div className="flex items-center p-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-md">
+                <FaExclamationTriangle className="mr-2" />
+                <span>{t("importExport.alerts.noBanks")}</span>
               </div>
             )}
           </div>

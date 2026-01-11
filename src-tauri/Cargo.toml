@@ -1,6 +1,6 @@
 [package]
 name = "ahf-qds-eoe"
-version = "1.1.0"
+version = "1.2.0"
 description = "题库练习应用 - 一个帮助学习与测试的工具"
 authors = ["KurodaKayn"]
 license = ""
@@ -26,5 +26,6 @@ tauri-plugin-log = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-shell = "2"
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 tokio = { version = "1", features = ["full"] }
 anyhow = "1.0"

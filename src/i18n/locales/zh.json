@@ -57,6 +57,7 @@
       "title": "导入题库",
       "bankName": "题库名称",
       "bankNamePlaceholder": "输入导入后的题库名称",
+      "optional": "（可选，留空则使用文件名）",
       "format": "导入格式",
       "selectFile": "选择文件",
       "success": "导入成功",
@@ -66,17 +67,21 @@
     "export": {
       "title": "导出题库",
       "selectBank": "选择题库",
-      "selectPlaceholder": "-- 请选择题库 --",
+      "selectBankPlaceholder": "-- 请选择题库 --",
+      "questions": "题",
       "format": "导出格式",
       "button": "导出",
       "success": "导出成功",
       "bankInfo": "{{name}} ({{count}}题)"
     },
     "alerts": {
-      "inputRequired": "请输入题库名称并选择文件。",
+      "inputRequired": "请选择文件",
+      "noBanks": "暂无题库，请先创建或导入题库",
       "parseError": "无法从文件解析数据。",
       "importFailed": "导入失败: {{error}}",
-      "exportFailed": "导出失败，请稍后重试"
+      "exportFailed": "导出失败，请稍后重试",
+      "importSuccess": "导入成功！",
+      "exportSuccess": "导出成功！"
     }
   },
   "settings": {

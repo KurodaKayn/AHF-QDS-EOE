@@ -1,6 +1,6 @@
 {
   "name": "ahf-qds-eoe",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "题库练习应用 - 一个帮助学习与测试的工具",
   "author": "KurodaKayn",
   "private": true,
@@ -29,6 +29,7 @@
     "@tauri-apps/plugin-fs": "^2.4.5",
     "@tauri-apps/plugin-log": "^2.8.0",
     "@tauri-apps/plugin-shell": "^2.3.4",
+    "@tauri-apps/plugin-sql": "^2.3.1",
     "@types/uuid": "^11.0.0",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
