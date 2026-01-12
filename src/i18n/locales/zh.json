@@ -49,7 +49,9 @@
     "startPractice": "开始练习",
     "manageBank": "管理题库",
     "noBanks": "您还没有任何题库。",
-    "createNewBank": "前往创建新题库"
+    "createNewBank": "前往创建新题库",
+    "continueSession": "您有未完成的刷题进度",
+    "continue": "继续"
   },
   "importExport": {
     "title": "导入/导出题库",

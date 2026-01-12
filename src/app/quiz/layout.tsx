@@ -218,9 +218,11 @@ export default function QuizLayout({
       {/* 主内容区 */}
       <main
         className={cn(
-          "flex-1 h-full overflow-y-auto overflow-x-hidden p-4 md:p-8 dark:text-gray-100 transition-all duration-300 relative custom-scrollbar",
+          "flex-1 h-full overflow-y-auto overflow-x-hidden dark:text-gray-100 transition-all duration-300 relative custom-scrollbar",
+          // 刷题页面不需要 padding，其他页面正常 padding
+          pathname?.startsWith("/quiz/practice") ? "" : "p-4 md:p-8",
           // Mobile bottom padding to avoid nav overlap
-          isMobile && "pb-24"
+          isMobile && !pathname?.startsWith("/quiz/practice") && "pb-24"
         )}
       >
         {children}

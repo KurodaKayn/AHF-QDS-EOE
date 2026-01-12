@@ -108,6 +108,22 @@ export interface QuizState {
     isConverting: boolean;
   };
   setConversionState: (state: Partial<QuizState["conversionState"]>) => void;
+
+  // Practice Session State Persistence
+  practiceSession: {
+    bankId: string | null;
+    mode: "normal" | "review" | null;
+    practiceQuestions: (Question & {
+      originalUserAnswer?: string | string[];
+    })[];
+    currentQuestionIndex: number;
+    userAnswers: Record<string, string | string[]>;
+    showAnswer: boolean;
+    quizCompleted: boolean;
+    startTime: number | null;
+  };
+  setPracticeSession: (state: Partial<QuizState["practiceSession"]>) => void;
+  clearPracticeSession: () => void;
 }
 
 // 初始设置
@@ -171,6 +187,36 @@ export const useQuizStore = create<QuizState>()(
         set((state) => ({
           conversionState: { ...state.conversionState, ...newState },
         }));
+      },
+
+      practiceSession: {
+        bankId: null,
+        mode: null,
+        practiceQuestions: [],
+        currentQuestionIndex: 0,
+        userAnswers: {},
+        showAnswer: false,
+        quizCompleted: false,
+        startTime: null,
+      },
+      setPracticeSession: (newState) => {
+        set((state) => ({
+          practiceSession: { ...state.practiceSession, ...newState },
+        }));
+      },
+      clearPracticeSession: () => {
+        set({
+          practiceSession: {
+            bankId: null,
+            mode: null,
+            practiceQuestions: [],
+            currentQuestionIndex: 0,
+            userAnswers: {},
+            showAnswer: false,
+            quizCompleted: false,
+            startTime: null,
+          },
+        });
       },
 
       addQuestionBank: (name, description = "") => {
@@ -558,6 +604,7 @@ export const useQuizStore = create<QuizState>()(
         records: state.records,
         settings: state.settings,
         conversionState: state.conversionState, // Persist conversion state
+        practiceSession: state.practiceSession, // Persist practice session state
       }),
       merge: (persistedState, currentState) => {
         const merged = {

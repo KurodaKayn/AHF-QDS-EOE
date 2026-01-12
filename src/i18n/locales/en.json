@@ -49,7 +49,9 @@
     "startPractice": "Start Practice",
     "manageBank": "Manage Bank",
     "noBanks": "You don't have any question banks yet.",
-    "createNewBank": "Create New Bank"
+    "createNewBank": "Create New Bank",
+    "continueSession": "You have an unfinished quiz session",
+    "continue": "Continue"
   },
   "importExport": {
     "title": "Import/Export",

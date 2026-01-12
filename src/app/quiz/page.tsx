@@ -13,7 +13,8 @@ import { useTranslation } from "react-i18next";
 
 export default function QuizPage() {
   const router = useRouter();
-  const { questionBanks } = useQuizStore();
+  const { questionBanks, practiceSession, getQuestionBankById } =
+    useQuizStore();
   const { t, i18n } = useTranslation();
 
   // 用于强制刷新列表，以便 date-fns 的时间正确更新
@@ -27,6 +28,23 @@ export default function QuizPage() {
 
   const getDateLocale = () => {
     return i18n.language === "en" ? enUS : zhCN;
+  };
+
+  // 检查是否有未完成的刷题会话
+  const hasUnfinishedSession =
+    practiceSession.bankId &&
+    practiceSession.practiceQuestions.length > 0 &&
+    !practiceSession.quizCompleted;
+
+  const unfinishedBank = hasUnfinishedSession
+    ? getQuestionBankById(practiceSession.bankId!)
+    : null;
+
+  const handleContinuePractice = () => {
+    if (practiceSession.bankId) {
+      const mode = practiceSession.mode === "review" ? "&mode=review" : "";
+      router.push(`/quiz/practice?bankId=${practiceSession.bankId}${mode}`);
+    }
   };
 
   const quizListItem = (bank: QuestionBank) => (
@@ -107,6 +125,33 @@ export default function QuizPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
+      {/* 继续刷题提示 */}
+      {hasUnfinishedSession && unfinishedBank && (
+        <div className="mb-6 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-500 text-white p-2 rounded-full">
+              <FaPlay className="text-sm" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                {t("home.continueSession")}
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                {unfinishedBank.name} ·{" "}
+                {practiceSession.currentQuestionIndex + 1}/
+                {practiceSession.practiceQuestions.length}
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleContinuePractice}
+            className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+          >
+            {t("home.continue")}
+          </Button>
+        </div>
+      )}
+
       <header className="mb-10 text-center md:text-left">
         <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
           {t("home.pageTitle")}
