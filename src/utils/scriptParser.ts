@@ -211,18 +211,62 @@ function parseChaoXingTemplate(
       /^\d+\s*\.\s*(?:\(([^)]+)\))?\s*(.+)$/
     );
 
+    // 寻找第一个真正的选项 A 的位置，从第二行开始找
+    let firstOptionIndex = -1;
+    for (let k = 1; k < lines.length; k++) {
+      // 严格匹配 A. 或 A． 开头
+      if (lines[k].match(/^A[\.．]\s+/)) {
+        firstOptionIndex = k;
+        break;
+      }
+    }
+
+    // 如果找到了 A 选项，且 A 选项不在第二行，说明中间有夹层（如 I. II.）
+    // 或者即使在很后面，只要是在 A 之前的内容，都应该属于题干
+    // 如果没找到 A (填空题)，则除了答案行外都属于题干
+
+    let extraContent = "";
+    if (firstOptionIndex > 1) {
+      for (let k = 1; k < firstOptionIndex; k++) {
+        // 排除掉可能是"我的答案"或"正确答案"的行（防止误判）
+        if (
+          !lines[k].match(
+            /(?:我的答案|My Answer|正确答案|Correct Answer|分|score)/
+          )
+        ) {
+          extraContent += "\n" + lines[k];
+        }
+      }
+    } else if (firstOptionIndex === -1) {
+      // 没找到 A，可能是填空题或判断题，或者不规范
+      // 遍历所有非答案行
+      for (let k = 1; k < lines.length; k++) {
+        if (
+          !lines[k].match(/^([A-Z])[\.．]\s+/) &&
+          !lines[k].match(
+            /(?:我的答案|My Answer|正确答案|Correct Answer|分|score)/
+          )
+        ) {
+          extraContent += "\n" + lines[k];
+        } else {
+          // 一旦遇到选项或答案，停止追加
+          break;
+        }
+      }
+    }
+
     if (questionTypeMatch) {
       // questionTypeMatch[1]可能是undefined（如果没有括号类型）
       const typeText = questionTypeMatch[1]
         ? questionTypeMatch[1].toLowerCase()
         : "";
-      questionContent = questionTypeMatch[2].trim();
+      questionContent = questionTypeMatch[2].trim() + extraContent;
 
-      if (typeText.includes("填空") || typeText.includes("fill")) {
+      if (typeText.includes("填空")) {
         questionType = QuestionType.FillInBlank;
-      } else if (typeText.includes("单选") || typeText.includes("single")) {
+      } else if (typeText.includes("单选")) {
         questionType = QuestionType.SingleChoice;
-      } else if (typeText.includes("多选") || typeText.includes("multiple")) {
+      } else if (typeText.includes("多选")) {
         questionType = QuestionType.MultipleChoice;
       } else if (
         typeText.includes("判断") ||
@@ -266,9 +310,9 @@ function parseChaoXingTemplate(
       // 查找第一行中的数字+点格式
       const basicMatch = lines[0].match(/^\d+\s*\.\s*(.+)$/);
       if (basicMatch) {
-        questionContent = basicMatch[1].trim();
+        questionContent = basicMatch[1].trim() + extraContent;
       } else {
-        questionContent = lines[0]; // 回退到使用整行
+        questionContent = lines[0] + extraContent; // 回退到使用整行
       }
 
       // 尝试从内容和后续行推断题型

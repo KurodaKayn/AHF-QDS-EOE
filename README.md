@@ -30,6 +30,13 @@ Linux: not yet
 ### 2.安装
 
 windows 的.exe 和 Mac 的
+如果 MacOS 遇到显示图中显示的问题时可以输入以下命令来解决
+
+```bash
+xattr -rd com.apple.quarantine /Applications/AHF\ QDS\ EOE.app
+```
+
+![alt text](image.png)
 
 ### 3.(可选)去 Deepseek/阿里云百炼获取 AI api 密钥
 
@@ -65,6 +72,7 @@ Mac OS: ~/Library/Application Support/com.ahf-qds-eoe/
 ## 环境要求
 
 ### 前置依赖
+
 - **Node.js** (推荐 18+)
 - **pnpm** (包管理器)
 - **Rust** (1.77.2+)
@@ -119,14 +127,18 @@ cargo tauri build # 打包 Tauri 应用
 ## 自定义应用配置
 
 ### 应用图标
+
 图标文件位于 `src-tauri/icons/` 目录：
+
 - `icon.icns` (macOS)
-- `icon.ico` (Windows)  
+- `icon.ico` (Windows)
 - `icon.png` (Linux/通用)
 - `32x32.png`, `128x128.png`, `128x128@2x.png` (各种尺寸)
 
 ### 应用信息
+
 在 `src-tauri/tauri.conf.json` 中修改：
+
 - 应用名称、版本号
 - 窗口大小和行为
 - 权限和安全设置

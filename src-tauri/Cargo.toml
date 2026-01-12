@@ -1,6 +1,6 @@
 [package]
 name = "ahf-qds-eoe"
-version = "1.2.3"
+version = "1.2.4"
 description = "题库练习应用 - 一个帮助学习与测试的工具"
 authors = ["KurodaKayn"]
 license = ""
