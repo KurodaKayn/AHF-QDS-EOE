@@ -287,7 +287,10 @@
       "confirmClear": "Are you sure you want to clear the review book? This cannot be undone.",
       "selectToExplain": "Please select questions to generate explanations for!",
       "selectToSimilar": "Please select original wrong questions to generate similar ones!",
-      "noDetailsFound": "Selected question details not found."
+      "noDetailsFound": "Selected question details not found.",
+      "importFailed": "Import failed: {{error}}",
+      "importSkipped": "Skipped {{skipped}} duplicates.",
+      "importSuccess": "Successfully imported {{imported}} questions."
     },
     "import": {
       "success": "Successfully imported {{imported}} questions.{{skipped}}",

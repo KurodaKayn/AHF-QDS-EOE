@@ -287,7 +287,10 @@
       "confirmClear": "确定要清空错题本吗？此操作不可恢复。",
       "selectToExplain": "请先选择需要生成解析的题目！",
       "selectToSimilar": "请先选择需要生成相似题目的原始错题！",
-      "noDetailsFound": "未找到选中的题目详情。"
+      "noDetailsFound": "未找到选中的题目详情。",
+      "importFailed": "导入失败：{{error}}",
+      "importSkipped": "跳过了 {{skipped}} 个重复项。",
+      "importSuccess": "已成功导入 {{imported}} 个问题。"
     },
     "import": {
       "success": "成功导入 {{imported}} 道题目。{{skipped}}",
