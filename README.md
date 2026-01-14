@@ -1,4 +1,6 @@
-# 项目简介
+# AHF QDS EOE - Quiz Practice System
+
+[中文](./README.zh.md) | **English**
 
 ![Next.js](https://img.shields.io/badge/Next.js-15.x-000000?logo=nextdotjs&logoColor=white)
 ![React](https://img.shields.io/badge/React-19.x-61DAFB?logo=react&logoColor=white)
@@ -10,136 +12,150 @@
 ![Tesseract.js](https://img.shields.io/badge/Tesseract.js-7.x-5A29E4?logo=octocat&logoColor=white)
 ![pnpm](https://img.shields.io/badge/pnpm-package_manager-F69220?logo=pnpm&logoColor=white)
 
-## 项目初衷
+## Project Overview
 
-本项目的设计目的是提高学生效率，在相同时间内能提升到一个更高的做题水平
-适合直接把自己从各种地方 Ctrl C + Ctrl V 或者是说爬取的题目拿来反复联系最终打到一个比较理想的死记硬背水平，从而在考试或者是说八股面试中拿到个更好的成绩
+This project is designed to improve student efficiency, helping them achieve a higher level of practice performance in the same amount of time. It's perfect for practicing questions collected from various sources (Ctrl C + Ctrl V or web scraping) repeatedly until reaching an ideal memorization level, ultimately achieving better results in exams or technical interviews.
 
-## 支持的操作系统
+## Supported Operating Systems
 
-Mac OS: supports Mac OSX 10.12+
-Windows: 还真不晓得理论上来说 10 跟 11 是没问题的
-Linux: not yet
+- **macOS**: Supports macOS 10.12+
+- **Windows**: Supports Windows 10 and 11
+- **Linux**: Not yet supported
 
-## 如何使用
+## How to Use
 
-### 1.下载安装包
+### 1. Download Installation Package
 
-在 repo 中根据操作系统安装包
+Download the appropriate installation package for your operating system from the repository releases.
 
-### 2.安装
+### 2. Installation
 
-windows 的.exe 和 Mac 的
-如果 MacOS 遇到显示图中显示的问题时可以输入以下命令来解决
+#### Windows
+
+Run the `.exe` installer.
+
+#### macOS
+
+If you encounter the security warning shown in the image, run the following command to resolve it:
 
 ```bash
 xattr -rd com.apple.quarantine /Applications/AHF\ QDS\ EOE.app
 ```
 
-![alt text](image.png)
+![macOS Security Warning](image.png)
 
-### 3.(可选)去 Deepseek/阿里云百炼获取 AI api 密钥
+### 3. (Optional) Get AI API Key
 
-去 deepseek 或者是同义千问的 api 平台获取 api key 在设置里设置好即可使用 AI 导入功能即可。推荐阿里，为有免费额度而且回复更快.
-因为更推荐阿里百炼所以我这里就只放它的链接了`https://bailian.console.aliyun.com/`(我每收米所以建议是齁完羊毛就撤退别真付费上了,后续我会增加个更多可以白嫖的 API)
+To use the AI import feature, obtain an API key from DeepSeek or Alibaba Cloud Bailian. Configure it in the app settings.
 
-## 技术栈
+**Recommended**: Alibaba Bailian - offers free credits and faster responses.
 
-Next.js 作为全栈框架，最终用 Tauri 打包生成桌面应用。Tauri 使用 Rust 作为后端，提供更小的应用体积和更好的性能。前端使用静态导出模式，确保与 Tauri 的完美兼容。
-辅助美化的库有 tailwindcss
-AI 辅助导入题库目前只有 deepseek 和 Qwen，未来有空或许会支持更多的 AI 或者是说调用来自其他平台 AI 的 API
+- Link: `https://bailian.console.aliyun.com/`
+- Note: Take advantage of free credits, but avoid paid plans if possible. More free API options will be added in the future.
 
-## 数据存储
+## Tech Stack
 
-因为是网页的技术栈，所以数据是存在网页的 localstorage 里的。但是因为最后用 Tauri 打包了，所以数据会存在：
-Windows: %USERPROFILE%\AppData\Roaming\com.ahf-qds-eoe\
-Mac OS: ~/Library/Application Support/com.ahf-qds-eoe/
+Built with Next.js as the full-stack framework, packaged as a desktop application using Tauri. Tauri uses Rust as the backend, providing smaller application size and better performance. The frontend uses static export mode to ensure perfect compatibility with Tauri.
 
-## 项目特色
+- **UI Framework**: Tailwind CSS
+- **AI Integration**: Currently supports DeepSeek and Qwen (Alibaba Cloud). More AI providers may be added in the future.
 
-很多题库的刷错题之类的功能不好用，又不能直接导出。所以我就想做个软件来解决这个问题。大语言模型显然是个不错的解决方案，还可以顺带给判断之类的告诉我这个到底为什么对为什么错，而不是因为你的老师太蠢了，不告诉原因。导致你只能无脑赢背住。
+## Data Storage
 
-## 未来计划
+Since this is a web-based tech stack, data is stored in the browser's localStorage. However, because it's packaged with Tauri, the data is actually stored at:
 
-### 1.加入题目的图片存储支持
+- **Windows**: `%USERPROFILE%\AppData\Roaming\com.ahf-qds-eoe\`
+- **macOS**: `~/Library/Application Support/com.ahf-qds-eoe/`
 
-### 2.也许在很遥远的未来，会搞手机 APP(目前已经有了响应式布局，只要导出就行了，但是 app 的存储挺麻烦的)
+## Project Features
 
-# 开发者食用指南
+Many quiz platforms have poor wrong-question review features and don't allow direct export. This project solves that problem. Large language models are an excellent solution - they can not only help with conversion but also explain why an answer is correct or incorrect, rather than forcing you to memorize blindly without understanding the reasoning.
 
-本项目使用 Tauri 打包成桌面应用，可以在 Windows、macOS 和 Linux 系统上运行。当然如果你不是开发者直接就从我放在 Releases 的包直接拿来用就行了
+## Future Plans
 
-## 环境要求
+### 1. Add Image Storage Support for Questions
 
-### 前置依赖
+### 2. Mobile App (in the distant future)
 
-- **Node.js** (推荐 18+)
-- **pnpm** (包管理器)
+The project already has responsive layout, so it's ready for export. However, app storage implementation is quite complex.
+
+---
+
+# Developer Guide
+
+This project uses Tauri to package as a desktop application, running on Windows, macOS, and Linux systems. If you're not a developer, simply download the package from Releases.
+
+## Environment Requirements
+
+### Prerequisites
+
+- **Node.js** (18+ recommended)
+- **pnpm** (package manager)
 - **Rust** (1.77.2+)
 - **Tauri CLI**
 
-## 开发环境运行
+## Development Environment
 
 ```bash
-# 安装前端依赖
+# Install frontend dependencies
 pnpm install
 
-# 开发模式运行桌面应用 (会自动启动前端开发服务器)
+# Run desktop app in development mode (automatically starts frontend dev server)
 pnpm tauri:dev
 
-# 或者分别运行
-pnpm dev          # 启动 Next.js 开发服务器
-cargo tauri dev   # 启动 Tauri 开发模式
+# Or run separately
+pnpm dev          # Start Next.js dev server
+cargo tauri dev   # Start Tauri dev mode
 ```
 
-## 构建和打包
+## Build and Package
 
 ```bash
-# 构建前端并打包桌面应用
+# Build frontend and package desktop app
 pnpm build:tauri
 
-# 或者分步执行
-pnpm build        # 构建 Next.js 静态文件
-cargo tauri build # 打包 Tauri 应用
+# Or execute step by step
+pnpm build        # Build Next.js static files
+cargo tauri build # Package Tauri app
 ```
 
-打包后的应用将会在 `src-tauri/target/release/bundle/` 目录中生成。
+The packaged application will be generated in the `src-tauri/target/release/bundle/` directory.
 
-### 打包选项
+### Package Options
 
-- **macOS**: 打包为 .app 应用程序和 .dmg 安装文件
-- **Windows**: 打包为 .exe 安装文件和 .msi 安装包
-- **Linux**: 打包为 .deb、.rpm 和 .AppImage 格式
+- **macOS**: Packaged as .app application and .dmg installer
+- **Windows**: Packaged as .exe installer and .msi package
+- **Linux**: Packaged as .deb, .rpm, and .AppImage formats
 
-## 项目结构
+## Project Structure
 
 ```
-├── src/                    # Next.js 前端代码
-├── src-tauri/             # Tauri 后端代码
-│   ├── src/               # Rust 源代码
-│   ├── icons/             # 应用图标
-│   ├── Cargo.toml         # Rust 依赖配置
-│   └── tauri.conf.json    # Tauri 应用配置
-├── out/                   # Next.js 静态导出目录
-└── package.json           # 前端依赖配置
+├── src/                    # Next.js frontend code
+├── src-tauri/             # Tauri backend code
+│   ├── src/               # Rust source code
+│   ├── icons/             # Application icons
+│   ├── Cargo.toml         # Rust dependency configuration
+│   └── tauri.conf.json    # Tauri app configuration
+├── out/                   # Next.js static export directory
+└── package.json           # Frontend dependency configuration
 ```
 
-## 自定义应用配置
+## Custom Application Configuration
 
-### 应用图标
+### Application Icons
 
-图标文件位于 `src-tauri/icons/` 目录：
+Icon files are located in the `src-tauri/icons/` directory:
 
 - `icon.icns` (macOS)
 - `icon.ico` (Windows)
-- `icon.png` (Linux/通用)
-- `32x32.png`, `128x128.png`, `128x128@2x.png` (各种尺寸)
+- `icon.png` (Linux/Universal)
+- `32x32.png`, `128x128.png`, `128x128@2x.png` (various sizes)
 
-### 应用信息
+### Application Information
 
-在 `src-tauri/tauri.conf.json` 中修改：
+Modify in `src-tauri/tauri.conf.json`:
 
-- 应用名称、版本号
-- 窗口大小和行为
-- 权限和安全设置
-- 打包选项
+- Application name and version
+- Window size and behavior
+- Permissions and security settings
+- Packaging options
