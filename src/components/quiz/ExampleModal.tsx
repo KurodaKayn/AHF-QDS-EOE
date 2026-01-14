@@ -1,6 +1,7 @@
 "use client";
 
 import { FiXCircle } from "react-icons/fi";
+import { useTranslation } from "react-i18next";
 
 interface ExampleModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ export function ExampleModal({
   content,
   onClose,
 }: ExampleModalProps) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -32,9 +34,7 @@ export function ExampleModal({
           </button>
         </div>
         <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-          <p className="mb-3">
-            请确保您的文本格式与以下示例类似，以便脚本正确解析：
-          </p>
+          <p className="mb-3">{t("convert.script.exampleHint")}</p>
           <pre className="bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-xs text-gray-700 dark:text-gray-200 overflow-x-auto max-h-60">
             <code>{content}</code>
           </pre>
@@ -44,7 +44,7 @@ export function ExampleModal({
             onClick={onClose}
             className="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-600"
           >
-            关闭
+            {t("common.close")}
           </button>
         </div>
       </div>

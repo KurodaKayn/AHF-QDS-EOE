@@ -18,11 +18,11 @@
     "close": "Close"
   },
   "questionTypes": {
-    "single_choice": "Single Choice",
-    "multiple_choice": "Multiple Choice",
-    "true_false": "True/False",
-    "short_answer": "Short Answer",
-    "fill_in_blank": "Fill in Blank"
+    "single-choice": "Single Choice",
+    "multiple-choice": "Multiple Choice",
+    "true-false": "True/False",
+    "short-answer": "Short Answer",
+    "fill-in-blank": "Fill in Blank"
   },
   "nav": {
     "home": "Quiz, Start!",
@@ -168,7 +168,8 @@
         "chaoxing": "ChaoXing / XueXiTong",
         "singleChoice1": "Single Choice 1",
         "other": "Other"
-      }
+      },
+      "exampleHint": "Please ensure your text format is similar to the example below for correct parsing:"
     },
     "actions": {
       "startAI": "Start AI Convert",
@@ -205,7 +206,7 @@
     },
     "aiInfo": {
       "using": "Using {{name}}",
-      "settingsHint": "Change AI provider in Settings"
+      "settingsHint": "Change AI provider in [Settings]"
     },
     "ocrUpload": {
       "dragDrop": "Click, drag & drop, or paste image for OCR",
@@ -214,7 +215,16 @@
       "errorType": "Please select an image file",
       "errorDrag": "Please drag and drop an image file"
     },
-    "saveFailed": "Save Failed"
+    "saveFailed": "Save Failed",
+    "list": {
+      "title": "Converted Questions ({{count}})",
+      "showAll": "Show all {{count}} questions",
+      "collapse": "Collapse"
+    },
+    "preview": {
+      "answer": "Answer",
+      "optionNotFound": "Option not found: {{id}}"
+    }
   },
   "aiExplanation": {
     "questionInfo": "Question Info",
@@ -303,6 +313,33 @@
       "configKey": "Please configure API Key for {{name}} in settings first",
       "parseError": "Failed to generate explanation for \"{{title}}...\"",
       "generalError": "AI explanation generation failed, please try again later."
+    },
+    "item": {
+      "unknownBank": "Unknown Bank",
+      "wrongTime": "Mistake Time",
+      "yourAnswer": "Your Answer",
+      "correctAnswer": "Correct Answer",
+      "notAnswered": "Not Answered",
+      "explanation": "Explanation",
+      "generatingAiExplanation": "Generating AI explanation..."
+    },
+    "similarModal": {
+      "title": "AI Generated Similar Questions",
+      "loading": "Generating similar questions, please wait...",
+      "noResults": "No similar questions generated.",
+      "basedOn": "Attempted to generate based on {{count}} original questions.",
+      "generatedHint": "Based on {{originalCount}} original questions, generated {{generatedCount}} similar questions:",
+      "instruction": "Select the questions you want to keep and choose a target bank for import.",
+      "referenceAnswer": "Reference Answer",
+      "typeLabel": "Type",
+      "tagLabel": "Topic",
+      "importTo": "Import to Bank",
+      "noBanks": "No banks available",
+      "importing": "Importing...",
+      "importSelected": "Import {{count}} selected questions",
+      "errorNoSelection": "Please select at least one question to import.",
+      "errorNoBank": "Please select a target bank.",
+      "importFailed": "Failed to import questions, please try again later."
     }
   },
   "bankManage": {

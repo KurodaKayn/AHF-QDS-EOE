@@ -1,7 +1,7 @@
 "use client";
 
 import { Question, QuestionType } from "@/types/quiz";
-import { QUESTION_TYPE_NAMES } from "@/constants/quiz";
+import { useTranslation } from "react-i18next";
 
 interface QuestionPreviewProps {
   question: Omit<Question, "id">;
@@ -9,6 +9,7 @@ interface QuestionPreviewProps {
 }
 
 export function QuestionPreview({ question, index }: QuestionPreviewProps) {
+  const { t } = useTranslation();
   const { type, content, options = [], answer } = question;
 
   const renderAnswer = () => {
@@ -23,13 +24,15 @@ export function QuestionPreview({ question, index }: QuestionPreviewProps) {
         const correctOption = options[correctOptionIndex];
         return (
           <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
-            答案: {optionLetter}. {correctOption.content}
+            {t("convert.preview.answer")}: {optionLetter}.{" "}
+            {correctOption.content}
           </div>
         );
       } else {
         return (
           <div className="mt-1 text-red-500 dark:text-red-400 font-medium">
-            答案: (选项未找到: {answer})
+            {t("convert.preview.answer")}: (
+            {t("convert.preview.optionNotFound", { id: answer })})
           </div>
         );
       }
@@ -54,20 +57,24 @@ export function QuestionPreview({ question, index }: QuestionPreviewProps) {
       if (answerDetails.length > 0) {
         return (
           <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
-            答案: {answerDetails.join(", ")}
+            {t("convert.preview.answer")}: {answerDetails.join(", ")}
           </div>
         );
       } else {
         return (
           <div className="mt-1 text-red-500 dark:text-red-400 font-medium">
-            答案: (选项未找到)
+            {t("convert.preview.answer")}: (
+            {t("convert.preview.optionNotFound", { id: "" })})
           </div>
         );
       }
     } else if (type === QuestionType.TrueFalse && typeof answer === "string") {
       return (
         <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
-          答案: {answer === "true" ? "正确" : "错误"}
+          {t("convert.preview.answer")}:{" "}
+          {answer === "true"
+            ? t("aiExplanation.correct")
+            : t("aiExplanation.incorrect")}
         </div>
       );
     } else if (
@@ -76,7 +83,7 @@ export function QuestionPreview({ question, index }: QuestionPreviewProps) {
     ) {
       return (
         <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
-          答案: {answer}
+          {t("convert.preview.answer")}: {answer}
         </div>
       );
     }
@@ -88,7 +95,7 @@ export function QuestionPreview({ question, index }: QuestionPreviewProps) {
     <div className="border-b border-gray-200 dark:border-gray-700 pb-3 mb-3 last:border-b-0 last:mb-0">
       <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-1">
         <span className="mr-2 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-          {QUESTION_TYPE_NAMES[type]}
+          {t(`questionTypes.${type}`)}
         </span>
       </div>
       <p className="text-gray-900 dark:text-white">{content}</p>

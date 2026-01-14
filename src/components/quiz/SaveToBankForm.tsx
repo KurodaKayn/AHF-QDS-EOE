@@ -136,7 +136,8 @@ export function SaveToBankForm({
                   value={bank.id}
                   className="dark:bg-gray-700 dark:text-white"
                 >
-                  {bank.name} ({bank.questions.length}道题)
+                  {bank.name} (
+                  {t("home.questionCount", { count: bank.questions.length })})
                 </option>
               ))}
             </select>

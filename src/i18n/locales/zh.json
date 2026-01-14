@@ -18,11 +18,11 @@
     "close": "关闭"
   },
   "questionTypes": {
-    "single_choice": "单选题",
-    "multiple_choice": "多选题",
-    "true_false": "判断题",
-    "short_answer": "简答题",
-    "fill_in_blank": "填空题"
+    "single-choice": "单选题",
+    "multiple-choice": "多选题",
+    "true-false": "判断题",
+    "short-answer": "简答题",
+    "fill-in-blank": "填空题"
   },
   "nav": {
     "home": "刷题，启动！",
@@ -168,7 +168,8 @@
         "chaoxing": "学习通",
         "singleChoice1": "单选题1",
         "other": "其它"
-      }
+      },
+      "exampleHint": "请确保您的文本格式与以下示例类似，以便脚本正确解析："
     },
     "actions": {
       "startAI": "开始 AI 转换",
@@ -206,7 +207,7 @@
     },
     "aiInfo": {
       "using": "正在使用 {{name}}",
-      "settingsHint": "可在应用设置中更改 AI 提供商"
+      "settingsHint": "可在 [应用设置] 中更改 AI 提供商"
     },
     "ocrUpload": {
       "dragDrop": "点击上传、拖放或粘贴图片进行 OCR 识别",
@@ -214,6 +215,15 @@
       "processing": "正在识别图片文字...",
       "errorType": "请选择图片文件",
       "errorDrag": "请拖放图片文件"
+    },
+    "list": {
+      "title": "已转换的题目 ({{count}}题)",
+      "showAll": "展开显示全部 {{count}} 道题",
+      "collapse": "收起"
+    },
+    "preview": {
+      "answer": "答案",
+      "optionNotFound": "选项未找到: {{id}}"
     }
   },
   "aiExplanation": {
@@ -303,6 +313,33 @@
       "configKey": "请先在应用设置中配置 {{name}} 的 API 密钥",
       "parseError": "题目 \"{{title}}...\" 解析生成失败。",
       "generalError": "AI解析生成失败，请稍后再试。"
+    },
+    "item": {
+      "unknownBank": "未知题库",
+      "wrongTime": "答错时间",
+      "yourAnswer": "您的答案",
+      "correctAnswer": "正确答案",
+      "notAnswered": "未作答",
+      "explanation": "解析",
+      "generatingAiExplanation": "正在生成AI解析..."
+    },
+    "similarModal": {
+      "title": "AI 生成的相似题目",
+      "loading": "正在努力生成相似题目，请稍候...",
+      "noResults": "未能生成相似题目。",
+      "basedOn": "基于 {{count}} 道原始题目尝试生成。",
+      "generatedHint": "基于 {{originalCount}} 道原始题目，为您生成了以下 {{generatedCount}} 道相似题目：",
+      "instruction": "请勾选您想要保留的题目，并选择目标题库进行导入。",
+      "referenceAnswer": "参考答案",
+      "typeLabel": "类型",
+      "tagLabel": "考点",
+      "importTo": "导入到题库",
+      "noBanks": "暂无可用题库",
+      "importing": "正在导入...",
+      "importSelected": "导入选中的 {{count}} 道题目",
+      "errorNoSelection": "请至少选择一道题目进行导入。",
+      "errorNoBank": "请选择目标题库。",
+      "importFailed": "导入题目失败，请稍后再试。"
     }
   },
   "bankManage": {

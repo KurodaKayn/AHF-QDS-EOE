@@ -53,7 +53,8 @@ export function AIProviderInfo({
               href="/quiz/settings"
               className="underline hover:text-blue-800 dark:hover:text-blue-200"
             >
-              应用设置
+              {t("convert.aiInfo.settingsHint").split("[")[1]?.split("]")[0] ||
+                "Settings"}
             </a>
             {t("convert.aiInfo.settingsHint").split("]")[1] || ""}
           </p>

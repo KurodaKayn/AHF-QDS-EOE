@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Question, QuestionBank, QuestionType } from "@/types/quiz"; // 假设 QuestionBank 类型已定义
+import { Question, QuestionBank, QuestionType } from "@/types/quiz";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
-// import QuestionItemDisplay from './QuestionItemDisplay'; // 假设有一个通用的题目展示组件
+import { useTranslation } from "react-i18next";
 
 interface SimilarQuestionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  originalQuestions: Question[]; // 用于参考或显示用户基于哪些题目生成的
+  originalQuestions: Question[];
   generatedQuestions: Question[];
   isLoading: boolean;
-  availableBanks: QuestionBank[]; // 题库列表
+  availableBanks: QuestionBank[];
   onImport: (
     selectedQuestions: Question[],
     targetBankId: string
@@ -18,7 +18,7 @@ interface SimilarQuestionsModalProps {
 }
 
 /**
- * AI生成相似题目结果展示与导入操作的模态框。
+ * Modal for displaying AI-generated similar questions and importing them.
  */
 const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
   isOpen,
@@ -29,6 +29,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
   availableBanks,
   onImport,
 }) => {
+  const { t } = useTranslation();
   const [selectedQuestionsMap, setSelectedQuestionsMap] = useState<
     Record<string, boolean>
   >({});
@@ -36,7 +37,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
   const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
-    // 当可用题库列表变化时，默认选中第一个（如果存在）
+    // Select the first available bank by default when the list changes
     if (availableBanks && availableBanks.length > 0) {
       setTargetBankId(availableBanks[0].id);
     } else {
@@ -45,10 +46,9 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
   }, [availableBanks]);
 
   useEffect(() => {
-    // Modal打开时，清空之前的选择
+    // Clear selection when modal opens
     if (isOpen) {
       setSelectedQuestionsMap({});
-      // 如果可用题库列表不为空，且当前没有选中的目标题库，则默认选中第一个
       if (availableBanks && availableBanks.length > 0 && !targetBankId) {
         setTargetBankId(availableBanks[0].id);
       }
@@ -70,22 +70,23 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
       (q) => q.id && selectedQuestionsMap[q.id]
     );
     if (questionsToImport.length === 0) {
-      toast.warning("请至少选择一道题目进行导入。"); // 后续可以替换为更友好的提示组件
+      toast.warning(t("review.similarModal.errorNoSelection"));
       return;
     }
     if (!targetBankId) {
-      toast.warning("请选择目标题库。");
+      toast.warning(t("review.similarModal.errorNoBank"));
       return;
     }
 
     setIsImporting(true);
     try {
       await onImport(questionsToImport, targetBankId);
-      // 可以在这里添加成功提示，然后关闭Modal或清空列表
-      onClose(); // 导入成功后关闭 Modal
+      onClose();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "导入题目失败，请稍后再试。"
+        error instanceof Error
+          ? error.message
+          : t("review.similarModal.importFailed")
       );
     } finally {
       setIsImporting(false);
@@ -101,12 +102,12 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-3xl max-h-[90vh] flex flex-col">
         <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-            AI 生成的相似题目
+            {t("review.similarModal.title")}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-            aria-label="关闭"
+            aria-label={t("common.close")}
           >
             <FaTimes size={20} />
           </button>
@@ -116,7 +117,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
           <div className="flex flex-col items-center justify-center h-64">
             <div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent mb-4"></div>
             <p className="text-gray-600 dark:text-gray-300">
-              正在努力生成相似题目，请稍候...
+              {t("review.similarModal.loading")}
             </p>
           </div>
         )}
@@ -124,18 +125,20 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
         {!isLoading && generatedQuestions.length === 0 && (
           <div className="text-center py-10 flex-grow flex flex-col justify-center items-center">
             <p className="text-lg text-gray-500 dark:text-gray-400">
-              未能生成相似题目。
+              {t("review.similarModal.noResults")}
             </p>
             {originalQuestions.length > 0 && (
               <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-                基于 {originalQuestions.length} 道原始题目尝试生成。
+                {t("review.similarModal.basedOn", {
+                  count: originalQuestions.length,
+                })}
               </p>
             )}
             <button
               onClick={onClose}
               className="mt-6 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              关闭
+              {t("common.close")}
             </button>
           </div>
         )}
@@ -144,14 +147,13 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
           <>
             <div className="mb-3">
               <p className="text-sm text-gray-700 dark:text-gray-300">
-                基于 {originalQuestions.length} 道原始题目，为您生成了以下{" "}
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
-                  {generatedQuestions.length}
-                </span>{" "}
-                道相似题目：
+                {t("review.similarModal.generatedHint", {
+                  originalCount: originalQuestions.length,
+                  generatedCount: generatedQuestions.length,
+                })}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                请勾选您想要保留的题目，并选择目标题库进行导入。
+                {t("review.similarModal.instruction")}
               </p>
             </div>
             <div className="overflow-y-auto flex-grow mb-4 pr-2 -mr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-700">
@@ -212,12 +214,12 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                         (!q.options || q.options.length === 0) && (
                           <div className="mt-2 text-xs pl-4">
                             <p className="font-semibold text-gray-700 dark:text-gray-300">
-                              参考答案：
+                              {t("review.similarModal.referenceAnswer")}：
                               <span className="text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-0.5 rounded-sm ml-1">
                                 {q.answer === "true"
-                                  ? "正确"
+                                  ? t("aiExplanation.correct")
                                   : q.answer === "false"
-                                  ? "错误"
+                                  ? t("aiExplanation.incorrect")
                                   : String(q.answer)}
                               </span>
                             </p>
@@ -230,7 +232,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                         q.answer.length > 0 && (
                           <div className="mt-2 text-xs pl-4">
                             <p className="font-semibold text-gray-700 dark:text-gray-300">
-                              参考答案：
+                              {t("review.similarModal.referenceAnswer")}：
                               {q.answer.map((ans, ansIdx) => (
                                 <span
                                   key={ansIdx}
@@ -249,7 +251,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                         q.answer.trim() !== "" && (
                           <div className="mt-2 text-xs pl-4">
                             <p className="font-semibold text-gray-700 dark:text-gray-300">
-                              参考答案：
+                              {t("review.similarModal.referenceAnswer")}：
                               <span className="block whitespace-pre-wrap text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-1 rounded-sm mt-1">
                                 {q.answer}
                               </span>
@@ -259,11 +261,13 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
 
                       <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-2 gap-y-1 items-center">
                         <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-sm">
-                          类型: {q.type}
+                          {t("review.similarModal.typeLabel")}:{" "}
+                          {t(`questionTypes.${q.type}`)}
                         </span>
                         {q.tags && q.tags.length > 0 && (
                           <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-sm">
-                            考点: {q.tags.join(", ")}
+                            {t("review.similarModal.tagLabel")}:{" "}
+                            {q.tags.join(", ")}
                           </span>
                         )}
                       </div>
@@ -280,7 +284,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                     htmlFor="targetBank"
                     className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
                   >
-                    导入到题库:
+                    {t("review.similarModal.importTo")}:
                   </label>
                   <select
                     id="targetBank"
@@ -290,7 +294,9 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                     className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md disabled:opacity-50"
                   >
                     {availableBanks.length === 0 && (
-                      <option value="">暂无可用题库</option>
+                      <option value="">
+                        {t("review.similarModal.noBanks")}
+                      </option>
                     )}
                     {availableBanks.map((bank) => (
                       <option key={bank.id} value={bank.id}>
@@ -331,10 +337,12 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </svg>
-                      正在导入...
+                      {t("review.similarModal.importing")}
                     </span>
                   ) : (
-                    `导入选中的 ${selectedCount} 道题目`
+                    t("review.similarModal.importSelected", {
+                      count: selectedCount,
+                    })
                   )}
                 </button>
               </div>
