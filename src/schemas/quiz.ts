@@ -1,27 +1,48 @@
 import { z } from "zod";
 import { QuestionType } from "@/types/quiz";
+import i18n from "@/i18n/config";
 
 /**
- * 题目选项验证 schema
+ * Question option validation schema
  */
 export const questionOptionSchema = z.object({
-  id: z.string().min(1, "选项ID不能为空"),
-  content: z.string().min(1, "选项内容不能为空"),
+  id: z
+    .string()
+    .min(
+      1,
+      i18n.t("questionForm.validation.optionIdRequired", {
+        defaultValue: "Option ID is required",
+      })
+    ),
+  content: z
+    .string()
+    .min(
+      1,
+      i18n.t("questionForm.validation.optionContentRequired", {
+        defaultValue: "Option content is required",
+      })
+    ),
 });
 
 /**
- * 题目验证 schema
+ * Question validation schema
  */
 export const questionSchema = z
   .object({
     id: z.string().optional(),
     type: z.nativeEnum(QuestionType, {
-      message: "无效的题目类型",
+      message: i18n.t("questionForm.validation.invalidType", {
+        defaultValue: "Invalid question type",
+      }),
     }),
-    content: z.string().min(1, "题目内容不能为空"),
+    content: z
+      .string()
+      .min(1, i18n.t("questionForm.validation.contentRequired")),
     options: z.array(questionOptionSchema).optional(),
     answer: z.union([z.string(), z.array(z.string())], {
-      message: "答案格式不正确",
+      message: i18n.t("questionForm.validation.invalidAnswerFormat", {
+        defaultValue: "Invalid answer format",
+      }),
     }),
     explanation: z.string().optional(),
     tags: z.array(z.string()).optional(),
@@ -30,7 +51,7 @@ export const questionSchema = z
   })
   .refine(
     (data) => {
-      // 单选题和多选题必须有选项
+      // Multiple choice and single choice must have options
       if (
         data.type === QuestionType.SingleChoice ||
         data.type === QuestionType.MultipleChoice
@@ -40,65 +61,89 @@ export const questionSchema = z
       return true;
     },
     {
-      message: "选择题至少需要2个选项",
+      message: i18n.t("questionForm.validation.minOptions", {
+        defaultValue: "At least 2 options are required",
+      }),
       path: ["options"],
     }
   )
   .refine(
     (data) => {
-      // 多选题答案必须是数组
+      // Multiple choice answers must be an array
       if (data.type === QuestionType.MultipleChoice) {
         return Array.isArray(data.answer) && data.answer.length > 0;
       }
       return true;
     },
     {
-      message: "多选题答案必须是数组且不能为空",
+      message: i18n.t("questionForm.validation.multipleAnswerRequired"),
       path: ["answer"],
     }
   )
   .refine(
     (data) => {
-      // 判断题答案必须是 'true' 或 'false'
+      // True/False answers must be 'true' or 'false'
       if (data.type === QuestionType.TrueFalse) {
         return data.answer === "true" || data.answer === "false";
       }
       return true;
     },
     {
-      message: '判断题答案必须是 "true" 或 "false"',
+      message: i18n.t("questionForm.validation.trueFalseRequired", {
+        defaultValue: 'True/False answer must be "true" or "false"',
+      }),
       path: ["answer"],
     }
   );
 
 /**
- * 题库验证 schema
+ * Question bank validation schema
  */
 export const questionBankSchema = z.object({
   id: z.string().optional(),
   name: z
     .string()
-    .min(1, "题库名称不能为空")
-    .max(100, "题库名称不能超过100个字符"),
-  description: z.string().max(500, "题库描述不能超过500个字符").optional(),
+    .min(1, i18n.t("bankManage.alerts.bankNameRequired"))
+    .max(
+      100,
+      i18n.t("bankManage.validation.nameTooLong", {
+        defaultValue: "Bank name cannot exceed 100 characters",
+      })
+    ),
+  description: z
+    .string()
+    .max(
+      500,
+      i18n.t("bankManage.validation.descTooLong", {
+        defaultValue: "Description cannot exceed 500 characters",
+      })
+    )
+    .optional(),
   questions: z.array(questionSchema).default([]),
   createdAt: z.number().optional(),
   updatedAt: z.number().optional(),
 });
 
 /**
- * 答题记录验证 schema
+ * Question record validation schema
  */
 export const questionRecordSchema = z.object({
   id: z.string().optional(),
-  questionId: z.string().min(1, "题目ID不能为空"),
+  questionId: z
+    .string()
+    .min(
+      1,
+      i18n.t("validation.questionIdRequired", {
+        defaultValue: "Question ID is required",
+      })
+    ),
   userAnswer: z.union([z.string(), z.array(z.string())]),
   isCorrect: z.boolean(),
   answeredAt: z.number(),
 });
 
 /**
- * AI配置验证 schema
+ * AI configuration validation schema
  */
 export const aiConfigSchema = z.object({
   id: z.string(),
@@ -111,7 +156,7 @@ export const aiConfigSchema = z.object({
 });
 
 /**
- * 设置验证 schema
+ * Settings validation schema
  */
 export const quizSettingsSchema = z.object({
   shufflePracticeOptions: z.boolean(),

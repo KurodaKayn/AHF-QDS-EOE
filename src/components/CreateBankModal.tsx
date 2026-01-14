@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { FaTimes } from 'react-icons/fa';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "react-i18next";
 
 interface CreateBankModalProps {
   isOpen: boolean;
@@ -14,33 +20,34 @@ interface CreateBankModalProps {
 }
 
 /**
- * 创建新题库的模态对话框组件
+ * Modal dialog component for creating a new question bank.
  */
 export default function CreateBankModal({
   isOpen,
   onClose,
   onSubmit,
 }: CreateBankModalProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [error, setError] = useState('');
+  const { t } = useTranslation();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (isOpen) {
-      // 每次打开重置数据
-      setName('');
-      setDescription('');
-      setError('');
+      // Reset data every time it opens
+      setName("");
+      setDescription("");
+      setError("");
     }
   }, [isOpen]);
 
   const handleSubmit = () => {
     if (!name.trim()) {
-      setError('题库名称不能为空');
+      setError(t("practice.createModal.errorNameRequired"));
       return;
     }
-    
-    setError('');
+
+    setError("");
     onSubmit(name.trim(), description.trim());
     onClose();
   };
@@ -49,20 +56,26 @@ export default function CreateBankModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">创建新题库</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+            {t("practice.createModal.title")}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 my-4">
           <div>
-            <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              题库名称 <span className="text-red-500">*</span>
+            <label
+              htmlFor="bankName"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              {t("practice.createModal.nameLabel")}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <Input
               id="bankName"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              placeholder="请输入题库名称"
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              placeholder={t("practice.createModal.namePlaceholder")}
               className="w-full"
               autoFocus
             />
@@ -70,14 +83,17 @@ export default function CreateBankModal({
           </div>
 
           <div>
-            <label htmlFor="bankDescription" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              题库描述 (可选)
+            <label
+              htmlFor="bankDescription"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              {t("practice.createModal.descLabel")}
             </label>
             <Textarea
               id="bankDescription"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="请输入题库描述信息..."
+              placeholder={t("practice.createModal.descPlaceholder")}
               rows={3}
               className="w-full"
             />
@@ -86,13 +102,13 @@ export default function CreateBankModal({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} className="mr-2">
-            取消
+            {t("practice.createModal.cancel")}
           </Button>
           <Button onClick={handleSubmit}>
-            创建
+            {t("practice.createModal.create")}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-} 
+}

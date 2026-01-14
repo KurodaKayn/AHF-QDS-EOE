@@ -43,13 +43,14 @@ export default function SettingsPage() {
     | "shufflePracticeQuestionOrder"
     | "shuffleReviewQuestionOrder"
     | "markMistakeAsCorrectedOnReviewSuccess"
+    | "checkDuplicateQuestion"
   >;
 
   const handleBooleanSettingToggle = (
     key: BooleanSettingKey,
     value: boolean
   ) => {
-    setQuizSetting(key, value);
+    setQuizSetting(key as any, value);
   };
 
   const handleCreateConfig = (config: Omit<AIConfig, "id">) => {
@@ -205,7 +206,7 @@ export default function SettingsPage() {
             description={t("settings.import.checkDuplicateDesc")}
             value={settings.checkDuplicateQuestion}
             onChange={(val) =>
-              handleBooleanSettingToggle("checkDuplicateQuestion" as any, val)
+              handleBooleanSettingToggle("checkDuplicateQuestion", val)
             }
           />
         </div>

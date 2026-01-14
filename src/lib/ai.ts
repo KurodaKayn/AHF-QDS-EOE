@@ -1,7 +1,9 @@
+import i18n from "@/i18n/config";
+
 // AI Config is now passed dynamically
 
 /**
- * 调用 AI 生成文本（非流式）
+ * Call AI to generate text (non-streaming)
  */
 export const callAI = async (
   baseUrl: string,
@@ -30,7 +32,11 @@ export const callAI = async (
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.error?.message || `API 请求失败: ${response.status}`
+        errorData.error?.message ||
+          i18n.t("common.apiFailed", {
+            status: response.status,
+            defaultValue: `API request failed: ${response.status}`,
+          })
       );
     }
 
@@ -38,13 +44,17 @@ export const callAI = async (
     return data.choices[0].message.content;
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : "调用 AI 服务失败";
+      error instanceof Error
+        ? error.message
+        : i18n.t("common.aiCallFailed", {
+            defaultValue: "Failed to call AI service",
+          });
     throw new Error(errorMessage);
   }
 };
 
 /**
- * 调用 AI 生成文本（流式）
+ * Call AI to generate text (streaming)
  */
 export const callAIStream = async (
   baseUrl: string,
@@ -75,13 +85,21 @@ export const callAIStream = async (
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.error?.message || `API 请求失败: ${response.status}`
+        errorData.error?.message ||
+          i18n.t("common.apiFailed", {
+            status: response.status,
+            defaultValue: `API request failed: ${response.status}`,
+          })
       );
     }
 
     const reader = response.body?.getReader();
     if (!reader) {
-      throw new Error("无法读取响应流");
+      throw new Error(
+        i18n.t("common.streamReadFailed", {
+          defaultValue: "Unable to read response stream",
+        })
+      );
     }
 
     const decoder = new TextDecoder();
@@ -108,7 +126,7 @@ export const callAIStream = async (
             onChunk(content);
           }
         } catch (e) {
-          // 忽略解析错误
+          // Ignore parsing errors for partial chunks
         }
       }
     }
@@ -116,7 +134,11 @@ export const callAIStream = async (
     return fullText;
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : "调用 AI 服务失败";
+      error instanceof Error
+        ? error.message
+        : i18n.t("common.aiCallFailed", {
+            defaultValue: "Failed to call AI service",
+          });
     throw new Error(errorMessage);
   }
 };

@@ -11,14 +11,16 @@ import { QuestionNavigation } from "@/components/quiz/practice/QuestionNavigatio
 import { NumQuestionsModal } from "@/components/quiz/practice/NumQuestionsModal";
 import { Button } from "@/components/ui/button";
 import { FaTimesCircle, FaPaperPlane } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 /**
- * 刷题内容组件
- * 使用持久化状态，支持会话恢复
+ * Practice content component
+ * Uses persistent state, supports session recovery
  */
 export function PracticeContent() {
   const router = useRouter();
   const { theme } = useThemeStore();
+  const { t } = useTranslation();
 
   const {
     currentBank,
@@ -45,7 +47,7 @@ export function PracticeContent() {
     settings,
   } = usePracticeSession();
 
-  // ==================== 事件处理器 ====================
+  // ==================== Event Handlers ====================
 
   const handleNumQuestionsSubmit = (numToPractice: number) => {
     setIsNumQuestionsModalOpen(false);
@@ -189,12 +191,12 @@ export function PracticeContent() {
   };
 
   const handleReturnToBank = () => {
-    // 不清除会话，用户可以从侧边栏返回继续
+    // Don't clear session, user can return from sidebar to continue
     router.push("/quiz");
   };
 
   const handleReload = () => {
-    // 清除当前会话，重新选择题目数量
+    // Clear current session, re-select question count
     updateSession({
       practiceQuestions: [],
       currentQuestionIndex: 0,
@@ -206,12 +208,12 @@ export function PracticeContent() {
     setIsNumQuestionsModalOpen(true);
   };
 
-  // ==================== 渲染 ====================
+  // ==================== Render ====================
 
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-lg">加载中...</div>
+        <div className="text-lg">{t("practice.loading")}</div>
       </div>
     );
   }
@@ -220,8 +222,10 @@ export function PracticeContent() {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4">
         <FaTimesCircle className="text-6xl text-red-500" />
-        <p className="text-xl">题库不存在</p>
-        <Button onClick={handleReturnToQuizList}>返回题库列表</Button>
+        <p className="text-xl">{t("practice.bankNotFound")}</p>
+        <Button onClick={handleReturnToQuizList}>
+          {t("practice.backToList")}
+        </Button>
       </div>
     );
   }
@@ -251,12 +255,18 @@ export function PracticeContent() {
     return (
       <>
         <div className="flex h-screen flex-col items-center justify-center gap-4">
-          <p className="text-xl">{isReviewMode ? "暂无错题" : "暂无题目"}</p>
+          <p className="text-xl">
+            {isReviewMode
+              ? t("practice.noWrongQuestions")
+              : t("practice.noQuestions")}
+          </p>
           <div className="flex gap-4">
-            <Button onClick={handleReturnToQuizList}>返回题库列表</Button>
+            <Button onClick={handleReturnToQuizList}>
+              {t("practice.backToList")}
+            </Button>
             {!isReviewMode && (
               <Button onClick={handleManageBankClick} variant="outline">
-                管理题库
+                {t("practice.manageBank")}
               </Button>
             )}
           </div>
@@ -273,15 +283,15 @@ export function PracticeContent() {
 
   return (
     <div className="flex h-full flex-col absolute inset-0">
-      {/* 右上角提交按钮 */}
+      {/* Top-right submit button */}
       <div className="absolute top-4 right-4 z-10">
         <Button
           onClick={handleCompleteQuiz}
           className="flex items-center gap-2 bg-green-600 hover:bg-green-700 shadow-lg"
-          title="提交并结算"
+          title={t("practice.submitAndFinish")}
         >
           <FaPaperPlane />
-          提交
+          {t("practice.submit")}
         </Button>
       </div>
 

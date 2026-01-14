@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { FaArrowLeft, FaArrowRight, FaLightbulb } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 interface QuizControlsProps {
   showAnswer: boolean;
@@ -24,7 +25,11 @@ export function QuizControls({
   onNext,
   onPrevious,
 }: QuizControlsProps) {
-  const nextButtonText = isLastQuestion ? "完成练习" : "下一题";
+  const { t } = useTranslation();
+
+  const nextButtonText = isLastQuestion
+    ? t("practice.nav.finish")
+    : t("practice.nav.next");
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t dark:border-gray-700">
@@ -35,7 +40,11 @@ export function QuizControls({
         className="w-full sm:w-auto text-sm md:text-base disabled:opacity-60"
       >
         <FaLightbulb className="mr-2" />
-        {showAnswer ? (isCurrentCorrect ? "回答正确" : "回答错误") : "查看答案"}
+        {showAnswer
+          ? isCurrentCorrect
+            ? t("practice.status.correct")
+            : t("practice.status.incorrect")
+          : t("practice.showAnswer")}
       </Button>
 
       <div className="flex gap-3 w-full sm:w-auto">
@@ -45,7 +54,7 @@ export function QuizControls({
           disabled={currentQuestionIndex === 0}
           className="flex-1 sm:flex-initial text-sm md:text-base disabled:opacity-60"
         >
-          <FaArrowLeft className="mr-1 sm:mr-2" /> 上一题
+          <FaArrowLeft className="mr-1 sm:mr-2" /> {t("practice.nav.previous")}
         </Button>
         <Button
           onClick={onNext}

@@ -9,7 +9,7 @@ interface ThemeState {
 }
 
 /**
- * 主题状态管理
+ * Theme state management using Zustand
  */
 export const useThemeStore = create<ThemeState>()(
   persist(

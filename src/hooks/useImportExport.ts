@@ -16,6 +16,9 @@ export interface ImportStats {
   duplicates: number;
 }
 
+/**
+ * Hook to handle import and export business logic
+ */
 export function useImportExport() {
   const { t } = useTranslation();
   const { questionBanks, addQuestionBank, addQuestionToBank } = useQuizStore();
@@ -31,7 +34,7 @@ export function useImportExport() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
-   * Handle file import
+   * Handle file import logic
    */
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -41,7 +44,7 @@ export function useImportExport() {
     }
 
     try {
-      // Import the file
+      // Import the file using service
       const result: ImportResult = await importQuestionBank({
         file,
         format: importFormat,
@@ -54,7 +57,7 @@ export function useImportExport() {
         result.bank.description
       );
 
-      // Add questions to the bank
+      // Add questions to the newly created bank
       let addedCount = 0;
       let duplicateCount = 0;
       const totalCount = result.bank.questions?.length || 0;
@@ -65,7 +68,7 @@ export function useImportExport() {
         result.bank.questions.length > 0
       ) {
         result.bank.questions.forEach((question) => {
-          const { id, ...questionData } = question;
+          const { id, ...questionData } = question; // Remove original ID
           const addResult = addQuestionToBank(newBank.id, questionData);
           if (addResult.isDuplicate) {
             duplicateCount++;
@@ -75,7 +78,7 @@ export function useImportExport() {
         });
       }
 
-      // Update UI state
+      // Update UI state with results
       setImportResult({
         total: totalCount,
         added: addedCount,
@@ -91,12 +94,16 @@ export function useImportExport() {
         setTimeout(() => setImportResult(null), 5000);
       }, 3000);
     } catch (error: any) {
-      toast.error(`导入失败: ${error.message || "请检查文件格式是否正确"}`);
+      toast.error(
+        t("importExport.alerts.importFailed", {
+          error: error.message || t("importExport.alerts.parseError"),
+        })
+      );
     }
   };
 
   /**
-   * Handle export
+   * Handle bank export logic
    */
   const handleExport = async () => {
     if (!selectedBankId) return;
@@ -113,11 +120,11 @@ export function useImportExport() {
       setExportSuccess(true);
       setTimeout(() => setExportSuccess(false), 3000);
     } catch (error: any) {
-      // User cancelled is not an error
+      // User cancelled is not an error (from save dialog)
       if (error.message === "User cancelled save dialog") {
         return;
       }
-      console.error("导出失败:", error);
+      console.error("Export failed:", error);
       toast.error(t("importExport.alerts.exportFailed"));
     }
   };

@@ -1,11 +1,11 @@
 /**
- * AI相关常量文件
+ * AI-related constants
  */
 
 /**
- * 题库转换AI的系统提示词
+ * System prompt for question conversion (Chinese version)
  */
-export const CONVERT_SYSTEM_PROMPT = `你是一个专业的题库转换助手，能够精确理解和转换各种复杂格式的题目。
+export const CONVERT_SYSTEM_PROMPT_ZH = `你是一个专业的题库转换助手，能够精确理解和转换各种复杂格式的题目。
 
 # 核心能力要求
 1. **智能识别题目结构** - 即使格式不规范，也要理解题目含义
@@ -116,23 +116,6 @@ D. 选项4
 7. **组合型选择题（罗马数字/编号在题干中）**
    - 如果题干中包含 I., II., III. 或 (1), (2) 等编号列表，这些是题干的一部分，**绝不要**把它们当作选项。
    - 只有以 A., B., C., D.（或 A、B、C、D）开头的内容才是真正的选项。
-   - 输入示例：
-     \`\`\`
-     1. 下列哪些是特点？
-     I. 特点一
-     II. 特点二
-     A. I, II
-     B. I only
-     \`\`\`
-   - 正确输出：
-     \`\`\`
-     单选题：下列哪些是特点？
-     I. 特点一
-     II. 特点二
-     A. I, II
-     B. I only
-     答案：A
-     \`\`\`
 
 # 实例演示
 
@@ -170,9 +153,57 @@ D. 手动同步
 - **保持原意** - 不改变题目和选项的原始含义`;
 
 /**
- * 错题解析的AI提示词
+ * System prompt for question conversion (English version)
  */
-export const EXPLANATION_PROMPT = `你是一位专业的教育助手，请为以下题目提供一个详细的解析。不要复述题目内容，直接提供解析。
+export const CONVERT_SYSTEM_PROMPT_EN = `You are a professional quiz conversion assistant capable of accurately understanding and converting various complex quiz formats.
+
+# Core Requirements
+1. **Identify Structure** - Understand the meaning even if the format is non-standard.
+2. **Preserve Content** - Especially code blocks, formulas, and long text. Never omit or simplify.
+3. **Extract Hidden Info** - If the answer is at the end of the question (e.g., "...? D"), identify and extract it.
+
+# Output Format Requirements
+Strictly follow the format below, separating each question with a blank line:
+
+\`\`\`
+Single Choice: Question content
+A. Option 1 content
+B. Option 2 content
+Answer: A
+Explanation: Optional
+
+Multiple Choice: Question content
+A. Option 1
+B. Option 2
+Answer: A, B
+Explanation: Optional
+
+True/False: Question content
+Answer: True (or False)
+Explanation: Optional
+
+Short Answer: Question content
+Answer: Reference answer
+Explanation: Optional
+
+Fill in Blank: Question content (use ____ for blanks)
+Answer: Answer for the blank
+Explanation: Optional
+\`\`\`
+
+# Special Rules
+1. **Answer at end** - Extract "B" from "Question? B".
+2. **True/False T/F** - Map T/F, True/False, Correct/Incorrect to True/False.
+3. **Code Blocks** - Always output full code with indentation.
+4. **Nested Lists** - Roman numerals (I, II) in stems are NOT options. Only A, B, C, D are options.
+
+# Key Principle
+Integrity first. Never omit content. Maintain original meaning exactly.`;
+
+/**
+ * System prompt for generating AI explanations (Chinese version)
+ */
+export const EXPLANATION_PROMPT_ZH = `你是一位专业的教育助手，请为以下题目提供一个详细的解析。不要复述题目内容，直接提供解析。
 
 请包含以下内容：
 1. 正确答案的详细解释
@@ -183,39 +214,70 @@ export const EXPLANATION_PROMPT = `你是一位专业的教育助手，请为以
 以Markdown格式输出你的解析，使用适当的标题、列表和强调来组织内容。如有需要，可以使用公式、表格等Markdown元素增强说明。`;
 
 /**
- * 生成相似题目的AI系统提示词
+ * System prompt for generating AI explanations (English version)
  */
-export const SIMILAR_QUESTIONS_PROMPT = `你是一位专业的出题专家，我将提供一些题目，请你基于这些题目的知识点和考察内容生成相似的新题目，保持难度和风格一致，但避免简单地修改原题。
+export const EXPLANATION_PROMPT_EN = `You are a professional educational assistant. Please provide a detailed explanation for the following question. Do not restate the question, provide the explanation directly.
+
+Please include:
+1. Detailed explanation of the correct answer.
+2. Analysis of relevant knowledge points.
+3. Reason for user error (if applicable).
+4. Methods to avoid similar errors and memory tips.
+
+Output in Markdown format with appropriate headers, lists, and emphasis.`;
+
+/**
+ * System prompt for generating similar questions (Chinese version)
+ */
+export const SIMILAR_QUESTIONS_PROMPT_ZH = `你是一位专业的出题专家，我将提供一些题目，请你基于这些题目的知识点和考察内容生成相似的新题目，保持难度和风格一致，但避免简单地修改原题。
 
 对于每个输入的题目，请生成以下类型的相似题目（每种类型至少一个）：
 1. 单选题（确保有一个正确答案）
 2. 多选题（至少两个正确答案）
 3. 判断题（答案为"true"或"false"）
-4. 填空题（使用下划线"___"表示填空处，答案是填入空白处的文本数组）
+4. 填空题（使用下划线"___"表示填空处）
 5. 简答题（提供简明的参考答案）
 
 针对每道生成的题目，必须包含以下字段：
-- content: 题目内容，确保清晰完整
-- type: 题目类型，必须是以下之一: "single-choice", "multiple-choice", "true-false", "fill-in-blank", "short-answer"
-- options: 选项数组（对单选题和多选题），每个选项包含id和content字段
-- answer: 正确答案（对单选题为选项id，对多选题为选项id数组，对判断题为"true"或"false"，对填空题为字符串数组，对简答题为字符串）
-- explanation: 简要解析
-- tags: 题目标签，与原题的标签保持一致
+- content, type, options, answer, explanation, tags
 
-请将所有生成的题目按JSON格式输出，形如：
-[
-  {
-    "content": "题目内容",
-    "type": "single-choice",
-    "options": [{"id": "opt1", "content": "选项1"}, {"id": "opt2", "content": "选项2"}...],
-    "answer": "opt1",
-    "explanation": "解析内容",
-    "tags": ["标签1", "标签2"]
-  },
-  ...
-]
+请将所有生成的题目以 JSON 数组格式输出。`;
 
-确保生成的题目多样化，涵盖输入题目涉及的所有知识点，但避免内容过于重复或简单替换词语。优先创建能够深入测试学生理解程度的题目。`;
+/**
+ * System prompt for generating similar questions (English version)
+ */
+export const SIMILAR_QUESTIONS_PROMPT_EN = `You are an expert quiz creator. I will provide some questions. Please generate similar new questions based on the knowledge points and content of these questions. Maintain consistent difficulty and style, but avoid simple modifications.
 
-// 导出 AI 调用函数
+Generate at least one of each:
+1. Single Choice
+2. Multiple Choice
+3. True/False
+4. Fill in Blank
+5. Short Answer
+
+Each generated question must include:
+- content, type, options, answer, explanation, tags
+
+Output all generated questions in a JSON array format.`;
+
+/**
+ * Get prompts based on language
+ */
+export const getPrompts = (lang: string = "zh") => {
+  const isEn = lang.startsWith("en");
+  return {
+    convert: isEn ? CONVERT_SYSTEM_PROMPT_EN : CONVERT_SYSTEM_PROMPT_ZH,
+    explanation: isEn ? EXPLANATION_PROMPT_EN : EXPLANATION_PROMPT_ZH,
+    similar: isEn ? SIMILAR_QUESTIONS_PROMPT_EN : SIMILAR_QUESTIONS_PROMPT_ZH,
+  };
+};
+
+/**
+ * Legacy support
+ */
+export const CONVERT_SYSTEM_PROMPT = CONVERT_SYSTEM_PROMPT_ZH;
+export const EXPLANATION_PROMPT = EXPLANATION_PROMPT_ZH;
+export const SIMILAR_QUESTIONS_PROMPT = SIMILAR_QUESTIONS_PROMPT_ZH;
+
+// Export AI call functions
 export { callAI, callAIStream } from "@/lib/ai";

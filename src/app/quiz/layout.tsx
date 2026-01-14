@@ -4,8 +4,6 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  FaBook,
-  FaPencilAlt,
   FaExchangeAlt,
   FaCog,
   FaListUl,
@@ -13,20 +11,15 @@ import {
   FaTimes,
   FaChevronLeft,
   FaChevronRight,
-  FaRandom,
   FaSyncAlt,
 } from "react-icons/fa";
 import { Icon } from "@iconify/react";
-
 import { cn } from "@/lib/utils";
-
 import { useTranslation } from "react-i18next";
 
-// 导航项定义 (Removed static definition)
-
 /**
- * 刷题系统的布局组件
- * 支持响应式设计，侧边栏可收起，移动端底部导航
+ * Layout component for the quiz system
+ * Supports responsive design, collapsible sidebar, and mobile bottom navigation
  */
 export default function QuizLayout({
   children,
@@ -55,38 +48,32 @@ export default function QuizLayout({
     { href: "/quiz/settings", icon: <FaCog />, label: t("nav.settings") },
   ];
 
-  // 检测屏幕尺寸
+  // Screen size detection
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
         setSidebarCollapsed(true);
       }
     };
 
-    // 初始检查
     checkIsMobile();
-
-    // 监听窗口大小变化
     window.addEventListener("resize", checkIsMobile);
-
-    // 清理
     return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
-  // 切换侧边栏状态
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // 切换移动菜单
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-      {/* 移动端顶部导航栏 */}
+      {/* Mobile Top Navigation */}
       <div className="md:hidden flex-none flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md z-20">
         <div className="flex items-center">
           <button
@@ -102,7 +89,7 @@ export default function QuizLayout({
         </div>
       </div>
 
-      {/* 侧边栏 - 桌面版 */}
+      {/* Sidebar - Desktop */}
       <aside
         className={cn(
           "hidden md:flex flex-col flex-none h-full bg-white dark:bg-gray-800 shadow-md transition-all duration-300 border-r dark:border-gray-700 overflow-y-auto custom-scrollbar",
@@ -169,7 +156,7 @@ export default function QuizLayout({
         </nav>
       </aside>
 
-      {/* 移动端菜单 - 侧滑抽屉 */}
+      {/* Mobile Menu - Drawer */}
       {isMobile && mobileMenuOpen && (
         <>
           <div
@@ -215,11 +202,11 @@ export default function QuizLayout({
         </>
       )}
 
-      {/* 主内容区 */}
+      {/* Main Content Area */}
       <main
         className={cn(
           "flex-1 h-full overflow-y-auto overflow-x-hidden dark:text-gray-100 transition-all duration-300 relative custom-scrollbar",
-          // 刷题页面不需要 padding，其他页面正常 padding
+          // Practice page doesn't need padding, others do
           pathname?.startsWith("/quiz/practice") ? "" : "p-4 md:p-8",
           // Mobile bottom padding to avoid nav overlap
           isMobile && !pathname?.startsWith("/quiz/practice") && "pb-24"
@@ -228,7 +215,7 @@ export default function QuizLayout({
         {children}
       </main>
 
-      {/* 移动端底部导航 */}
+      {/* Mobile Bottom Navigation */}
       {isMobile && (
         <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-30 border-t dark:border-gray-700">
           <div className="flex justify-around">

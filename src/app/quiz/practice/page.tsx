@@ -2,21 +2,27 @@
 
 import { Suspense } from "react";
 import { PracticeContent } from "@/components/quiz/practice/PracticeContent";
+import { useTranslation } from "react-i18next";
 
 /**
- * 刷题页面
- * 使用 Suspense 包裹以支持 useSearchParams
+ * Quiz practice page
+ * Wrapped in Suspense to support useSearchParams in client components
  */
+function PracticePageContent() {
+  return <PracticeContent />;
+}
+
 export default function PracticePage() {
+  const { t } = useTranslation();
   return (
     <Suspense
       fallback={
         <div className="flex h-screen items-center justify-center">
-          <div className="text-lg">加载中...</div>
+          <div className="text-lg">{t("common.loading")}</div>
         </div>
       }
     >
-      <PracticeContent />
+      <PracticePageContent />
     </Suspense>
   );
 }

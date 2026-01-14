@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { Question } from "@/types/quiz";
+import { useTranslation } from "react-i18next";
 
 interface TrueFalseOptionsProps {
   question: Question;
@@ -17,9 +18,10 @@ export function TrueFalseOptions({
   showAnswer,
   onAnswerSelect,
 }: TrueFalseOptionsProps) {
+  const { t } = useTranslation();
   const options = [
-    { id: "true", content: "正确" },
-    { id: "false", content: "错误" },
+    { id: "true", content: t("aiExplanation.correct") },
+    { id: "false", content: t("aiExplanation.incorrect") },
   ];
 
   const currentSelection = (userAnswer as string) || "";

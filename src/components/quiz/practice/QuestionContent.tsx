@@ -6,6 +6,7 @@ import { QuestionOptions } from "./QuestionOptions";
 import { TrueFalseOptions } from "./TrueFalseOptions";
 import { ShortAnswerInput } from "./ShortAnswerInput";
 import { FillInBlankInput } from "./FillInBlankInput";
+import { useTranslation } from "react-i18next";
 
 interface QuestionWithOriginalAnswer extends Question {
   originalUserAnswer?: string | string[];
@@ -28,6 +29,8 @@ export function QuestionContent({
   onAnswerSelect,
   onAnswerChange,
 }: QuestionContentProps) {
+  const { t } = useTranslation();
+
   const renderOriginalWrongAnswer = () => {
     if (!isReviewMode || !showAnswer || !question.originalUserAnswer)
       return null;
@@ -40,7 +43,7 @@ export function QuestionContent({
     ) {
       const currentQOptions = question.options;
       if (!currentQOptions || currentQOptions.length === 0)
-        return "选项数据缺失";
+        return t("practice.completion.missingOptions");
 
       const originalAnswerArray = Array.isArray(originalAns)
         ? originalAns
@@ -59,18 +62,18 @@ export function QuestionContent({
                 option.content
               }`;
             }
-            return `未知选项ID: ${ansId}`;
+            return `${t("practice.completion.unknownOption")}: ${ansId}`;
           })
-          .join(", ") || "未记录"
+          .join(", ") || t("practice.completion.notRecorded")
       );
     } else if (question.type === QuestionType.TrueFalse) {
       return originalAns === "true"
-        ? "正确"
+        ? t("aiExplanation.correct")
         : originalAns === "false"
-        ? "错误"
-        : originalAns || "未记录";
+        ? t("aiExplanation.incorrect")
+        : originalAns || t("practice.completion.notRecorded");
     } else {
-      return originalAns || "未记录";
+      return originalAns || t("practice.completion.notRecorded");
     }
   };
 
@@ -113,7 +116,7 @@ export function QuestionContent({
       {showAnswer && isReviewMode && question.originalUserAnswer && (
         <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/30 rounded-md border border-amber-200 dark:border-amber-700">
           <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
-            最初错误答案回顾：
+            {t("practice.completion.originalWrongReview")}
           </p>
           <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
             {renderOriginalWrongAnswer()}
@@ -124,7 +127,7 @@ export function QuestionContent({
       {showAnswer && question.explanation && (
         <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow">
           <h3 className="text-md font-semibold text-gray-700 dark:text-gray-200 mb-2">
-            题目解析:
+            {t("practice.completion.explanationTitle")}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
             {question.explanation}

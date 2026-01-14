@@ -11,6 +11,7 @@ import {
 import { FaArrowLeft, FaRedo } from "react-icons/fa";
 import { Question, QuestionType } from "@/types/quiz";
 import { QuestionOption } from "@/types/quiz";
+import { useTranslation } from "react-i18next";
 
 interface QuizCompletionSummaryProps {
   practiceQuestions: (Question & { originalUserAnswer?: string | string[] })[];
@@ -29,6 +30,8 @@ export function QuizCompletionSummary({
   onReturnToQuizList,
   onRetryQuiz,
 }: QuizCompletionSummaryProps) {
+  const { t } = useTranslation();
+
   const checkIsCorrect = (
     question: Question,
     userAnswer: string | string[] | undefined
@@ -72,9 +75,9 @@ export function QuizCompletionSummary({
 
   const getCompletionTitle = () => {
     if (isReviewMode) {
-      return "错题练习完成！";
+      return t("practice.completion.reviewTitle");
     }
-    return "练习完成!";
+    return t("practice.completion.title");
   };
 
   const correctCount = practiceQuestions.filter((q) =>
@@ -91,7 +94,7 @@ export function QuizCompletionSummary({
     question: Question,
     userAnswer: string | string[] | undefined
   ) => {
-    if (userAnswer === undefined) return "未作答";
+    if (userAnswer === undefined) return t("practice.completion.notAnswered");
 
     if (question.type === QuestionType.MultipleChoice) {
       return Array.isArray(userAnswer) &&
@@ -104,22 +107,22 @@ export function QuizCompletionSummary({
                   ?.content || ansId
             )
             .join(", ")
-        : "未作答";
+        : t("practice.completion.notAnswered");
     } else if (question.type === QuestionType.TrueFalse) {
       return userAnswer === "true"
-        ? "正确"
+        ? t("aiExplanation.correct")
         : userAnswer === "false"
-        ? "错误"
-        : "未作答";
+        ? t("aiExplanation.incorrect")
+        : t("practice.completion.notAnswered");
     } else if (question.options && question.options.length > 0) {
       return (
         (question.options || []).find((opt) => opt.id === userAnswer)
           ?.content ||
         (userAnswer as string) ||
-        "未作答"
+        t("practice.completion.notAnswered")
       );
     } else {
-      return (userAnswer as string) || "未作答";
+      return (userAnswer as string) || t("practice.completion.notAnswered");
     }
   };
 
@@ -135,7 +138,9 @@ export function QuizCompletionSummary({
             .join(", ")
         : "N/A";
     } else if (question.type === QuestionType.TrueFalse) {
-      return question.answer === "true" ? "正确" : "错误";
+      return question.answer === "true"
+        ? t("aiExplanation.correct")
+        : t("aiExplanation.incorrect");
     } else if (question.options && question.options.length > 0) {
       return (
         (question.options || []).find((opt) => opt.id === question.answer)
@@ -147,15 +152,13 @@ export function QuizCompletionSummary({
       question.type === QuestionType.FillInBlank &&
       (question.answer as string).includes(";")
     ) {
-      // 处理填空题多答案显示，将答案拆分并美化显示
+      // Handle fill-in-the-blank multi-answer display
       const correctAns = question.answer as string;
-      // 正则表达式匹配分号，但不匹配连续分号中的前面那个
       const acceptableAnswers = correctAns.split(/;(?!;)/).map((ans) => {
-        // 替换连续分号为单个分号
         return ans.replace(/;;/g, ";").trim();
       });
       return acceptableAnswers
-        .map((ans, i) => `答案${i + 1}: ${ans}`)
+        .map((ans, i) => `${t("convert.preview.answer")}${i + 1}: ${ans}`)
         .join(" | ");
     } else {
       return (question.answer as string) || "N/A";
@@ -174,7 +177,7 @@ export function QuizCompletionSummary({
     ) {
       const currentQOptions = question.options;
       if (!currentQOptions || currentQOptions.length === 0)
-        return "选项数据缺失";
+        return "Missing options";
 
       const originalAnswerArray = Array.isArray(originalAns)
         ? originalAns
@@ -193,18 +196,18 @@ export function QuizCompletionSummary({
                 option.content
               }`;
             }
-            return `未知选项ID: ${ansId}`;
+            return `Unknown ID: ${ansId}`;
           })
-          .join(", ") || "未记录"
+          .join(", ") || "Not recorded"
       );
     } else if (question.type === QuestionType.TrueFalse) {
       return originalAns === "true"
-        ? "正确"
+        ? t("aiExplanation.correct")
         : originalAns === "false"
-        ? "错误"
-        : originalAns || "未记录";
+        ? t("aiExplanation.incorrect")
+        : originalAns || "Not recorded";
     } else {
-      return originalAns || "未记录";
+      return originalAns || "Not recorded";
     }
   };
 
@@ -218,45 +221,47 @@ export function QuizCompletionSummary({
         </CardHeader>
         <CardContent className="space-y-6 px-4 sm:px-6 pb-6">
           <p className="text-lg text-gray-700 dark:text-gray-200">
-            您已完成本次练习。
+            {t("practice.completion.message")}
           </p>
 
           <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-left py-4 px-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg shadow-sm">
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                练习题数:
+                {t("practice.completion.stats.total")}:
               </p>
               <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                {totalPracticed} 题
+                {totalPracticed} {t("practice.completion.stats.unit")}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                答对题数:
+                {t("practice.completion.stats.correct")}:
               </p>
               <p className="text-xl font-semibold text-green-600 dark:text-green-400">
-                {correctCount} 题
+                {correctCount} {t("practice.completion.stats.unit")}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                正确率:
+                {t("practice.completion.stats.accuracy")}:
               </p>
               <p className="text-xl font-semibold text-blue-600 dark:text-blue-400">
                 {accuracy}%
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">用时:</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("practice.completion.stats.time")}:
+              </p>
               <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                {practiceTime} 秒
+                {practiceTime} {t("practice.completion.stats.seconds")}
               </p>
             </div>
           </div>
 
           <div className="mt-6 text-left">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3">
-              答题回顾:
+              {t("practice.completion.review")}:
             </h3>
             {practiceQuestions.length > 0 ? (
               <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 border dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
@@ -288,7 +293,11 @@ export function QuizCompletionSummary({
                               : "text-red-600 dark:text-red-400"
                           }`}
                         >
-                          ({isCorrect ? "正确" : "错误"})
+                          (
+                          {isCorrect
+                            ? t("practice.completion.correct")
+                            : t("practice.completion.incorrect")}
+                          )
                         </span>
                       </p>
 
@@ -299,13 +308,17 @@ export function QuizCompletionSummary({
                             : "text-red-700 dark:text-red-300"
                         }`}
                       >
-                        <span className="font-semibold">你的答案:</span>{" "}
+                        <span className="font-semibold">
+                          {t("practice.completion.yourAnswer")}:
+                        </span>{" "}
                         {userAnswerDisplay}
                       </p>
 
                       {!isCorrect && (
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <span className="font-semibold">正确答案:</span>{" "}
+                          <span className="font-semibold">
+                            {t("practice.completion.correctAnswer")}:
+                          </span>{" "}
                           {correctAnswerDisplay}
                         </p>
                       )}
@@ -314,7 +327,9 @@ export function QuizCompletionSummary({
                         !isCorrect &&
                         renderOriginalWrongAnswer(question) && (
                           <p className="text-xs mt-1 text-amber-600 dark:text-amber-400">
-                            <span className="font-semibold">最初错误答案:</span>{" "}
+                            <span className="font-semibold">
+                              {t("practice.completion.originalWrong")}:
+                            </span>{" "}
                             {renderOriginalWrongAnswer(question)}
                           </p>
                         )}
@@ -322,7 +337,9 @@ export function QuizCompletionSummary({
                       {question.explanation && (
                         <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                           <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-pre-wrap break-words">
-                            <span className="font-semibold">解析:</span>{" "}
+                            <span className="font-semibold">
+                              {t("practice.completion.explanation")}:
+                            </span>{" "}
                             {question.explanation}
                           </p>
                         </div>
@@ -333,7 +350,7 @@ export function QuizCompletionSummary({
               </div>
             ) : (
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                没有练习题目记录。
+                {t("practice.completion.noRecords")}
               </p>
             )}
           </div>
@@ -344,10 +361,10 @@ export function QuizCompletionSummary({
             variant="outline"
             className="w-full sm:w-auto"
           >
-            <FaArrowLeft className="mr-2" /> 返回题库列表
+            <FaArrowLeft className="mr-2" /> {t("practice.backToList")}
           </Button>
           <Button onClick={onRetryQuiz} className="w-full sm:w-auto">
-            <FaRedo className="mr-2" /> 再次练习该题库
+            <FaRedo className="mr-2" /> {t("practice.completion.retry")}
           </Button>
         </CardFooter>
       </Card>

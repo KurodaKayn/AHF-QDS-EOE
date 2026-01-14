@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { Question } from "@/types/quiz";
 import { parseTextByScript, ScriptTemplate } from "@/utils/scriptParser";
-import { CONVERT_SYSTEM_PROMPT } from "@/constants/ai";
+import { getPrompts } from "@/constants/ai";
 import { parseQuestions } from "@/utils/questionParser";
 import { conversionService } from "@/services/conversionService";
 import { useQuizStore } from "@/store/quizStore";
@@ -22,7 +22,7 @@ interface UseConversionLogicProps {
 export function useConversionLogic({
   onSuccess,
 }: UseConversionLogicProps = {}) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     settings,
     addQuestionBank,
@@ -62,8 +62,9 @@ export function useConversionLogic({
       }
 
       try {
+        const prompts = getPrompts(i18n.language);
         const messages = [
-          { role: "system" as const, content: CONVERT_SYSTEM_PROMPT },
+          { role: "system" as const, content: prompts.convert },
           { role: "user" as const, content: inputText },
         ];
 

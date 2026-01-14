@@ -17,12 +17,12 @@ export default function QuizPage() {
     useQuizStore();
   const { t, i18n } = useTranslation();
 
-  // 用于强制刷新列表，以便 date-fns 的时间正确更新
+  // state to force refresh the list to keep date-fns time updated
   const [_, setForceUpdate] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => {
       setForceUpdate((prev) => prev + 1);
-    }, 60000); // 每分钟更新一次
+    }, 60000); // Update every minute
     return () => clearInterval(timer);
   }, []);
 
@@ -30,7 +30,7 @@ export default function QuizPage() {
     return i18n.language === "en" ? enUS : zhCN;
   };
 
-  // 检查是否有未完成的刷题会话
+  // Check for unfinished practice session
   const hasUnfinishedSession =
     practiceSession.bankId &&
     practiceSession.practiceQuestions.length > 0 &&
@@ -94,16 +94,16 @@ export default function QuizPage() {
           </button>
           <button
             onClick={() => {
-              // 检测是否为开发环境
+              // Check environment
               if (process.env.NODE_ENV === "development") {
-                // 开发环境使用Next.js路由，带上题库ID
+                // Dev environment uses Next.js router
                 router.push(`/quiz/banks/manage?bankId=${bank.id}`);
               } else {
-                // 生产环境使用表单导航（适用于Tauri静态导出）
+                // Prod environment uses form navigation (for Tauri static export)
                 const form = document.createElement("form");
                 form.method = "GET";
                 form.action = "/quiz/banks/manage/index.html";
-                // 添加题库ID作为参数
+                // Add bankId as param
                 const input = document.createElement("input");
                 input.type = "hidden";
                 input.name = "bankId";
@@ -125,7 +125,7 @@ export default function QuizPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
-      {/* 继续刷题提示 */}
+      {/* Continue practice prompt */}
       {hasUnfinishedSession && unfinishedBank && (
         <div className="mb-6 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -168,12 +168,9 @@ export default function QuizPage() {
           </p>
           <Button
             onClick={() => {
-              // 检测是否为开发环境
               if (process.env.NODE_ENV === "development") {
-                // 开发环境使用Next.js路由
                 router.push("/quiz/banks/manage");
               } else {
-                // 生产环境使用表单导航（适用于Tauri静态导出）
                 const form = document.createElement("form");
                 form.method = "GET";
                 form.action = "/quiz/banks/manage/index.html";

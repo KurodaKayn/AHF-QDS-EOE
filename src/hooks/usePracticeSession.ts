@@ -4,8 +4,8 @@ import { useQuizStore } from "@/store/quizStore";
 import { Question, QuestionType } from "@/types/quiz";
 
 /**
- * 自定义 Hook：管理刷题会话状态
- * 提供状态持久化和恢复功能
+ * Custom Hook: Manages practice session state
+ * Provides state persistence and recovery functionality
  */
 export function usePracticeSession() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export function usePracticeSession() {
   const [isNumQuestionsModalOpen, setIsNumQuestionsModalOpen] = useState(false);
   const [allBankQuestions, setAllBankQuestions] = useState<Question[]>([]);
 
-  // 从 store 中恢复状态
+  // Restore state from store
   const currentBank = bankId ? getQuestionBankById(bankId) : null;
   const practiceQuestions = practiceSession.practiceQuestions;
   const currentQuestionIndex = practiceSession.currentQuestionIndex;
@@ -40,7 +40,7 @@ export function usePracticeSession() {
 
   const currentQuestion = practiceQuestions[currentQuestionIndex];
 
-  // 计算派生状态
+  // Calculate derived state
   const isCurrentQuestionAnswered = useMemo(() => {
     if (!currentQuestion || !userAnswers[currentQuestion.id]) return false;
     const answer = userAnswers[currentQuestion.id];
@@ -56,15 +56,15 @@ export function usePracticeSession() {
 
   const canPressNext = useMemo(() => {
     if (isLastQuestion) {
-      // 最后一题必须答题才能完成
+      // Last question must be answered to complete
       return isCurrentQuestionAnswered;
     } else {
-      // 非最后一题始终可以下一题
+      // Always allow Next for non-last questions
       return true;
     }
   }, [isLastQuestion, isCurrentQuestionAnswered]);
 
-  // 初始化或恢复会话
+  // Initialize or restore session
   useEffect(() => {
     if (!bankId) {
       router.push("/quiz");
@@ -77,19 +77,19 @@ export function usePracticeSession() {
       return;
     }
 
-    // 检查是否有现有会话可以恢复
+    // Check if there's an existing session to restore
     const hasExistingSession =
       practiceSession.bankId === bankId &&
       practiceSession.mode === (isReviewMode ? "review" : "normal") &&
       practiceSession.practiceQuestions.length > 0;
 
     if (hasExistingSession && !quizCompleted) {
-      // 恢复现有会话
+      // Restore existing session
       setIsLoading(false);
       return;
     }
 
-    // 开始新会话
+    // Start new session
     if (isReviewMode) {
       initializeReviewMode(bank);
     } else {
@@ -177,7 +177,9 @@ export function usePracticeSession() {
     setIsLoading(false);
   };
 
-  // 工具函数：打乱数组
+  /**
+   * Shuffles an array using Fisher-Yates algorithm
+   */
   const shuffleArray = <T>(array: T[]): T[] => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -187,7 +189,9 @@ export function usePracticeSession() {
     return shuffled;
   };
 
-  // 更新状态的辅助函数
+  /**
+   * Helper function to update practice session state
+   */
   const updateSession = useCallback(
     (updates: Partial<typeof practiceSession>) => {
       setPracticeSession(updates);
@@ -196,7 +200,7 @@ export function usePracticeSession() {
   );
 
   return {
-    // 状态
+    // State
     currentBank,
     allBankQuestions,
     practiceQuestions,
@@ -210,12 +214,12 @@ export function usePracticeSession() {
     isNumQuestionsModalOpen,
     isReviewMode,
 
-    // 派生状态
+    // Derived State
     isCurrentQuestionAnswered,
     isLastQuestion,
     canPressNext,
 
-    // 方法
+    // Methods
     setIsNumQuestionsModalOpen,
     updateSession,
     clearPracticeSession,

@@ -1,12 +1,12 @@
 import { Question, QuestionType } from "@/types/quiz";
 
 /**
- * 刷题业务逻辑处理器
- * 将所有业务逻辑从组件中抽离
+ * Practice business logic handler
+ * Extracts business logic from components
  */
 export class PracticeHandlers {
   /**
-   * 检查答案是否正确
+   * Checks if the user answer is correct
    */
   static checkIsCorrect(
     question: Question,
@@ -19,7 +19,10 @@ export class PracticeHandlers {
     switch (question.type) {
       case QuestionType.SingleChoice:
       case QuestionType.TrueFalse:
-        return userAnswer === correctAnswer;
+        return (
+          (userAnswer as string).toLowerCase() ===
+          (correctAnswer as string).toLowerCase()
+        );
 
       case QuestionType.MultipleChoice:
         if (!Array.isArray(userAnswer) || !Array.isArray(correctAnswer)) {
@@ -57,7 +60,7 @@ export class PracticeHandlers {
   }
 
   /**
-   * 打乱数组
+   * Shuffles an array
    */
   static shuffleArray<T>(array: T[]): T[] {
     const shuffled = [...array];
@@ -69,7 +72,7 @@ export class PracticeHandlers {
   }
 
   /**
-   * 准备练习题目（打乱顺序和选项）
+   * Prepares practice questions (shuffles order and options)
    */
   static preparePracticeQuestions(
     questions: Question[],
@@ -102,7 +105,7 @@ export class PracticeHandlers {
   }
 
   /**
-   * 计算练习统计信息
+   * Calculates practice statistics
    */
   static calculateStats(
     practiceQuestions: Question[],

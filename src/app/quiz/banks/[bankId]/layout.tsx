@@ -1,11 +1,15 @@
 /**
- * 为静态导出生成路径参数
- * 由于这是服务器组件，因此服务端生成的参数用于静态导出
+ * Generate path parameters for static export
+ * Since this is a server component, params generated here are used for static export
  */
 export function generateStaticParams() {
-  return [{ bankId: 'default' }];
+  return [{ bankId: "default" }];
 }
 
-export default function BankLayout({ children }: { children: React.ReactNode }) {
+export default function BankLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return <>{children}</>;
-} 
+}

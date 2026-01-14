@@ -9,14 +9,17 @@ import { BankFilters } from "@/components/quiz/banks/BankFilters";
 import { QuestionList } from "@/components/quiz/banks/QuestionList";
 import QuestionFormModal from "@/components/QuestionFormModal";
 import { FaArrowLeft } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 /**
- * 题库详情页面，用于管理特定题库中的题目
+ * Bank detail page for managing questions in a specific bank
  */
 export default function BankDetailPage() {
   const router = useRouter();
   const params = useParams();
-  // 确保 bankId 总是字符串
+  const { t } = useTranslation();
+
+  // Ensure bankId is always a string
   const bankId = Array.isArray(params.bankId)
     ? params.bankId[0] || ""
     : params.bankId || "";
@@ -54,7 +57,14 @@ export default function BankDetailPage() {
   };
 
   const handleDeleteQuestion = (questionId: string) => {
-    if (confirm("确定要删除这个题目吗？此操作无法撤销。")) {
+    if (
+      confirm(
+        t("bankManage.deleteConfirm.questionMessage", { content: "" }).replace(
+          '""',
+          ""
+        )
+      )
+    ) {
       deleteQuestionFromBank(bankId, questionId);
     }
   };
@@ -64,38 +74,38 @@ export default function BankDetailPage() {
     setFilterType("all");
   };
 
-  // 如果题库不存在，显示错误页
+  // If bank not found, show error page
   if (!bank) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 flex flex-col items-center justify-center text-center">
         <h1 className="text-3xl font-bold text-red-500 dark:text-red-400 mb-4">
-          题库不存在
+          {t("practice.bankNotFound")}
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mb-8">
-          您请求的题库未找到，可能已被删除或 ID 无效。
+          {t("bankManage.selectBankPrompt")}
         </p>
         <button
           onClick={() => router.push("/quiz")}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg flex items-center"
         >
-          <FaArrowLeft className="mr-2" /> 返回题库列表
+          <FaArrowLeft className="mr-2" /> {t("bankManage.backToList")}
         </button>
       </div>
     );
   }
 
-  // 过滤和排序题目
+  // Filter and sort questions
   const filteredQuestions = bank.questions
     .filter((q) => {
-      // 先按照题目类型筛选
+      // Filter by type
       if (filterType !== "all" && q.type !== filterType) {
         return false;
       }
 
-      // 再按照搜索条件筛选
+      // Filter by search term
       if (!searchTerm) return true;
 
-      // 搜索题目内容、选项和解析
+      // Search in content, explanation and options
       const searchLower = searchTerm.toLowerCase();
       return (
         q.content.toLowerCase().includes(searchLower) ||
@@ -106,7 +116,7 @@ export default function BankDetailPage() {
       );
     })
     .sort((a, b) => {
-      // 按照更新时间排序
+      // Sort by update time
       if (sortOrder === "asc") {
         return a.updatedAt - b.updatedAt;
       } else {

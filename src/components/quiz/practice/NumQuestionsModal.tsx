@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 
 interface NumQuestionsModalProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ interface NumQuestionsModalProps {
 }
 
 /**
- * 选择练习题目数量的模态框
+ * Modal for selecting the number of questions to practice.
  */
 export function NumQuestionsModal({
   isOpen,
@@ -27,6 +28,7 @@ export function NumQuestionsModal({
   onSubmit,
   maxQuestions,
 }: NumQuestionsModalProps) {
+  const { t } = useTranslation();
   const [numQuestions, setNumQuestions] = useState(Math.min(20, maxQuestions));
 
   const handleSubmit = () => {
@@ -38,15 +40,15 @@ export function NumQuestionsModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>选择练习题目数量</DialogTitle>
+          <DialogTitle>{t("practice.numModal.title")}</DialogTitle>
           <DialogDescription>
-            题库共有 {maxQuestions} 道题目，请选择要练习的数量
+            {t("practice.numModal.errorExceed", { total: maxQuestions })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
           <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            练习题目数量
+            {t("practice.numModal.label")}
           </label>
           <input
             type="number"
@@ -64,15 +66,15 @@ export function NumQuestionsModal({
             className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            建议每次练习 10-30 题
+            {t("practice.numModal.instruction")}
           </p>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            取消
+            {t("practice.numModal.cancel")}
           </Button>
-          <Button onClick={handleSubmit}>开始练习</Button>
+          <Button onClick={handleSubmit}>{t("practice.numModal.start")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

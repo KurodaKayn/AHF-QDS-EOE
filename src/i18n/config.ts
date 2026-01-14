@@ -19,9 +19,9 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: "zh", // 默认语言为中文
+    fallbackLng: "zh", // Default language is Chinese
     interpolation: {
-      escapeValue: false, // React 已经处理了 XSS
+      escapeValue: false, // React already handles XSS
     },
     detection: {
       order: ["localStorage", "navigator"],

@@ -8,8 +8,9 @@ import {
   QuestionOption,
 } from "@/types/quiz";
 import { nanoid } from "nanoid";
-import { SIMILAR_QUESTIONS_PROMPT, callAI } from "@/constants/ai";
+import { getPrompts, callAI } from "@/constants/ai";
 import { createStorage } from "@/lib/storage";
+import i18n from "@/i18n/config";
 
 // AI Config Interface
 export interface AIConfig {
@@ -22,7 +23,7 @@ export interface AIConfig {
   model: string;
 }
 
-// 定义设置的接口
+// Interface for Quiz Settings
 export interface QuizSettings {
   shufflePracticeOptions: boolean;
   shuffleReviewOptions: boolean;
@@ -34,21 +35,20 @@ export interface QuizSettings {
   aiConfigs: AIConfig[];
   activeAiConfigId: string;
 
-  // 新增：题目查重开关
+  // Toggle for duplicate question checking
   checkDuplicateQuestion: boolean;
 }
 
 export interface QuizState {
   questionBanks: QuestionBank[];
   records: QuestionRecord[];
-  settings: QuizSettings; // 设置状态，包括AI提供商配置
+  settings: QuizSettings;
 
-  // >>> 新增状态，用于相似题目功能
+  // Similarity feature states
   isSimilarQuestionsModalOpen: boolean;
   generatingSimilarQuestions: boolean;
   similarQuestionsList: Question[];
   selectedOriginalQuestionsForSimilarity: Question[];
-  // <<< 新增状态结束
 
   addQuestionBank: (name: string, description?: string) => QuestionBank;
   getQuestionBankById: (id: string) => QuestionBank | undefined;
@@ -84,7 +84,7 @@ export interface QuizState {
   deleteAiConfig: (id: string) => void;
   setActiveAiConfig: (id: string) => void;
 
-  // >>> 新增操作，用于相似题目功能
+  // Similarity feature actions
   toggleSimilarQuestionsModal: (isOpen?: boolean) => void;
   setSelectedOriginalQuestionsForSimilarity: (questions: Question[]) => void;
   generateSimilarQuestions: (originalQuestions: Question[]) => Promise<void>;
@@ -97,7 +97,6 @@ export interface QuizState {
     skippedCount: number;
     error?: string;
   }>;
-  // <<< 新增操作结束
 
   // Conversion State Persistence
   conversionState: {
@@ -126,7 +125,7 @@ export interface QuizState {
   clearPracticeSession: () => void;
 }
 
-// 初始设置
+// Initial default AI configs
 const defaultAiConfigs: AIConfig[] = [
   {
     id: "deepseek-default",
@@ -139,7 +138,7 @@ const defaultAiConfigs: AIConfig[] = [
   },
   {
     id: "alibaba-default",
-    name: "通义千问",
+    name: "Qwen (Alibaba)",
     type: "preset",
     provider: "alibaba",
     baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
@@ -158,7 +157,6 @@ const initialSettings: QuizSettings = {
   aiConfigs: defaultAiConfigs,
   activeAiConfigId: "deepseek-default",
 
-  // 新增
   checkDuplicateQuestion: true,
 };
 
@@ -167,14 +165,12 @@ export const useQuizStore = create<QuizState>()(
     (set, get) => ({
       questionBanks: [],
       records: [],
-      settings: initialSettings, // 初始化设置
+      settings: initialSettings,
 
-      // >>> 初始化新增状态
       isSimilarQuestionsModalOpen: false,
       generatingSimilarQuestions: false,
       similarQuestionsList: [],
       selectedOriginalQuestionsForSimilarity: [],
-      // <<< 初始化新增状态结束
 
       conversionState: {
         inputText: "",
@@ -263,7 +259,7 @@ export const useQuizStore = create<QuizState>()(
         if (!bank) {
           return { question: null, isDuplicate: false };
         }
-        // 只有开启查重时才查重
+        // Only check for duplicates if the setting is enabled
         const checkDuplicate = get().settings.checkDuplicateQuestion;
         let duplicateQuestion = undefined;
         if (checkDuplicate) {
@@ -274,7 +270,7 @@ export const useQuizStore = create<QuizState>()(
         if (duplicateQuestion) {
           return { question: null, isDuplicate: true };
         }
-        // 不存在重复，添加新题目
+        // Add new question if it's not a duplicate
         const newQuestion: Question = { ...questionData, id: nanoid() };
         let updatedBank: QuestionBank | undefined;
         set((state) => ({
@@ -380,7 +376,6 @@ export const useQuizStore = create<QuizState>()(
       },
       resetQuizSettings: () => {
         set((state) => ({
-          // Pass the current state to ensure other parts of the state are not affected
           ...state,
           settings: initialSettings,
         }));
@@ -393,7 +388,6 @@ export const useQuizStore = create<QuizState>()(
           settings: {
             ...state.settings,
             aiConfigs: [...state.settings.aiConfigs, newConfig],
-            // If it's the first config and none is active, make it active (optional)
             activeAiConfigId: state.settings.activeAiConfigId || newConfig.id,
           },
         }));
@@ -414,7 +408,6 @@ export const useQuizStore = create<QuizState>()(
             (c) => c.id !== id
           );
           let newActiveId = state.settings.activeAiConfigId;
-          // If we deleted the active config, pick the first one or empty string
           if (newActiveId === id) {
             newActiveId = newConfigs.length > 0 ? newConfigs[0].id : "";
           }
@@ -436,7 +429,7 @@ export const useQuizStore = create<QuizState>()(
         }));
       },
 
-      // >>> 实现新增操作
+      // Similarity feature operations
       toggleSimilarQuestionsModal: (isOpen) => {
         set((state) => ({
           isSimilarQuestionsModalOpen:
@@ -457,21 +450,22 @@ export const useQuizStore = create<QuizState>()(
         }
 
         try {
-          // 获取当前激活的AI配置
           const { aiConfigs, activeAiConfigId } = get().settings;
           const config = aiConfigs.find((c) => c.id === activeAiConfigId);
 
           if (!config) {
-            throw new Error("未找到激活的AI配置，请在设置中选择一个AI模型。");
+            throw new Error(i18n.t("review.similarModal.errorNoConfig"));
           }
 
           if (!config.apiKey) {
-            throw new Error(`请先在设置中配置 ${config.name} 的 API Key。`);
+            throw new Error(
+              i18n.t("review.similarModal.errorNoApiKey", { name: config.name })
+            );
           }
 
           const { baseUrl, apiKey, model } = config;
 
-          // 准备输入数据：将原题转换为适当格式
+          // Prepare input: convert original questions to appropriate format
           const originalQuestionsData = originalQuestions.map((q) => {
             return {
               content: q.content,
@@ -482,52 +476,50 @@ export const useQuizStore = create<QuizState>()(
             };
           });
 
-          // 构建消息
+          // Build messages
+          const prompts = getPrompts(i18n.language);
           const messages = [
-            { role: "system", content: SIMILAR_QUESTIONS_PROMPT },
+            { role: "system", content: prompts.similar },
             {
               role: "user",
-              content: `请基于以下题目生成相似题目：\n${JSON.stringify(
-                originalQuestionsData,
-                null,
-                2
-              )}`,
+              content: `${i18n.t(
+                "review.similarModal.errorPrompt"
+              )}\n${JSON.stringify(originalQuestionsData, null, 2)}`,
             },
           ];
 
           const response = await callAI(baseUrl, apiKey, model, messages);
 
-          // 解析API返回的JSON
+          // Parse JSON from API response
           let generatedQuestionsData;
           try {
-            // 尝试直接解析返回的内容为JSON
+            // Try direct parse
             generatedQuestionsData = JSON.parse(response);
           } catch (e) {
-            // 如果直接解析失败，尝试从返回的文本中提取JSON部分
+            // Try extracting JSON block if direct parse fails
             const jsonMatch = response.match(/\[\s*\{[\s\S]*\}\s*\]/);
             if (jsonMatch) {
               try {
                 generatedQuestionsData = JSON.parse(jsonMatch[0]);
               } catch (e2) {
-                throw new Error("无法解析AI返回的数据");
+                throw new Error(i18n.t("review.similarModal.errorParseFailed"));
               }
             } else {
-              throw new Error("AI返回的数据不包含有效的JSON");
+              throw new Error(i18n.t("review.similarModal.errorNoJson"));
             }
           }
 
           if (!Array.isArray(generatedQuestionsData)) {
-            throw new Error("AI返回的数据格式不正确，应为题目数组");
+            throw new Error(i18n.t("review.similarModal.errorInvalidFormat"));
           }
 
-          // 处理返回的题目数据，补充必要的字段
+          // Process returned data, adding necessary fields
           const processedQuestions: Question[] = generatedQuestionsData.map(
             (q: any) => {
-              // 确保选项有ID
+              // Ensure options have IDs
               let processedOptions: QuestionOption[] = [];
               if (q.options && Array.isArray(q.options)) {
-                processedOptions = q.options.map((opt: any, idx: number) => {
-                  // 如果选项没有ID，生成一个
+                processedOptions = q.options.map((opt: any) => {
                   if (!opt.id) {
                     return { ...opt, id: nanoid() };
                   }
@@ -535,7 +527,6 @@ export const useQuizStore = create<QuizState>()(
                 });
               }
 
-              // 填充完整的题目对象
               return {
                 id: nanoid(),
                 content: q.content,
@@ -555,10 +546,9 @@ export const useQuizStore = create<QuizState>()(
             generatingSimilarQuestions: false,
           });
         } catch (error) {
-          // 出错时显示一个提示，并重置状态
           alert(
-            `生成相似题目失败: ${
-              error instanceof Error ? error.message : "未知错误"
+            `${i18n.t("review.similarModal.importFailed")}: ${
+              error instanceof Error ? error.message : "Unknown error"
             }`
           );
           set({
@@ -577,24 +567,21 @@ export const useQuizStore = create<QuizState>()(
             success: false,
             importedCount,
             skippedCount,
-            error: "目标题库不存在",
+            error: i18n.t("review.similarModal.importingBank"),
           };
         }
 
         for (const question of selectedQuestions) {
-          const { id, ...questionData } = question; // id is not needed for addQuestionToBank
+          const { id, ...questionData } = question;
           const result = addQuestionToBank(targetBankId, questionData);
           if (result.question) {
             importedCount++;
           } else if (result.isDuplicate) {
             skippedCount++;
-          } else {
-            // 导入失败但非重复
           }
         }
         return { success: true, importedCount, skippedCount };
       },
-      // <<< 实现新增操作结束
     }),
     {
       name: "quiz-storage",
@@ -603,8 +590,8 @@ export const useQuizStore = create<QuizState>()(
         questionBanks: state.questionBanks,
         records: state.records,
         settings: state.settings,
-        conversionState: state.conversionState, // Persist conversion state
-        practiceSession: state.practiceSession, // Persist practice session state
+        conversionState: state.conversionState,
+        practiceSession: state.practiceSession,
       }),
       merge: (persistedState, currentState) => {
         const merged = {
@@ -618,7 +605,6 @@ export const useQuizStore = create<QuizState>()(
           const oldSettings = persisted.settings;
           const newConfigs: AIConfig[] = [];
 
-          // Migrate Deepseek if key existed
           if (oldSettings.deepseekApiKey) {
             newConfigs.push({
               id: "migrated-deepseek",
@@ -632,7 +618,6 @@ export const useQuizStore = create<QuizState>()(
             });
           }
 
-          // Migrate Alibaba if key existed
           if (oldSettings.alibabaApiKey) {
             newConfigs.push({
               id: "migrated-alibaba",
@@ -644,11 +629,6 @@ export const useQuizStore = create<QuizState>()(
               model: "qwen-turbo",
             });
           }
-
-          // Ensure we have default configs if nothing migrated or in addition
-          // Actually, if we have migrated something, we use it. If not, we use defaults.
-          // If we migrate, we should likely keep default empty ones too if user wants?
-          // No, cleaner to just use what we have or fall back to defaults.
 
           const finalConfigs =
             newConfigs.length > 0 ? newConfigs : defaultAiConfigs;
@@ -675,19 +655,15 @@ export const useQuizStore = create<QuizState>()(
         } else if (!(persistedState as QuizState)?.settings) {
           merged.settings = initialSettings;
         } else {
-          // Standard merge for existing new structure
           merged.settings = {
             ...initialSettings,
             ...(persistedState as QuizState).settings,
-            // Ensure aiConfigs is not undefined if something weird happened
             aiConfigs:
               (persistedState as QuizState).settings.aiConfigs ||
               initialSettings.aiConfigs,
           };
         }
 
-        // Merge conversionState if exists
-        // 'persisted' is already declared above for migration logic
         if (persisted.conversionState) {
           merged.conversionState = {
             ...currentState.conversionState,

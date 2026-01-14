@@ -10,6 +10,7 @@ import {
   FaHome,
   FaRedo,
 } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 interface QuestionNavigationProps {
   currentIndex: number;
@@ -25,8 +26,8 @@ interface QuestionNavigationProps {
 }
 
 /**
- * 题目导航组件
- * 提供上一题、下一题、跳转和返回题库功能
+ * Question navigation component
+ * Provides previous, next, jump, and return to bank functionality
  */
 export function QuestionNavigation({
   currentIndex,
@@ -40,12 +41,13 @@ export function QuestionNavigation({
   onReturnToBank,
   onReload,
 }: QuestionNavigationProps) {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // 只允许数字
+    // Only allow digits
     if (/^\d*$/.test(value)) {
       setInputValue(value);
     }
@@ -55,7 +57,7 @@ export function QuestionNavigation({
     if (e.key === "Enter") {
       const num = parseInt(inputValue, 10);
       if (num >= 1 && num <= totalQuestions) {
-        onJumpTo(num - 1); // 转换为 0-indexed
+        onJumpTo(num - 1); // convert to 0-indexed
       }
       setIsEditing(false);
       setInputValue("");
@@ -83,7 +85,7 @@ export function QuestionNavigation({
             onClick={onReload}
             variant="outline"
             className="flex items-center gap-2"
-            title="重新加载"
+            title={t("practice.nav.reload")}
           >
             <FaRedo />
           </Button>
@@ -95,7 +97,7 @@ export function QuestionNavigation({
             className="flex items-center gap-2"
           >
             <FaArrowLeft />
-            上一题
+            {t("practice.nav.previous")}
           </Button>
         </div>
 
@@ -114,7 +116,7 @@ export function QuestionNavigation({
             <button
               onClick={handleCurrentClick}
               className="px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer font-medium"
-              title="点击输入题号跳转"
+              title={t("practice.nav.jumpTooltip")}
             >
               {currentIndex + 1}
             </button>
@@ -130,7 +132,7 @@ export function QuestionNavigation({
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
             >
               <FaCheck />
-              完成
+              {t("practice.nav.finish")}
             </Button>
           ) : (
             <Button
@@ -138,7 +140,7 @@ export function QuestionNavigation({
               disabled={!canPressNext}
               className="flex items-center gap-2"
             >
-              下一题
+              {t("practice.nav.next")}
               <FaArrowRight />
             </Button>
           )}
@@ -147,7 +149,7 @@ export function QuestionNavigation({
             onClick={onReturnToBank}
             variant="outline"
             className="flex items-center gap-2"
-            title="返回题库"
+            title={t("practice.nav.returnToBank")}
           >
             <FaHome />
           </Button>

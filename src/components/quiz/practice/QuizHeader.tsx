@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { FaArrowLeft, FaCog } from "react-icons/fa";
 import { QuestionBank } from "@/types/quiz";
+import { useTranslation } from "react-i18next";
 
 interface QuizHeaderProps {
   currentBank: QuestionBank | null;
@@ -24,6 +25,8 @@ export function QuizHeader({
   onBack,
   onManageBank,
 }: QuizHeaderProps) {
+  const { t } = useTranslation();
+
   const progressPercentage =
     totalQuestions > 0
       ? ((currentQuestionIndex + 1) / totalQuestions) * 100
@@ -40,7 +43,7 @@ export function QuizHeader({
             className="text-sm"
           >
             <FaArrowLeft className="mr-2" />
-            返回
+            {t("common.back")}
           </Button>
           {currentBank && !isReviewMode && (
             <Button
@@ -50,13 +53,15 @@ export function QuizHeader({
               className="text-sm"
             >
               <FaCog className="mr-2" />
-              管理题库
+              {t("practice.manageBank")}
             </Button>
           )}
         </div>
         <div className="text-right">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {isReviewMode ? "错题回顾模式" : "当前题库"}
+            {isReviewMode
+              ? t("practice.reviewMode")
+              : t("practice.currentBank")}
           </p>
           <h2
             className="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate max-w-50 sm:max-w-xs md:max-w-sm"
@@ -64,19 +69,22 @@ export function QuizHeader({
           >
             {currentBank?.name
               ? isReviewMode
-                ? `${currentBank.name} (错题)`
+                ? `${currentBank.name}${t("practice.reviewSuffix")}`
                 : currentBank.name
               : isReviewMode
-              ? "错题回顾"
-              : "常规练习"}
+              ? t("review.pageTitle")
+              : t("practice.normalPractice")}
           </h2>
         </div>
       </div>
       <Progress value={progressPercentage} className="w-full h-2" />
       <div className="flex justify-between items-baseline mt-2">
         <h3 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">
-          {isReviewMode ? "回顾: " : ""} 第 {currentQuestionIndex + 1} /{" "}
-          {totalQuestions} 题
+          {isReviewMode ? t("practice.reviewPrefix") : ""}
+          {t("practice.questionProgress", {
+            current: currentQuestionIndex + 1,
+            total: totalQuestions,
+          })}
         </h3>
         <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
           {currentQuestionType}

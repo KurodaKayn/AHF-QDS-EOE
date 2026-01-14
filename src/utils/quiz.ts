@@ -3,12 +3,12 @@ import * as XLSX from "xlsx";
 import { Question, QuestionBank, QuestionType } from "@/types/quiz";
 
 /**
- * 生成唯一ID
+ * Generates a unique ID
  */
 export const generateId = (): string => nanoid();
 
 /**
- * 创建空题库
+ * Creates an empty question bank
  */
 export const createEmptyBank = (
   name: string,
@@ -26,7 +26,7 @@ export const createEmptyBank = (
 };
 
 /**
- * 创建新题目
+ * Creates a new question
  */
 export const createQuestion = (
   type: QuestionType,
@@ -51,10 +51,10 @@ export const createQuestion = (
 };
 
 /**
- * 将题目转换为导出格式的通用函数
+ * Utility to convert question to export row format
  */
 const convertQuestionToExportFormat = (q: Question): Record<string, any> => {
-  // 格式化答案
+  // Format answer
   let formattedAnswer = q.answer;
   if (q.type === QuestionType.MultipleChoice && Array.isArray(q.answer)) {
     formattedAnswer = q.answer.join(",");
@@ -73,7 +73,7 @@ const convertQuestionToExportFormat = (q: Question): Record<string, any> => {
     tags: q.tags?.join(",") || "",
   };
 
-  // 为选择题添加选项
+  // Add options for choice questions
   if (q.options && q.options.length > 0) {
     q.options.forEach((opt, index) => {
       const optKey = `option${String.fromCharCode(65 + index)}`;
@@ -85,7 +85,7 @@ const convertQuestionToExportFormat = (q: Question): Record<string, any> => {
 };
 
 /**
- * 导出题库为CSV
+ * Exports question bank to CSV
  */
 export const exportToCSV = (bank: QuestionBank): string => {
   const rows = bank.questions.map(convertQuestionToExportFormat);
@@ -94,7 +94,7 @@ export const exportToCSV = (bank: QuestionBank): string => {
 };
 
 /**
- * 导出题库为Excel
+ * Exports question bank to Excel
  */
 export const exportToExcel = (bank: QuestionBank): Blob => {
   const rows = bank.questions.map(convertQuestionToExportFormat);
@@ -109,13 +109,13 @@ export const exportToExcel = (bank: QuestionBank): Blob => {
 };
 
 /**
- * 将导入的行数据转换为题目的通用函数
+ * Utility to convert imported row data to question object
  */
 const convertImportRowToQuestion = (row: any): Question => {
   const type = row.type as QuestionType;
   const content = row.content;
 
-  // 处理不同类型题目的答案
+  // Process answers based on type
   let answer: string | string[] = row.answer;
   if (type === QuestionType.MultipleChoice) {
     answer =
@@ -142,7 +142,7 @@ const convertImportRowToQuestion = (row: any): Question => {
     }
   }
 
-  // 查找所有选项
+  // Find all option keys (optionA, optionB, etc.)
   const optionKeys = Object.keys(row).filter((key) =>
     /^option[A-Z]$/.test(key)
   );
@@ -152,8 +152,8 @@ const convertImportRowToQuestion = (row: any): Question => {
       return val !== null && val !== undefined && String(val).trim() !== "";
     })
     .map((key) => ({
-      id: key.replace("option", ""), // 使用选项字母作为ID (A, B, C...)
-      content: String(row[key]), // 强制转换为字符串
+      id: key.replace("option", ""), // Use option letter as ID (A, B, C...)
+      content: String(row[key]),
     }));
 
   const tags = row.tags
@@ -177,7 +177,7 @@ const convertImportRowToQuestion = (row: any): Question => {
 };
 
 /**
- * 从CSV导入题库
+ * Imports question bank from CSV string
  */
 export const importFromCSV = (
   csvString: string,
@@ -203,7 +203,7 @@ export const importFromCSV = (
 };
 
 /**
- * 从Excel导入题库
+ * Imports question bank from Excel buffer
  */
 export const importFromExcel = (
   buffer: ArrayBuffer,

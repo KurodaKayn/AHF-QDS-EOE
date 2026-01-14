@@ -43,7 +43,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* 自定义动画 */
+/* Custom Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;

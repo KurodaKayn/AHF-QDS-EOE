@@ -1,4 +1,7 @@
 {
+  "validation": {
+    "questionIdRequired": "Question ID is required"
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",
@@ -15,7 +18,8 @@
     "info": "Info",
     "yes": "Yes",
     "no": "No",
-    "close": "Close"
+    "close": "Close",
+    "tauriError": "Failed to call Tauri command {{command}}"
   },
   "questionTypes": {
     "single-choice": "Single Choice",
@@ -224,6 +228,11 @@
     "preview": {
       "answer": "Answer",
       "optionNotFound": "Option not found: {{id}}"
+    },
+    "examples": {
+      "chaoxing": "ChaoXing Template Example",
+      "singlechoice1": "Single Choice 1 Template Example",
+      "other": "Other Template Example"
     }
   },
   "aiExplanation": {
@@ -263,7 +272,13 @@
       "optionsRequired": "Option content cannot be empty for choice questions.",
       "singleAnswerRequired": "Please select an answer for single choice or true/false questions.",
       "multipleAnswerRequired": "Please select at least one answer for multiple choice questions.",
-      "textAnswerRequired": "Please enter an answer for short answer or fill-in-blank questions."
+      "textAnswerRequired": "Please enter an answer for short answer or fill-in-blank questions.",
+      "optionIdRequired": "Option ID cannot be empty",
+      "optionContentRequired": "Option content cannot be empty",
+      "invalidType": "Invalid question type",
+      "invalidAnswerFormat": "Invalid answer format",
+      "minOptions": "Choice questions require at least 2 options",
+      "trueFalseRequired": "True/False answer must be \"true\" or \"false\""
     }
   },
   "review": {
@@ -339,7 +354,14 @@
       "importSelected": "Import {{count}} selected questions",
       "errorNoSelection": "Please select at least one question to import.",
       "errorNoBank": "Please select a target bank.",
-      "importFailed": "Failed to import questions, please try again later."
+      "importFailed": "Failed to import questions. Please try again later.",
+      "errorNoConfig": "No active AI configuration found. Please select an AI model in settings.",
+      "errorNoApiKey": "Please configure the API key for {{name}} in settings.",
+      "errorParseFailed": "Failed to parse data returned by AI.",
+      "errorNoJson": "Data returned by AI does not contain valid JSON.",
+      "errorInvalidFormat": "Data returned by AI is not in the correct format (expected an array of questions).",
+      "errorPrompt": "Please generate similar questions based on the following:",
+      "importingBank": "Target bank does not exist"
     }
   },
   "bankManage": {
@@ -380,7 +402,22 @@
     "editQuestion": "Edit Question",
     "deleteQuestion": "Delete Question",
     "noQuestionsFound": "No matching questions found.",
-    "noQuestionsYet": "No questions in this bank yet. Click \"Add New Question\" above to start.",
+    "noQuestionsYet": "No questions in this bank yet. Click \"Add New Question\" above to start creating.",
+    "clearFilters": "Clear Filters",
+    "searchDetailedPlaceholder": "Search question content, options or explanation...",
+    "filterLabel": "Type:",
+    "allTypes": "All Types",
+    "sortAsc": "Time Ascending",
+    "sortDesc": "Time Descending",
+    "item": {
+      "answer": "Answer:",
+      "referenceAnswer": "Reference Answer:",
+      "fillInBlankAnswer": "Fill-blank Answer:",
+      "editQuestion": "Edit Question",
+      "deleteQuestion": "Delete Question",
+      "explanation": "Explanation:",
+      "updatedAt": "Updated"
+    },
     "selectBankPrompt": "Please select a bank from above to manage, or create a new one.",
     "noBanksPrompt": "You don't have any banks yet. Click \"Create New Bank\" above to start.",
     "loading": "Loading banks...",
@@ -390,7 +427,15 @@
       "bankCreated": "New bank \"{{name}}\" has been created and selected.",
       "bankDeleted": "Bank \"{{name}}\" has been deleted.",
       "questionDeleted": "Question deleted.",
+      "questionUpdated": "Question updated successfully.",
+      "questionAdded": "Question added successfully.",
+      "duplicateError": "Failed to add question: A question with the same content already exists in the bank.",
+      "addQuestionFailed": "Failed to add question, please try again later.",
       "duplicatesDeleted": "Deleted {{count}} duplicate questions."
+    },
+    "validation": {
+      "nameTooLong": "Bank name cannot exceed 100 characters",
+      "descTooLong": "Bank description cannot exceed 500 characters"
     },
     "duplicates": {
       "title": "Duplicate Questions Management",
@@ -414,6 +459,89 @@
       "duplicatesTitle": "Delete Duplicate Questions",
       "duplicatesMessage": "Are you sure you want to delete the selected {{count}} duplicate questions? This action cannot be undone.",
       "delete": "Delete"
+    }
+  },
+  "practice": {
+    "loading": "Loading...",
+    "loadingQuestions": "Loading questions...",
+    "bankNotFound": "Bank not found",
+    "backToList": "Back to Bank List",
+    "noWrongQuestions": "No mistakes yet",
+    "noQuestions": "No questions yet",
+    "manageBank": "Manage Bank",
+    "submit": "Submit",
+    "submitAndFinish": "Submit and Finish",
+    "showAnswer": "Show Answer",
+    "answerShown": "Answer shown",
+    "reviewMode": "Review Mode",
+    "currentBank": "Current Bank",
+    "reviewSuffix": " (Mistakes)",
+    "normalPractice": "Regular Practice",
+    "questionProgress": "Question {{current}} / {{total}}",
+    "reviewPrefix": "Review: ",
+    "status": {
+      "correct": "Correct",
+      "incorrect": "Incorrect"
+    },
+    "completion": {
+      "title": "Practice Completed!",
+      "reviewTitle": "Mistake Practice Completed!",
+      "message": "You have completed this practice session.",
+      "stats": {
+        "total": "Questions",
+        "correct": "Correct",
+        "accuracy": "Accuracy",
+        "time": "Time",
+        "unit": "Q",
+        "seconds": "s"
+      },
+      "review": "Answer Review",
+      "noRecords": "No practice records found.",
+      "retry": "Retry this Bank",
+      "correct": "Correct",
+      "incorrect": "Incorrect",
+      "yourAnswer": "Your Answer",
+      "correctAnswer": "Correct Answer",
+      "originalWrong": "Original Mistake",
+      "originalWrongReview": "Original Mistake Review:",
+      "explanation": "Explanation",
+      "explanationTitle": "Question Explanation:",
+      "notAnswered": "Not Answered",
+      "referenceAnswer": "Reference Answer:",
+      "inputPlaceholder": "Enter your answer here...",
+      "fillInBlankPlaceholder": "Enter fill-in-the-blank answer here...",
+      "missingOptions": "Missing options data",
+      "unknownOption": "Unknown option ID",
+      "notRecorded": "Not recorded"
+    },
+    "nav": {
+      "previous": "Previous",
+      "next": "Next",
+      "finish": "Finish",
+      "reload": "Reload",
+      "returnToBank": "Return to Bank",
+      "jumpTooltip": "Click to jump to question number"
+    },
+    "numModal": {
+      "title": "Select Number of Questions",
+      "bankLabel": "Bank",
+      "instruction": "Please enter the number of questions for this session.",
+      "label": "Number of Questions",
+      "unit": "Q",
+      "errorInvalid": "Please enter a valid number greater than 0.",
+      "errorExceed": "Number of questions cannot exceed the total ({{total}}).",
+      "cancel": "Cancel",
+      "start": "Start Practice"
+    },
+    "createModal": {
+      "title": "Create New Bank",
+      "nameLabel": "Bank Name",
+      "namePlaceholder": "Enter bank name",
+      "descLabel": "Description (Optional)",
+      "descPlaceholder": "Enter bank description...",
+      "errorNameRequired": "Bank name cannot be empty",
+      "cancel": "Cancel",
+      "create": "Create"
     }
   }
 }

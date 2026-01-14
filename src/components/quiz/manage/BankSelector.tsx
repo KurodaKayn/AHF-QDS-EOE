@@ -44,7 +44,11 @@ export function BankSelector({
                 value={bank.id}
                 className="text-base py-2"
               >
-                {bank.name} ({bank.questions ? bank.questions.length : 0}题)
+                {bank.name} (
+                {t("home.questionCount", {
+                  count: bank.questions ? bank.questions.length : 0,
+                })}
+                )
               </SelectItem>
             ))}
           </SelectContent>

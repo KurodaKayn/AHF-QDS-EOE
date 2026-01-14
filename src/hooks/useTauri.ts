@@ -1,31 +1,32 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { toast } from "sonner";
+import i18n from "@/i18n/config";
 
 /**
- * 判断当前环境是否为Tauri
- * @returns {boolean} 是否在Tauri环境中运行
+ * Check if the current environment is Tauri
+ * @returns {boolean} Whether running in Tauri environment
  */
 export const isTauri = (): boolean => {
   return typeof window !== "undefined" && "__TAURI__" in window;
 };
 
 /**
- * 提供在React组件中使用Tauri功能的钩子
- * @returns 包含Tauri API和环境信息的对象
+ * Hook to use Tauri functionality in React components
+ * @returns Object containing Tauri API and environment information
  */
 export const useTauri = () => {
   const [isTauriEnv, setIsTauriEnv] = useState<boolean>(false);
 
   useEffect(() => {
-    // 在组件挂载时检查是否在Tauri环境
+    // Check for Tauri environment on mount
     setIsTauriEnv(isTauri());
   }, []);
 
   /**
-   * 安全地调用Tauri命令
-   * @param command 命令名称
-   * @param args 命令参数
+   * Safely invoke a Tauri command
+   * @param command Command name
+   * @param args Command arguments
    */
   const invokeCommand = async <T = unknown>(
     command: string,
@@ -35,7 +36,7 @@ export const useTauri = () => {
       try {
         return await invoke<T>(command, args);
       } catch (error) {
-        toast.error(`调用 Tauri 命令 ${command} 失败`);
+        toast.error(i18n.t("common.tauriError", { command }));
         return null;
       }
     }
@@ -43,9 +44,9 @@ export const useTauri = () => {
   };
 
   /**
-   * 发送消息到后端（兼容原Electron API）
-   * @param channel 通信通道名称
-   * @param data 要发送的数据
+   * Send a message to the backend
+   * @param channel IPC channel name
+   * @param data Data to send
    */
   const sendMessage = async (channel: string, data: unknown) => {
     return await invokeCommand("handle_message", {
@@ -54,14 +55,14 @@ export const useTauri = () => {
   };
 
   /**
-   * 获取日志路径
+   * Get the application log path
    */
   const getLogPath = async (): Promise<string | null> => {
     return await invokeCommand<string>("get_log_path");
   };
 
   /**
-   * 重启应用
+   * Restart the application
    */
   const restartApp = async (): Promise<void> => {
     await invokeCommand("restart_app");

@@ -1,4 +1,7 @@
 {
+  "validation": {
+    "questionIdRequired": "题目ID不能为空"
+  },
   "common": {
     "loading": "加载中...",
     "save": "保存",
@@ -15,7 +18,8 @@
     "info": "提示",
     "yes": "是",
     "no": "否",
-    "close": "关闭"
+    "close": "关闭",
+    "tauriError": "调用 Tauri 命令 {{command}} 失败"
   },
   "questionTypes": {
     "single-choice": "单选题",
@@ -224,6 +228,11 @@
     "preview": {
       "answer": "答案",
       "optionNotFound": "选项未找到: {{id}}"
+    },
+    "examples": {
+      "chaoxing": "学习通模板示例",
+      "singlechoice1": "单选题1模板示例",
+      "other": "其它模板示例"
     }
   },
   "aiExplanation": {
@@ -263,7 +272,13 @@
       "optionsRequired": "选择题的选项内容不能为空。",
       "singleAnswerRequired": "请为单选题或判断题选择一个答案。",
       "multipleAnswerRequired": "请为多选题选择至少一个答案。",
-      "textAnswerRequired": "请输入简答题或填空题的答案。"
+      "textAnswerRequired": "请输入简答题或填空题的答案。",
+      "optionIdRequired": "选项ID不能为空",
+      "optionContentRequired": "选项内容不能为空",
+      "invalidType": "无效的题目类型",
+      "invalidAnswerFormat": "答案格式不正确",
+      "minOptions": "选择题至少需要2个选项",
+      "trueFalseRequired": "判断题答案必须是 \"true\" 或 \"false\""
     }
   },
   "review": {
@@ -339,7 +354,14 @@
       "importSelected": "导入选中的 {{count}} 道题目",
       "errorNoSelection": "请至少选择一道题目进行导入。",
       "errorNoBank": "请选择目标题库。",
-      "importFailed": "导入题目失败，请稍后再试。"
+      "importFailed": "导入题目失败，请稍后再试。",
+      "errorNoConfig": "未找到激活的 AI 配置，请在设置中选择一个 AI 模型。",
+      "errorNoApiKey": "请先在设置中配置 {{name}} 的 API 密钥。",
+      "errorParseFailed": "无法解析 AI 返回的数据。",
+      "errorNoJson": "AI 返回的数据不包含有效的 JSON。",
+      "errorInvalidFormat": "AI 返回的数据格式不正确，应为题目数组。",
+      "errorPrompt": "请基于以下题目生成相似题目：",
+      "importingBank": "目标题库不存在"
     }
   },
   "bankManage": {
@@ -381,6 +403,21 @@
     "deleteQuestion": "删除题目",
     "noQuestionsFound": "没有找到匹配的题目。",
     "noQuestionsYet": "此题库中还没有题目。点击上方 \"添加新题目\" 开始创建。",
+    "clearFilters": "清除过滤条件",
+    "searchDetailedPlaceholder": "搜索题目内容、选项或解析...",
+    "filterLabel": "题型:",
+    "allTypes": "全部题型",
+    "sortAsc": "时间升序",
+    "sortDesc": "时间降序",
+    "item": {
+      "answer": "答案:",
+      "referenceAnswer": "参考答案:",
+      "fillInBlankAnswer": "填空答案:",
+      "editQuestion": "编辑题目",
+      "deleteQuestion": "删除题目",
+      "explanation": "解析:",
+      "updatedAt": "更新于"
+    },
     "selectBankPrompt": "请从上方选择一个题库进行管理，或创建一个新题库。",
     "noBanksPrompt": "您还没有任何题库。请点击上方 \"创建新题库\" 开始。",
     "loading": "加载题库列表中...",
@@ -390,7 +427,15 @@
       "bankCreated": "新题库 \"{{name}}\" 已创建并选中。",
       "bankDeleted": "题库 \"{{name}}\" 已被删除。",
       "questionDeleted": "题目已删除。",
+      "questionUpdated": "题目已成功更新。",
+      "questionAdded": "题目已成功添加。",
+      "duplicateError": "题目添加失败：题库中已存在相同题干的题目。",
+      "addQuestionFailed": "题目添加失败，请稍后重试。",
       "duplicatesDeleted": "已删除 {{count}} 个重复题目。"
+    },
+    "validation": {
+      "nameTooLong": "题库名称不能超过100个字符",
+      "descTooLong": "题库描述不能超过500个字符"
     },
     "duplicates": {
       "title": "重复题目管理",
@@ -414,6 +459,89 @@
       "duplicatesTitle": "删除重复题目",
       "duplicatesMessage": "确定要删除选中的 {{count}} 个重复题目吗？此操作无法撤销。",
       "delete": "删除"
+    }
+  },
+  "practice": {
+    "loading": "加载中...",
+    "loadingQuestions": "加载题目中...",
+    "bankNotFound": "题库不存在",
+    "backToList": "返回题库列表",
+    "noWrongQuestions": "暂无错题",
+    "noQuestions": "暂无题目",
+    "manageBank": "管理题库",
+    "submit": "提交",
+    "submitAndFinish": "提交并结算",
+    "showAnswer": "查看答案",
+    "answerShown": "已显示答案",
+    "reviewMode": "错题回顾模式",
+    "currentBank": "当前题库",
+    "reviewSuffix": " (错题)",
+    "normalPractice": "常规练习",
+    "questionProgress": "第 {{current}} / {{total}} 题",
+    "reviewPrefix": "回顾: ",
+    "status": {
+      "correct": "回答正确",
+      "incorrect": "回答错误"
+    },
+    "completion": {
+      "title": "练习完成!",
+      "reviewTitle": "错题练习完成！",
+      "message": "您已完成本次练习。",
+      "stats": {
+        "total": "练习题数",
+        "correct": "答对题数",
+        "accuracy": "正确率",
+        "time": "用时",
+        "unit": "题",
+        "seconds": "秒"
+      },
+      "review": "答题回顾",
+      "noRecords": "没有练习题目记录。",
+      "retry": "再次练习该题库",
+      "correct": "正确",
+      "incorrect": "错误",
+      "yourAnswer": "你的答案",
+      "correctAnswer": "正确答案",
+      "originalWrong": "最初错误答案",
+      "originalWrongReview": "最初错误答案回顾：",
+      "explanation": "解析",
+      "explanationTitle": "题目解析:",
+      "notAnswered": "未作答",
+      "referenceAnswer": "参考答案:",
+      "inputPlaceholder": "在此输入您的答案...",
+      "fillInBlankPlaceholder": "在此输入填空答案...",
+      "missingOptions": "选项数据缺失",
+      "unknownOption": "未知选项ID",
+      "notRecorded": "未记录"
+    },
+    "nav": {
+      "previous": "上一题",
+      "next": "下一题",
+      "finish": "完成",
+      "reload": "重新加载",
+      "returnToBank": "返回题库",
+      "jumpTooltip": "点击输入题号跳转"
+    },
+    "numModal": {
+      "title": "选择刷题数量",
+      "bankLabel": "题库",
+      "instruction": "请输入您本次要刷的题目数量。",
+      "label": "题目数量",
+      "unit": "题",
+      "errorInvalid": "请输入一个大于0的有效数字。",
+      "errorExceed": "题目数量不能超过题库总数 ({{total}}题)。",
+      "cancel": "取消",
+      "start": "开始刷题"
+    },
+    "createModal": {
+      "title": "创建新题库",
+      "nameLabel": "题库名称",
+      "namePlaceholder": "请输入题库名称",
+      "descLabel": "题库描述 (可选)",
+      "descPlaceholder": "请输入题库描述信息...",
+      "errorNameRequired": "题库名称不能为空",
+      "cancel": "取消",
+      "create": "创建"
     }
   }
 }

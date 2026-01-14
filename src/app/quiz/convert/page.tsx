@@ -9,7 +9,7 @@ import { useQuizStore } from "@/store/quizStore";
 import { EXAMPLE_QUESTION_TEXT } from "@/constants/quiz";
 import { ScriptTemplate } from "@/utils/scriptParser";
 import {
-  SCRIPT_EXAMPLES,
+  getScriptExampleContent,
   getScriptExampleTitle,
 } from "@/constants/scriptExamples";
 import { ConversionModeSelector } from "@/components/quiz/ConversionModeSelector";
@@ -31,7 +31,7 @@ export default function ConvertPage() {
   const router = useRouter();
   const { settings, questionBanks, conversionState, setConversionState } =
     useQuizStore();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Local UI state
   const [inputText, setInputText] = useState("");
@@ -237,8 +237,8 @@ export default function ConvertPage() {
 
       <ExampleModal
         isOpen={isExampleModalOpen}
-        title={getScriptExampleTitle(scriptTemplate)}
-        content={SCRIPT_EXAMPLES[scriptTemplate]}
+        title={getScriptExampleTitle(scriptTemplate, t)}
+        content={getScriptExampleContent(scriptTemplate, i18n.language)}
         onClose={() => setIsExampleModalOpen(false)}
       />
     </div>

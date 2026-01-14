@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
-import { callAIStream } from "@/constants/ai";
-import { EXPLANATION_PROMPT } from "@/constants/ai";
-import { QUESTION_TYPE_NAMES } from "@/constants/quiz";
+import { getPrompts, callAIStream } from "@/constants/ai";
+import { getQuestionTypeName } from "@/constants/quiz";
 import { QuestionType } from "@/types/quiz";
 import { WrongQuestionDisplay } from "@/components/quiz/WrongQuestionItem";
 import { useTranslation } from "react-i18next";
@@ -17,7 +16,7 @@ interface AiConfig {
  * Manages the generation, state tracking, and error handling of question explanations
  */
 export function useAiExplanation() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [generatingExplanations, setGeneratingExplanations] = useState<
     Set<string>
   >(new Set());
@@ -36,7 +35,7 @@ export function useAiExplanation() {
     (questionInfo: WrongQuestionDisplay): string => {
       let problemInfo = `### ${t("aiExplanation.questionInfo")}\n- **${t(
         "aiExplanation.questionType"
-      )}**: ${QUESTION_TYPE_NAMES[questionInfo.type]}\n`;
+      )}**: ${getQuestionTypeName(questionInfo.type, t)}\n`;
 
       if (questionInfo.options && questionInfo.options.length > 0) {
         problemInfo += `- **${t("aiExplanation.options")}**:\n`;
@@ -111,8 +110,9 @@ export function useAiExplanation() {
 
       try {
         const prompt = buildQuestionPrompt(questionInfo);
+        const prompts = getPrompts(i18n.language);
         const messages = [
-          { role: "system", content: EXPLANATION_PROMPT },
+          { role: "system", content: prompts.explanation },
           { role: "user", content: prompt },
         ];
 

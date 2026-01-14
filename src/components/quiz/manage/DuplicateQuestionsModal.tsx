@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Question } from "@/types/quiz";
-import { QUESTION_TYPE_NAMES } from "@/constants/quiz";
 import { useTranslation } from "react-i18next";
 
 interface DuplicateQuestionsModalProps {
@@ -107,7 +106,7 @@ export function DuplicateQuestionsModal({
                           <div className="flex flex-wrap gap-2 text-xs text-gray-500">
                             <span>
                               {t("bankManage.duplicates.type", {
-                                type: QUESTION_TYPE_NAMES[question.type],
+                                type: t(`questionTypes.${question.type}`),
                               })}
                             </span>
                             {question.createdAt && (
@@ -138,7 +137,7 @@ export function DuplicateQuestionsModal({
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleClose}>
-              取消
+              {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"

@@ -15,8 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "刷题系统 (AHF QDS EOE)",
-  description: "练习题目，记录错题并支持导入导出题库",
+  title: "AHF QDS EOE - Quiz System",
+  description:
+    "Practice questions, record mistakes, and support import/export of question banks.",
 };
 
 export default function RootLayout({
@@ -25,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen dark:bg-gray-900`}
       >

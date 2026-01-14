@@ -16,6 +16,9 @@ interface TextInputAreaProps {
   showOCR?: boolean;
 }
 
+/**
+ * Text input area component with OCR and example loading capabilities
+ */
 export function TextInputArea({
   value,
   onChange,
@@ -29,7 +32,7 @@ export function TextInputArea({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleOCRText = (text: string) => {
-    // 如果已有内容，追加；否则直接设置
+    // If there is existing content, append; otherwise set directly
     if (value.trim()) {
       onChange(value + "\n\n" + text);
     } else {
@@ -40,6 +43,7 @@ export function TextInputArea({
   const processImageFromClipboard = async (file: File) => {
     setIsProcessingPaste(true);
     try {
+      // Support simplified Chinese and English OCR
       const result = await Tesseract.recognize(file, "chi_sim+eng");
       const extractedText = result.data.text.trim();
       if (extractedText) {
@@ -62,10 +66,10 @@ export function TextInputArea({
     const items = e.clipboardData?.items;
     if (!items) return;
 
-    // 检查是否有图片
+    // Check for images in clipboard
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.startsWith("image/")) {
-        e.preventDefault(); // 阻止默认的粘贴行为
+        e.preventDefault(); // Prevent default paste behavior
         const file = items[i].getAsFile();
         if (file) {
           await processImageFromClipboard(file);
@@ -73,7 +77,7 @@ export function TextInputArea({
         return;
       }
     }
-    // 如果不是图片，让浏览器处理默认的文本粘贴
+    // If not an image, let the browser handle default text paste
   };
 
   return (

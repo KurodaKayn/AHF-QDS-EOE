@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Question, QuestionType } from "@/types/quiz";
-import { QUESTION_TYPE_NAMES } from "@/constants/quiz";
+import { getQuestionTypeName, QUESTION_TYPE_I18N_KEYS } from "@/constants/quiz";
 import { useQuestionForm } from "@/hooks/useQuestionForm";
 import { toast } from "sonner";
 import { FaTrash, FaPlus } from "react-icons/fa";
@@ -111,9 +111,9 @@ export default function QuestionFormModal({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(QUESTION_TYPE_NAMES).map(([value, name]) => (
+                {Object.keys(QUESTION_TYPE_I18N_KEYS).map((value) => (
                   <SelectItem key={value} value={value}>
-                    {name}
+                    {getQuestionTypeName(value as QuestionType, t)}
                   </SelectItem>
                 ))}
               </SelectContent>

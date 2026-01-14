@@ -1,16 +1,16 @@
 /**
- * 题目类型枚举
+ * Question type enum
  */
 export enum QuestionType {
-  SingleChoice = 'single-choice', // 单选题
-  MultipleChoice = 'multiple-choice', // 多选题
-  TrueFalse = 'true-false', // 判断题
-  ShortAnswer = 'short-answer', // 简答题
-  FillInBlank = 'fill-in-blank', // 填空题
+  SingleChoice = "single-choice",
+  MultipleChoice = "multiple-choice",
+  TrueFalse = "true-false",
+  ShortAnswer = "short-answer",
+  FillInBlank = "fill-in-blank",
 }
 
 /**
- * 题目选项类型
+ * Question option structure
  */
 export interface QuestionOption {
   id: string;
@@ -18,22 +18,22 @@ export interface QuestionOption {
 }
 
 /**
- * 题目类型
+ * Question structure
  */
 export interface Question {
   id: string;
   type: QuestionType;
   content: string;
   options?: QuestionOption[];
-  answer: string | string[]; // 单选题/判断题为字符串，多选题为字符串数组, 简答题为字符串
-  explanation?: string; // 解析
-  tags?: string[]; // 标签，用于分类
+  answer: string | string[]; // String for single choice/true-false/short answer, array for multiple choice
+  explanation?: string; // Explanation for the answer
+  tags?: string[]; // Tags for categorization
   createdAt: number;
   updatedAt: number;
 }
 
 /**
- * 题库类型
+ * Question bank structure
  */
 export interface QuestionBank {
   id: string;
@@ -45,7 +45,7 @@ export interface QuestionBank {
 }
 
 /**
- * 用户答题记录
+ * User answering record
  */
 export interface QuestionRecord {
   id?: string;
@@ -56,7 +56,7 @@ export interface QuestionRecord {
 }
 
 /**
- * API密钥配置
+ * API Key configuration
  */
 export interface ApiKeyConfig {
   deepseek: string;

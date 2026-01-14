@@ -36,7 +36,7 @@ export const AiConfigForm: React.FC<AiConfigFormProps> = ({
       model: "deepseek-chat",
     },
     alibaba: {
-      name: "通义千问",
+      name: "Qwen (Alibaba)",
       baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
       model: "qwen-turbo",
     },
@@ -119,7 +119,7 @@ export const AiConfigForm: React.FC<AiConfigFormProps> = ({
             className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="deepseek">DeepSeek</option>
-            <option value="alibaba">通义千问 (Alibaba)</option>
+            <option value="alibaba">Qwen (Alibaba)</option>
           </select>
         </div>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Question } from "@/types/quiz";
+import { useTranslation } from "react-i18next";
 
 interface ShortAnswerInputProps {
   question: Question;
@@ -15,6 +16,7 @@ export function ShortAnswerInput({
   showAnswer,
   onAnswerChange,
 }: ShortAnswerInputProps) {
+  const { t } = useTranslation();
   const currentAnswerText = (userAnswer as string) || "";
 
   return (
@@ -22,7 +24,7 @@ export function ShortAnswerInput({
       <textarea
         value={currentAnswerText}
         onChange={(e) => onAnswerChange(e.target.value)}
-        placeholder="在此输入您的答案..."
+        placeholder={t("practice.completion.inputPlaceholder")}
         rows={4}
         className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 text-base"
         disabled={showAnswer}
@@ -30,7 +32,7 @@ export function ShortAnswerInput({
       {showAnswer && (
         <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg">
           <p className="text-sm font-semibold text-green-700 dark:text-green-300 mb-1">
-            参考答案:
+            {t("practice.completion.referenceAnswer")}
           </p>
           <p className="text-gray-800 dark:text-gray-100 whitespace-pre-wrap">
             {question.answer as string}

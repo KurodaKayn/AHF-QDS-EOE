@@ -95,7 +95,7 @@ function ManageBanksPageContent({
         setSelectedBankId(initialTempBankId);
       }
     } catch (error) {
-      // toast.error("处理题库ID出错");
+      // toast.error("Error processing bank ID");
     }
   }, [initialTempBankId, questionBanks]);
 
@@ -472,15 +472,15 @@ function ManageBanksPageContent({
           onSave={(bankId, questionData, questionId) => {
             if (questionId) {
               updateQuestionInBank(bankId, questionId, questionData);
-              toast.success("题目已成功更新。");
+              toast.success(t("bankManage.alerts.questionUpdated"));
             } else {
               const result = addQuestionToBank(bankId, questionData);
               if (result.isDuplicate) {
-                toast.error("题目添加失败：题库中已存在相同题干的题目。");
+                toast.error(t("bankManage.alerts.duplicateError"));
               } else if (result.question) {
-                toast.success("题目已成功添加。");
+                toast.success(t("bankManage.alerts.questionAdded"));
               } else {
-                toast.error("题目添加失败，请稍后重试。");
+                toast.error(t("bankManage.alerts.addQuestionFailed"));
               }
             }
           }}
@@ -493,6 +493,7 @@ function ManageBanksPageContent({
 // Main page component, optimized for static export
 export default function ManageBanksPage() {
   const { theme } = useThemeStore();
+  const { t } = useTranslation();
 
   // Safely get URL parameters on client side
   const [initialTempBankId, setInitialTempBankId] = useState<string | null>(
@@ -507,7 +508,7 @@ export default function ManageBanksPage() {
       "/quiz/banks/manage/index",
       "/quiz/banks/manage",
     ];
-    // console.log("可用的静态路径:", paths);
+    // console.log("Available static paths:", paths);
 
     if (typeof window !== "undefined") {
       try {
@@ -533,7 +534,7 @@ export default function ManageBanksPage() {
           window.history.replaceState({}, "", url.toString());
         }
       } catch (error) {
-        // console.error("获取URL参数出错:", error);
+        // console.error("Error getting URL parameters:", error);
       }
     }
   }, []);
@@ -544,16 +545,20 @@ export default function ManageBanksPage() {
         <div className="container mx-auto p-4 md:p-8 min-h-screen flex flex-col justify-center items-center dark:bg-gray-900">
           <BeatLoader color={theme === "dark" ? "#38BDF8" : "#3B82F6"} />
           <p className="text-xl text-gray-500 dark:text-gray-400 mt-4">
-            加载管理界面...
+            {t("bankManage.loadingInterface", {
+              defaultValue: "Loading management interface...",
+            })}
           </p>
         </div>
       }
     >
       {/* Add hidden link elements to help static export system identify routes */}
       <div style={{ display: "none" }}>
-        <Link href="/quiz/banks/manage">管理题库</Link>
-        <Link href="/quiz/banks/manage/">管理题库带斜杠</Link>
-        <Link href="/quiz/banks/manage/index.html">管理题库HTML</Link>
+        <Link href="/quiz/banks/manage">{t("bankManage.pageTitle")}</Link>
+        <Link href="/quiz/banks/manage/">{t("bankManage.pageTitle")}</Link>
+        <Link href="/quiz/banks/manage/index.html">
+          {t("bankManage.pageTitle")}
+        </Link>
       </div>
       <ManageBanksPageContent initialTempBankId={initialTempBankId} />
     </Suspense>
