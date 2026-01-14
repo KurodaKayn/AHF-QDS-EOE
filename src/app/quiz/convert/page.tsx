@@ -7,11 +7,7 @@ import { MdCode } from "react-icons/md";
 import { FiXCircle } from "react-icons/fi";
 import { useQuizStore } from "@/store/quizStore";
 import { EXAMPLE_QUESTION_TEXT } from "@/constants/quiz";
-import { Question } from "@/types/quiz";
-import { parseTextByScript, ScriptTemplate } from "@/utils/scriptParser";
-import { CONVERT_SYSTEM_PROMPT } from "@/constants/ai";
-import { parseQuestions } from "@/utils/questionParser";
-import { conversionService } from "@/services/conversionService";
+import { ScriptTemplate } from "@/utils/scriptParser";
 import {
   SCRIPT_EXAMPLES,
   getScriptExampleTitle,
@@ -24,29 +20,21 @@ import { SaveToBankForm } from "@/components/quiz/SaveToBankForm";
 import { ConversionSuccess } from "@/components/quiz/ConversionSuccess";
 import { ExampleModal } from "@/components/quiz/ExampleModal";
 import { useTranslation } from "react-i18next";
+import { useConversionLogic } from "@/hooks/useConversionLogic";
+import { toast } from "sonner";
 
+/**
+ * Question Conversion Page
+ * Refactored version with separated UI and business logic
+ */
 export default function ConvertPage() {
   const router = useRouter();
-  const {
-    settings,
-    questionBanks,
-    addQuestionBank,
-    addQuestionToBank,
-    getQuestionBankById,
-    conversionState,
-    setConversionState,
-  } = useQuizStore();
-
+  const { settings, questionBanks, conversionState, setConversionState } =
+    useQuizStore();
   const { t } = useTranslation();
 
-  // State
+  // Local UI state
   const [inputText, setInputText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingScript, setIsLoadingScript] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [convertedQuestions, setConvertedQuestions] = useState<
-    Omit<Question, "id">[]
-  >([]);
   const [conversionMode, setConversionMode] = useState<"ai" | "script">("ai");
   const [scriptTemplate, setScriptTemplate] = useState<ScriptTemplate>(
     ScriptTemplate.ChaoXing
@@ -59,6 +47,27 @@ export default function ConvertPage() {
   // Ref to prevent circular updates
   const isUpdatingFromStore = useRef(false);
 
+  // Conversion business logic
+  const {
+    isLoading,
+    isLoadingScript,
+    error,
+    convertedQuestions,
+    setError,
+    convertWithAI,
+    convertWithScript,
+    saveToBank,
+    clearResults,
+  } = useConversionLogic({
+    onSuccess: (questions, bankId, bankName) => {
+      setSavedBankId(bankId);
+      setSavedBankName(bankName);
+      setIsSuccess(true);
+      setInputText("");
+      setTimeout(() => setIsSuccess(false), 3000);
+    },
+  });
+
   // Load state from store on mount
   useEffect(() => {
     if (conversionState) {
@@ -69,25 +78,13 @@ export default function ConvertPage() {
         (conversionState.scriptTemplate as ScriptTemplate) ||
           ScriptTemplate.ChaoXing
       );
-      setConvertedQuestions(conversionState.generatedQuestions || []);
-      setIsLoading(conversionState.isConverting || false);
       setTimeout(() => {
         isUpdatingFromStore.current = false;
       }, 0);
     }
   }, []);
 
-  // Watch for Store updates (e.g., from Worker callback)
-  useEffect(() => {
-    isUpdatingFromStore.current = true;
-    setConvertedQuestions(conversionState.generatedQuestions || []);
-    setIsLoading(conversionState.isConverting || false);
-    setTimeout(() => {
-      isUpdatingFromStore.current = false;
-    }, 0);
-  }, [conversionState.generatedQuestions, conversionState.isConverting]);
-
-  // Sync local state to store when changed (but not when updating from store)
+  // Sync local state to store when changed
   useEffect(() => {
     if (isUpdatingFromStore.current) return;
 
@@ -95,7 +92,7 @@ export default function ConvertPage() {
       inputText,
       mode: conversionMode,
       scriptTemplate,
-      generatedQuestions: convertedQuestions as Question[],
+      generatedQuestions: convertedQuestions as any[],
       isConverting: isLoading || isLoadingScript,
     });
   }, [
@@ -108,130 +105,38 @@ export default function ConvertPage() {
     setConversionState,
   ]);
 
-  const handleConvert = async () => {
-    if (!inputText.trim()) {
-      setError(t("convert.errors.noText"));
-      return;
-    }
-    setError(null);
-    setConvertedQuestions([]);
-
+  /**
+   * Handle conversion
+   */
+  const handleConvert = () => {
     if (conversionMode === "script") {
-      setIsLoadingScript(true);
-      try {
-        const parsed = parseTextByScript(inputText, scriptTemplate);
-        if (parsed.length === 0 && inputText.trim().length > 0) {
-          setError(t("convert.errors.scriptFailed"));
-        }
-        setConvertedQuestions(parsed);
-      } catch (e: any) {
-        setError(t("convert.errors.scriptError", { error: e.message }));
-      } finally {
-        setIsLoadingScript(false);
-      }
-      return;
-    }
-
-    // AI Conversion
-    setIsLoading(true);
-    const { aiConfigs, activeAiConfigId } = settings;
-    const activeConfig = aiConfigs.find((c) => c.id === activeAiConfigId);
-
-    if (!activeConfig || !activeConfig.apiKey) {
-      setError(t("convert.errors.noAIConfig"));
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const messages = [
-        { role: "system" as const, content: CONVERT_SYSTEM_PROMPT },
-        { role: "user" as const, content: inputText },
-      ];
-
-      const result = await conversionService.convert(
-        {
-          baseUrl: activeConfig.baseUrl,
-          apiKey: activeConfig.apiKey,
-          model: activeConfig.model,
-          messages,
-        },
-        // Callback to persist results to store even if component unmounts
-        (result) => {
-          if (result.success && result.content) {
-            const parsed = parseQuestions(result.content);
-            setConversionState({
-              generatedQuestions: parsed as Question[],
-              isConverting: false,
-            });
-          } else {
-            setConversionState({
-              isConverting: false,
-            });
-          }
-        }
-      );
-
-      // Also update local state if component is still mounted
-      if (result.success && result.content) {
-        const parsed = parseQuestions(result.content);
-        if (parsed.length === 0) {
-          setError(t("convert.errors.aiParseFailed"));
-        } else {
-          setConvertedQuestions(parsed);
-        }
-      } else {
-        setError(result.error || t("convert.errors.aiParseFailed"));
-      }
-    } catch (e: any) {
-      if (e.message && e.message.includes("message channel closed")) {
-        // Silently ignore interrupted requests
-      } else {
-        setError(e.message || t("convert.errors.noText"));
-      }
-    } finally {
-      setIsLoading(false);
+      convertWithScript(inputText, scriptTemplate);
+    } else {
+      convertWithAI(inputText);
     }
   };
 
+  /**
+   * Handle save to bank
+   */
   const handleSave = (config: {
     mode: "new" | "existing";
     bankId?: string;
     newBankName?: string;
     newBankDescription?: string;
   }) => {
-    let targetBankId = config.bankId || "";
-    let targetBankName = "";
-
-    if (config.mode === "new" && config.newBankName?.trim()) {
-      const newBank = addQuestionBank(
-        config.newBankName,
-        config.newBankDescription || ""
-      );
-      targetBankId = newBank.id;
-      targetBankName = newBank.name;
-    } else if (config.mode === "existing" && config.bankId) {
-      const bank = getQuestionBankById(config.bankId);
-      targetBankName = bank?.name || "";
+    const result = saveToBank(config);
+    if (!result.success) {
+      toast.error(error || t("convert.saveFailed"));
     }
-
-    if (!targetBankId) {
-      setError(t("convert.errors.noTargetBank"));
-      return;
-    }
-
-    convertedQuestions.forEach((q) => addQuestionToBank(targetBankId, q));
-    setSavedBankId(targetBankId);
-    setSavedBankName(targetBankName);
-    setIsSuccess(true);
-    setConvertedQuestions([]);
-    setInputText("");
-    setTimeout(() => setIsSuccess(false), 3000);
   };
 
+  /**
+   * Continue conversion
+   */
   const handleContinue = () => {
     setIsSuccess(false);
-    setConvertedQuestions([]);
+    clearResults();
     setInputText("");
     setSavedBankId("");
     setSavedBankName("");

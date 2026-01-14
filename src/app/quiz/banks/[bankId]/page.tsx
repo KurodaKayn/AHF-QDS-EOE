@@ -7,7 +7,7 @@ import { Question, QuestionType } from "@/types/quiz";
 import { BankDetailHeader } from "@/components/quiz/banks/BankDetailHeader";
 import { BankFilters } from "@/components/quiz/banks/BankFilters";
 import { QuestionList } from "@/components/quiz/banks/QuestionList";
-import { QuestionFormModal } from "@/components/quiz/banks/QuestionFormModal";
+import QuestionFormModal from "@/components/QuestionFormModal";
 import { FaArrowLeft } from "react-icons/fa";
 
 /**
@@ -51,15 +51,6 @@ export default function BankDetailPage() {
     setIsModalOpen(false);
     setIsEditModalOpen(false);
     setEditingQuestion(null);
-  };
-
-  const handleSaveQuestion = (questionData: Omit<Question, "id">) => {
-    if (isEditModalOpen && editingQuestion) {
-      updateQuestionInBank(bankId, editingQuestion.id, questionData);
-    } else {
-      addQuestionToBank(bankId, questionData);
-    }
-    handleCloseModal();
   };
 
   const handleDeleteQuestion = (questionId: string) => {
@@ -151,10 +142,17 @@ export default function BankDetailPage() {
 
       <QuestionFormModal
         isOpen={isModalOpen || isEditModalOpen}
-        isEdit={isEditModalOpen}
-        question={editingQuestion}
+        bankId={bankId}
+        questionToEdit={editingQuestion}
         onClose={handleCloseModal}
-        onSave={handleSaveQuestion}
+        onSave={(_, questionData, questionId) => {
+          if (questionId) {
+            updateQuestionInBank(bankId, questionId, questionData);
+          } else {
+            addQuestionToBank(bankId, questionData);
+          }
+          handleCloseModal();
+        }}
       />
     </div>
   );

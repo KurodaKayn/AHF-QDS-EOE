@@ -48,6 +48,8 @@ function ManageBanksPageContent({
     updateQuestionBank,
     deleteQuestionBank,
     deleteQuestionFromBank,
+    addQuestionToBank,
+    updateQuestionInBank,
   } = useQuizStore();
   const { t } = useTranslation();
 
@@ -466,6 +468,21 @@ function ManageBanksPageContent({
           questionToEdit={editingQuestion}
           onSubmitSuccess={() => {
             handleQuestionModalClose();
+          }}
+          onSave={(bankId, questionData, questionId) => {
+            if (questionId) {
+              updateQuestionInBank(bankId, questionId, questionData);
+              toast.success("题目已成功更新。");
+            } else {
+              const result = addQuestionToBank(bankId, questionData);
+              if (result.isDuplicate) {
+                toast.error("题目添加失败：题库中已存在相同题干的题目。");
+              } else if (result.question) {
+                toast.success("题目已成功添加。");
+              } else {
+                toast.error("题目添加失败，请稍后重试。");
+              }
+            }
           }}
         />
       )}

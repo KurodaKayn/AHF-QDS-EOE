@@ -194,6 +194,7 @@
       "selectPlaceholder": "请选择题库",
       "button": "保存题目"
     },
+    "saveFailed": "保存失败",
     "errors": {
       "noText": "请输入题目文本",
       "scriptFailed": "脚本未能解析出任何题目，请检查输入格式",
@@ -213,6 +214,46 @@
       "processing": "正在识别图片文字...",
       "errorType": "请选择图片文件",
       "errorDrag": "请拖放图片文件"
+    }
+  },
+  "aiExplanation": {
+    "questionInfo": "题目信息",
+    "questionType": "题目类型",
+    "options": "选项",
+    "correctAnswer": "正确答案",
+    "userAnswer": "用户答案",
+    "correct": "正确",
+    "incorrect": "错误",
+    "generationFailed": "题目 \"{{content}}...\" 解析生成失败。",
+    "failedRetry": "AI解析生成失败，请稍后再试。"
+  },
+  "questionForm": {
+    "titleEdit": "编辑题目",
+    "titleAdd": "添加新题目",
+    "questionType": "题目类型",
+    "questionContent": "题目内容",
+    "questionContentPlaceholder": "请输入题目内容...",
+    "options": "选项",
+    "addOption": "添加选项",
+    "optionPlaceholder": "选项 {{letter}} 内容",
+    "optionTrue": "正确",
+    "optionFalse": "错误",
+    "correctAnswer": "正确答案",
+    "selectAnswerPlaceholder": "选择正确答案...",
+    "fillInBlankPlaceholder": "请输入答案，多个可接受的答案请用分号(;)分隔...",
+    "shortAnswerPlaceholder": "请输入答案...",
+    "fillInBlankHint": "提示：填空题支持多个答案，不同答案之间用分号(;)分隔。学生只需要输入其中任意一个答案即可被判定为正确。如果答案本身包含多个连续分号，只有最后一个分号会被视为分隔符。",
+    "explanation": "题目解析 (可选)",
+    "explanationPlaceholder": "请输入题目解析...",
+    "cancel": "取消",
+    "saveChanges": "保存更改",
+    "addQuestion": "添加题目",
+    "validation": {
+      "contentRequired": "题目内容不能为空。",
+      "optionsRequired": "选择题的选项内容不能为空。",
+      "singleAnswerRequired": "请为单选题或判断题选择一个答案。",
+      "multipleAnswerRequired": "请为多选题选择至少一个答案。",
+      "textAnswerRequired": "请输入简答题或填空题的答案。"
     }
   },
   "review": {
@@ -246,10 +287,12 @@
       "confirmClear": "确定要清空错题本吗？此操作不可恢复。",
       "selectToExplain": "请先选择需要生成解析的题目！",
       "selectToSimilar": "请先选择需要生成相似题目的原始错题！",
-      "noDetailsFound": "未找到选中的题目详情。",
-      "importSuccess": "成功导入 {{imported}} 道题目。",
-      "importSkipped": "跳过 {{skipped}} 道重复题目。",
-      "importFailed": "导入失败: {{error}}"
+      "noDetailsFound": "未找到选中的题目详情。"
+    },
+    "import": {
+      "success": "成功导入 {{imported}} 道题目。{{skipped}}",
+      "skipped": "跳过 {{skipped}} 道重复题目。",
+      "failed": "导入失败: {{error}}"
     },
     "ai": {
       "noKey": "未配置有效的 AI 密钥",

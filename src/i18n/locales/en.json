@@ -213,6 +213,47 @@
       "processing": "Recognizing text...",
       "errorType": "Please select an image file",
       "errorDrag": "Please drag and drop an image file"
+    },
+    "saveFailed": "Save Failed"
+  },
+  "aiExplanation": {
+    "questionInfo": "Question Info",
+    "questionType": "Question Type",
+    "options": "Options",
+    "correctAnswer": "Correct Answer",
+    "userAnswer": "User Answer",
+    "correct": "Correct",
+    "incorrect": "Incorrect",
+    "generationFailed": "Failed to generate explanation for \"{{content}}...\"",
+    "failedRetry": "AI explanation generation failed, please try again later."
+  },
+  "questionForm": {
+    "titleEdit": "Edit Question",
+    "titleAdd": "Add New Question",
+    "questionType": "Question Type",
+    "questionContent": "Question Content",
+    "questionContentPlaceholder": "Enter question content...",
+    "options": "Options",
+    "addOption": "Add Option",
+    "optionPlaceholder": "Option {{letter}} content",
+    "optionTrue": "True",
+    "optionFalse": "False",
+    "correctAnswer": "Correct Answer",
+    "selectAnswerPlaceholder": "Select correct answer...",
+    "fillInBlankPlaceholder": "Enter answer, use semicolon (;) to separate multiple acceptable answers...",
+    "shortAnswerPlaceholder": "Enter answer...",
+    "fillInBlankHint": "Hint: Fill-in-blank questions support multiple answers separated by semicolons (;). Students only need to enter any one of them to be marked correct. If the answer itself contains multiple consecutive semicolons, only the last semicolon will be treated as a separator.",
+    "explanation": "Explanation (Optional)",
+    "explanationPlaceholder": "Enter explanation...",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "addQuestion": "Add Question",
+    "validation": {
+      "contentRequired": "Question content cannot be empty.",
+      "optionsRequired": "Option content cannot be empty for choice questions.",
+      "singleAnswerRequired": "Please select an answer for single choice or true/false questions.",
+      "multipleAnswerRequired": "Please select at least one answer for multiple choice questions.",
+      "textAnswerRequired": "Please enter an answer for short answer or fill-in-blank questions."
     }
   },
   "review": {
@@ -246,10 +287,12 @@
       "confirmClear": "Are you sure you want to clear the review book? This cannot be undone.",
       "selectToExplain": "Please select questions to generate explanations for!",
       "selectToSimilar": "Please select original wrong questions to generate similar ones!",
-      "noDetailsFound": "Selected question details not found.",
-      "importSuccess": "Successfully imported {{imported}} questions.",
-      "importSkipped": "Skipped {{skipped}} duplicates.",
-      "importFailed": "Import Failed: {{error}}"
+      "noDetailsFound": "Selected question details not found."
+    },
+    "import": {
+      "success": "Successfully imported {{imported}} questions.{{skipped}}",
+      "skipped": " Skipped {{skipped}} duplicates.",
+      "failed": "Import Failed: {{error}}"
     },
     "ai": {
       "noKey": "No valid AI API Key configured",
