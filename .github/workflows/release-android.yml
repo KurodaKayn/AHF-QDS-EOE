@@ -52,7 +52,7 @@ jobs:
       - name: Build Android APK
         run: |
           export NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125
-          pnpm tauri android build --apk true
+          pnpm tauri android build --apk
 
       - name: Upload Artifact to Release
         uses: softprops/action-gh-release@v1
