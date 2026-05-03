@@ -213,7 +213,7 @@ function parseChaoXingTemplate(
     // Find position of first option 'A'
     let firstOptionIndex = -1;
     for (let k = 1; k < lines.length; k++) {
-      if (lines[k].match(/^A[\.．]\s+/)) {
+      if (lines[k].match(/^A[.．]\s+/)) {
         firstOptionIndex = k;
         break;
       }
@@ -234,7 +234,7 @@ function parseChaoXingTemplate(
       // Filling blank or true/false
       for (let k = 1; k < lines.length; k++) {
         if (
-          !lines[k].match(/^([A-Z])[\.．]\s+/) &&
+          !lines[k].match(/^([A-Z])[.．]\s+/) &&
           !lines[k].match(
             /(?:我的答案|My Answer|正确答案|Correct Answer|分|score)/i
           )
@@ -302,7 +302,7 @@ function parseChaoXingTemplate(
         questionContent = lines[0] + extraContent;
       }
 
-      if (lines.some((l) => l.match(/^[A-D][\.\．]/) || l.match(/\([A-D]\)/))) {
+      if (lines.some((l) => l.match(/^[A-D][.．]/) || l.match(/\([A-D]\)/))) {
         const multiAnswer = lines.some(
           (l) =>
             l.match(
@@ -523,9 +523,9 @@ function parseSingleChoice1Template(
   let state: State = State.None;
 
   const seqReg = /^\s*(\d+)\./;
-  const optReg = /^([A-EＡ-Ｅ])[\.．]\s*(.*)$/;
+  const optReg = /^([A-EＡ-Ｅ])[.．]\s*(.*)$/;
   const ansReg = /(?:参考答案|Reference Answer)[:：]?\s*([A-EＡ-Ｅ])/i;
-  const inlineOptReg = /([A-EＡ-Ｅ])[\.．]\s*([^A-EＡ-Ｅ]*)/g;
+  const inlineOptReg = /([A-EＡ-Ｅ])[.．]\s*([^A-EＡ-Ｅ]*)/g;
 
   const toHalf = (ch: string) =>
     String.fromCharCode(
@@ -577,7 +577,7 @@ function parseSingleChoice1Template(
       bufferAnswer = "";
       state = State.Question;
       const afterSeq = line.replace(seqReg, "").trim();
-      const firstOptIdx = afterSeq.search(/([A-EＡ-Ｅ])[\.．]/);
+      const firstOptIdx = afterSeq.search(/([A-EＡ-Ｅ])[.．]/);
       if (firstOptIdx !== -1) {
         bufferQuestion = afterSeq.substring(0, firstOptIdx).trim();
         const optStr = afterSeq.substring(firstOptIdx);

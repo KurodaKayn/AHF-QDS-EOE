@@ -3,11 +3,11 @@ import { QuestionType } from "@/types/quiz";
 
 describe("parseQuestions", () => {
   beforeEach(() => {
-    jest.spyOn(Date, "now").mockReturnValue(1700000000000);
+    vi.spyOn(Date, "now").mockReturnValue(1700000000000);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("parses English single-choice questions with options and explanations", () => {
