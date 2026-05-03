@@ -16,11 +16,7 @@ interface SaveToBankFormProps {
   disabled?: boolean;
 }
 
-export function SaveToBankForm({
-  questionBanks,
-  onSave,
-  disabled = false,
-}: SaveToBankFormProps) {
+export function SaveToBankForm({ questionBanks, onSave, disabled = false }: SaveToBankFormProps) {
   const { t } = useTranslation();
   const [saveMode, setSaveMode] = useState<"new" | "existing">("new");
   const [selectedBankId, setSelectedBankId] = useState<string>("");
@@ -72,9 +68,7 @@ export function SaveToBankForm({
               onChange={() => setSaveMode("new")}
               className="mr-2 form-radio text-blue-600 dark:text-blue-500 bg-gray-200 dark:bg-gray-600 border-gray-300 dark:border-gray-500 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
-            <span className="text-gray-800 dark:text-gray-200">
-              {t("convert.save.newBank")}
-            </span>
+            <span className="text-gray-800 dark:text-gray-200">{t("convert.save.newBank")}</span>
           </label>
           <label className="flex items-center">
             <input
@@ -131,13 +125,8 @@ export function SaveToBankForm({
                 {t("convert.save.selectPlaceholder")}
               </option>
               {questionBanks.map((bank) => (
-                <option
-                  key={bank.id}
-                  value={bank.id}
-                  className="dark:bg-gray-700 dark:text-white"
-                >
-                  {bank.name} (
-                  {t("home.questionCount", { count: bank.questions.length })})
+                <option key={bank.id} value={bank.id} className="dark:bg-gray-700 dark:text-white">
+                  {bank.name} ({t("home.questionCount", { count: bank.questions.length })})
                 </option>
               ))}
             </select>

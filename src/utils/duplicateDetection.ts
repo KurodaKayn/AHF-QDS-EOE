@@ -14,9 +14,7 @@ export const normalizeText = (text: string): string => {
  * Finds duplicate questions based on normalized content
  * Returns a map where keys are normalized content and values are arrays of duplicate questions
  */
-export const findDuplicateQuestions = (
-  questions: Question[]
-): Map<string, Question[]> => {
+export const findDuplicateQuestions = (questions: Question[]): Map<string, Question[]> => {
   const normalizedMap = new Map<string, Question[]>();
   const duplicates = new Map<string, Question[]>();
 

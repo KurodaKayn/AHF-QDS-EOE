@@ -57,49 +57,43 @@ export function ConversionModeSelector({
       </div>
 
       {/* Script mode settings */}
-      {mode === "script" &&
-        scriptTemplate !== undefined &&
-        onScriptTemplateChange && (
-          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h3 className="text-md font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              {t("convert.script.title")}
-            </h3>
-            <div className="flex items-center space-x-3">
-              <label
-                htmlFor="scriptTemplateSelect"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+      {mode === "script" && scriptTemplate !== undefined && onScriptTemplateChange && (
+        <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <h3 className="text-md font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            {t("convert.script.title")}
+          </h3>
+          <div className="flex items-center space-x-3">
+            <label
+              htmlFor="scriptTemplateSelect"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+            >
+              {t("convert.script.templateLabel")}
+            </label>
+            <select
+              id="scriptTemplateSelect"
+              value={scriptTemplate}
+              onChange={(e) => onScriptTemplateChange(e.target.value as ScriptTemplate)}
+              className="grow mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
+            >
+              <option value={ScriptTemplate.ChaoXing}>
+                {t("convert.script.templates.chaoxing")}
+              </option>
+              <option value={ScriptTemplate.SingleChoice1}>
+                {t("convert.script.templates.singleChoice1")}
+              </option>
+              <option value={ScriptTemplate.Other}>{t("convert.script.templates.other")}</option>
+            </select>
+            {onShowExample && (
+              <button
+                onClick={onShowExample}
+                className="ml-2 px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:text-blue-300 dark:bg-blue-600 dark:hover:bg-blue-500 flex items-center"
               >
-                {t("convert.script.templateLabel")}
-              </label>
-              <select
-                id="scriptTemplateSelect"
-                value={scriptTemplate}
-                onChange={(e) =>
-                  onScriptTemplateChange(e.target.value as ScriptTemplate)
-                }
-                className="grow mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white"
-              >
-                <option value={ScriptTemplate.ChaoXing}>
-                  {t("convert.script.templates.chaoxing")}
-                </option>
-                <option value={ScriptTemplate.SingleChoice1}>
-                  {t("convert.script.templates.singleChoice1")}
-                </option>
-                <option value={ScriptTemplate.Other}>
-                  {t("convert.script.templates.other")}
-                </option>
-              </select>
-              {onShowExample && (
-                <button
-                  onClick={onShowExample}
-                  className="ml-2 px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:text-blue-300 dark:bg-blue-600 dark:hover:bg-blue-500 flex items-center"
-                >
-                  <FaEye className="mr-1" /> {t("convert.script.viewExample")}
-                </button>
-              )}
-            </div>
+                <FaEye className="mr-1" /> {t("convert.script.viewExample")}
+              </button>
+            )}
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 }

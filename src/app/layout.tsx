@@ -16,8 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "AHF QDS EOE - Quiz System",
-  description:
-    "Practice questions, record mistakes, and support import/export of question banks.",
+  description: "Practice questions, record mistakes, and support import/export of question banks.",
 };
 
 export default function RootLayout({

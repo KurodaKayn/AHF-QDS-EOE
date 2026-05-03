@@ -6,13 +6,7 @@ import { useRouter } from "next/navigation";
 import { useQuizStore } from "@/store/quizStore";
 import { Question } from "@/types/quiz";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FaArrowLeft, FaEdit, FaRegTrashAlt } from "react-icons/fa";
@@ -25,21 +19,14 @@ import { useTranslation } from "react-i18next";
 import { BankSelector } from "@/components/quiz/manage/BankSelector";
 import { QuestionListSection } from "@/components/quiz/manage/QuestionListSection";
 import { DuplicateQuestionsModal } from "@/components/quiz/manage/DuplicateQuestionsModal";
-import {
-  DeleteConfirmDialog,
-  DeleteType,
-} from "@/components/quiz/manage/DeleteConfirmDialog";
+import { DeleteConfirmDialog, DeleteType } from "@/components/quiz/manage/DeleteConfirmDialog";
 import { NoDuplicatesDialog } from "@/components/quiz/manage/NoDuplicatesDialog";
 import { findDuplicateQuestions } from "@/utils/duplicateDetection";
 
 // Helper component for static export paths
 
 // Client component that uses useSearchParams() through props
-function ManageBanksPageContent({
-  initialTempBankId,
-}: {
-  initialTempBankId: string | null;
-}) {
+function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: string | null }) {
   const router = useRouter();
   const {
     questionBanks,
@@ -61,19 +48,15 @@ function ManageBanksPageContent({
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   const [isCreateBankModalOpen, setIsCreateBankModalOpen] = useState(false);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
-  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] =
-    useState(false);
+  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
   const [isNoDuplicatesModalOpen, setIsNoDuplicatesModalOpen] = useState(false);
-  const [deleteConfirmType, setDeleteConfirmType] =
-    useState<DeleteType>("bank");
+  const [deleteConfirmType, setDeleteConfirmType] = useState<DeleteType>("bank");
   const [questionToDelete, setQuestionToDelete] = useState<{
     id: string;
     content: string;
   } | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
-  const [duplicateGroups, setDuplicateGroups] = useState<
-    Map<string, Question[]>
-  >(new Map());
+  const [duplicateGroups, setDuplicateGroups] = useState<Map<string, Question[]>>(new Map());
 
   // Banks (no sorting needed)
   const banks = questionBanks || [];
@@ -101,10 +84,7 @@ function ManageBanksPageContent({
 
   // Reset selection if bank is deleted
   useEffect(() => {
-    if (
-      selectedBankId &&
-      !(questionBanks || []).find((b) => b.id === selectedBankId)
-    ) {
+    if (selectedBankId && !(questionBanks || []).find((b) => b.id === selectedBankId)) {
       setSelectedBankId(null);
     }
   }, [selectedBankId, questionBanks]);
@@ -128,14 +108,8 @@ function ManageBanksPageContent({
       toast.error(t("bankManage.alerts.bankNameRequired"));
       return;
     }
-    updateQuestionBank(
-      selectedBank.id,
-      editBankName.trim(),
-      editBankDescription.trim()
-    );
-    toast.success(
-      t("bankManage.alerts.bankUpdated", { name: editBankName.trim() })
-    );
+    updateQuestionBank(selectedBank.id, editBankName.trim(), editBankDescription.trim());
+    toast.success(t("bankManage.alerts.bankUpdated", { name: editBankName.trim() }));
     setIsEditingBankDetails(false);
   };
 
@@ -172,10 +146,7 @@ function ManageBanksPageContent({
     setIsDeleteConfirmModalOpen(true);
   };
 
-  const handleDeleteQuestion = (
-    questionId: string,
-    questionContent: string
-  ) => {
+  const handleDeleteQuestion = (questionId: string, questionContent: string) => {
     if (!selectedBank) return;
     setDeleteConfirmType("question");
     setQuestionToDelete({ id: questionId, content: questionContent });
@@ -202,11 +173,7 @@ function ManageBanksPageContent({
   };
 
   const handleFindDuplicates = () => {
-    if (
-      !selectedBank ||
-      !selectedBank.questions ||
-      selectedBank.questions.length < 2
-    ) {
+    if (!selectedBank || !selectedBank.questions || selectedBank.questions.length < 2) {
       setIsNoDuplicatesModalOpen(true);
       return;
     }
@@ -231,7 +198,7 @@ function ManageBanksPageContent({
     toast.success(
       t("bankManage.alerts.duplicatesDeleted", {
         count: selectedIds.size,
-      })
+      }),
     );
 
     setIsDuplicateModalOpen(false);
@@ -243,9 +210,7 @@ function ManageBanksPageContent({
     switch (deleteConfirmType) {
       case "bank":
         deleteQuestionBank(selectedBank.id);
-        toast.success(
-          t("bankManage.alerts.bankDeleted", { name: selectedBank.name })
-        );
+        toast.success(t("bankManage.alerts.bankDeleted", { name: selectedBank.name }));
         setSelectedBankId(null);
         break;
       case "question":
@@ -262,9 +227,7 @@ function ManageBanksPageContent({
   if (questionBanks === undefined) {
     return (
       <div className="container mx-auto p-4 md:p-8 min-h-screen flex justify-center items-center dark:bg-gray-900">
-        <p className="text-xl text-gray-500 dark:text-gray-400">
-          {t("bankManage.loading")}
-        </p>
+        <p className="text-xl text-gray-500 dark:text-gray-400">{t("bankManage.loading")}</p>
       </div>
     );
   }
@@ -277,11 +240,7 @@ function ManageBanksPageContent({
             <CardTitle className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">
               {t("bankManage.pageTitle")}
             </CardTitle>
-            <Button
-              variant="outline"
-              onClick={() => router.push("/quiz")}
-              size="sm"
-            >
+            <Button variant="outline" onClick={() => router.push("/quiz")} size="sm">
               <FaArrowLeft className="mr-2" />
               {t("bankManage.backToList")}
             </Button>
@@ -354,16 +313,13 @@ function ManageBanksPageContent({
                         <span className="font-semibold text-gray-700 dark:text-gray-200">
                           {t("bankManage.description")}:
                         </span>{" "}
-                        {selectedBank.description ||
-                          t("bankManage.noDescription")}
+                        {selectedBank.description || t("bankManage.noDescription")}
                       </p>
                       <p className="text-gray-600 dark:text-gray-300">
                         <span className="font-semibold text-gray-700 dark:text-gray-200">
                           {t("bankManage.questionCount")}:
                         </span>{" "}
-                        {selectedBank.questions
-                          ? selectedBank.questions.length
-                          : 0}{" "}
+                        {selectedBank.questions ? selectedBank.questions.length : 0}{" "}
                         {t("bankManage.questionUnit")}
                       </p>
                       <p className="text-gray-600 dark:text-gray-300">
@@ -383,13 +339,8 @@ function ManageBanksPageContent({
                       >
                         <FaEdit className="mr-2" /> {t("bankManage.editInfo")}
                       </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleDeleteCurrentBank}
-                        size="sm"
-                      >
-                        <FaRegTrashAlt className="mr-2" />{" "}
-                        {t("bankManage.deleteBank")}
+                      <Button variant="destructive" onClick={handleDeleteCurrentBank} size="sm">
+                        <FaRegTrashAlt className="mr-2" /> {t("bankManage.deleteBank")}
                       </Button>
                     </div>
                   </div>
@@ -496,13 +447,11 @@ export default function ManageBanksPage() {
   const { t } = useTranslation();
 
   // Safely get URL parameters on client side
-  const [initialTempBankId, setInitialTempBankId] = useState<string | null>(
-    null
-  );
+  const [initialTempBankId, setInitialTempBankId] = useState<string | null>(null);
 
   useEffect(() => {
     // Add static path markers to help the build system identify paths
-    const paths = [
+    const _paths = [
       "/quiz/banks/manage/",
       "/quiz/banks/manage/index.html",
       "/quiz/banks/manage/index",
@@ -556,9 +505,7 @@ export default function ManageBanksPage() {
       <div style={{ display: "none" }}>
         <Link href="/quiz/banks/manage">{t("bankManage.pageTitle")}</Link>
         <Link href="/quiz/banks/manage/">{t("bankManage.pageTitle")}</Link>
-        <Link href="/quiz/banks/manage/index.html">
-          {t("bankManage.pageTitle")}
-        </Link>
+        <Link href="/quiz/banks/manage/index.html">{t("bankManage.pageTitle")}</Link>
       </div>
       <ManageBanksPageContent initialTempBankId={initialTempBankId} />
     </Suspense>

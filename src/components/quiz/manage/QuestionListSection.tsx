@@ -41,15 +41,13 @@ export function QuestionListSection({
 }: QuestionListSectionProps) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortType, setSortType] = useState<QuestionSortType>(
-    QuestionSortType.ContentAsc
-  );
+  const [sortType, setSortType] = useState<QuestionSortType>(QuestionSortType.ContentAsc);
 
   const filteredQuestions = useMemo(() => {
     let filtered = questions;
     if (searchQuery.trim()) {
       filtered = filtered.filter((q) =>
-        q.content.toLowerCase().includes(searchQuery.toLowerCase())
+        q.content.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -97,11 +95,7 @@ export function QuestionListSection({
           >
             <FaClone className="mr-2" /> {t("bankManage.findDuplicates")}
           </Button>
-          <Button
-            size="sm"
-            className="bg-green-500 hover:bg-green-600"
-            onClick={onAddQuestion}
-          >
+          <Button size="sm" className="bg-green-500 hover:bg-green-600" onClick={onAddQuestion}>
             <FaPlusCircle className="mr-2" /> {t("bankManage.addQuestion")}
           </Button>
         </div>
@@ -139,8 +133,7 @@ export function QuestionListSection({
           </span>
           <Button
             variant={
-              sortType === QuestionSortType.ContentAsc ||
-              sortType === QuestionSortType.ContentDesc
+              sortType === QuestionSortType.ContentAsc || sortType === QuestionSortType.ContentDesc
                 ? "default"
                 : "outline"
             }
@@ -149,7 +142,7 @@ export function QuestionListSection({
               setSortType(
                 sortType === QuestionSortType.ContentAsc
                   ? QuestionSortType.ContentDesc
-                  : QuestionSortType.ContentAsc
+                  : QuestionSortType.ContentAsc,
               )
             }
             className="text-xs"
@@ -166,8 +159,7 @@ export function QuestionListSection({
 
           <Button
             variant={
-              sortType === QuestionSortType.TypeAsc ||
-              sortType === QuestionSortType.TypeDesc
+              sortType === QuestionSortType.TypeAsc || sortType === QuestionSortType.TypeDesc
                 ? "default"
                 : "outline"
             }
@@ -176,7 +168,7 @@ export function QuestionListSection({
               setSortType(
                 sortType === QuestionSortType.TypeAsc
                   ? QuestionSortType.TypeDesc
-                  : QuestionSortType.TypeAsc
+                  : QuestionSortType.TypeAsc,
               )
             }
             className="text-xs"
@@ -193,8 +185,7 @@ export function QuestionListSection({
 
           <Button
             variant={
-              sortType === QuestionSortType.DateAsc ||
-              sortType === QuestionSortType.DateDesc
+              sortType === QuestionSortType.DateAsc || sortType === QuestionSortType.DateDesc
                 ? "default"
                 : "outline"
             }
@@ -203,7 +194,7 @@ export function QuestionListSection({
               setSortType(
                 sortType === QuestionSortType.DateDesc
                   ? QuestionSortType.DateAsc
-                  : QuestionSortType.DateDesc
+                  : QuestionSortType.DateDesc,
               )
             }
             className="text-xs"
@@ -229,9 +220,7 @@ export function QuestionListSection({
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {index + 1}.
-                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{index + 1}.</span>
                   <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200">
                     {getQuestionTypeName(question.type)}
                   </span>
@@ -248,22 +237,16 @@ export function QuestionListSection({
                   onClick={() => onEditQuestion(question.id)}
                 >
                   <FaEdit className="h-3.5 w-3.5" />
-                  <span className="sr-only">
-                    {t("bankManage.editQuestion")}
-                  </span>
+                  <span className="sr-only">{t("bankManage.editQuestion")}</span>
                 </Button>
                 <Button
                   variant="destructive"
                   size="icon"
                   className="h-7 w-7"
-                  onClick={() =>
-                    onDeleteQuestion(question.id, question.content)
-                  }
+                  onClick={() => onDeleteQuestion(question.id, question.content)}
                 >
                   <FaTrash className="h-3.5 w-3.5" />
-                  <span className="sr-only">
-                    {t("bankManage.deleteQuestion")}
-                  </span>
+                  <span className="sr-only">{t("bankManage.deleteQuestion")}</span>
                 </Button>
               </div>
             </li>
@@ -271,9 +254,7 @@ export function QuestionListSection({
         </ul>
       ) : (
         <p className="text-center text-gray-500 dark:text-gray-400 py-6">
-          {searchQuery
-            ? t("bankManage.noQuestionsFound")
-            : t("bankManage.noQuestionsYet")}
+          {searchQuery ? t("bankManage.noQuestionsFound") : t("bankManage.noQuestionsYet")}
         </p>
       )}
     </>

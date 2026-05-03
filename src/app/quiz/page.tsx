@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { FaPlay, FaBook, FaPlus } from "react-icons/fa";
@@ -13,8 +12,7 @@ import { useTranslation } from "react-i18next";
 
 export default function QuizPage() {
   const router = useRouter();
-  const { questionBanks, practiceSession, getQuestionBankById } =
-    useQuizStore();
+  const { questionBanks, practiceSession, getQuestionBankById } = useQuizStore();
   const { t, i18n } = useTranslation();
 
   // state to force refresh the list to keep date-fns time updated
@@ -36,9 +34,7 @@ export default function QuizPage() {
     practiceSession.practiceQuestions.length > 0 &&
     !practiceSession.quizCompleted;
 
-  const unfinishedBank = hasUnfinishedSession
-    ? getQuestionBankById(practiceSession.bankId!)
-    : null;
+  const unfinishedBank = hasUnfinishedSession ? getQuestionBankById(practiceSession.bankId!) : null;
 
   const handleContinuePractice = () => {
     if (practiceSession.bankId) {
@@ -137,8 +133,7 @@ export default function QuizPage() {
                 {t("home.continueSession")}
               </p>
               <p className="text-xs text-blue-600 dark:text-blue-400">
-                {unfinishedBank.name} ·{" "}
-                {practiceSession.currentQuestionIndex + 1}/
+                {unfinishedBank.name} · {practiceSession.currentQuestionIndex + 1}/
                 {practiceSession.practiceQuestions.length}
               </p>
             </div>
@@ -153,19 +148,13 @@ export default function QuizPage() {
       )}
 
       <header className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
-          {t("home.pageTitle")}
-        </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-          {t("home.pageSubtitle")}
-        </p>
+        <h1 className="text-4xl font-bold text-gray-800 dark:text-white">{t("home.pageTitle")}</h1>
+        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">{t("home.pageSubtitle")}</p>
       </header>
 
       {questionBanks.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-xl text-gray-500 dark:text-gray-400 mb-6">
-            {t("home.noBanks")}
-          </p>
+          <p className="text-xl text-gray-500 dark:text-gray-400 mb-6">{t("home.noBanks")}</p>
           <Button
             onClick={() => {
               if (process.env.NODE_ENV === "development") {

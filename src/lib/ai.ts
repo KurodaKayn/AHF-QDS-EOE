@@ -9,7 +9,7 @@ export const callAI = async (
   baseUrl: string,
   apiKey: string,
   model: string,
-  messages: { role: string; content: string }[]
+  messages: { role: string; content: string }[],
 ): Promise<string> => {
   let apiURL = baseUrl;
   if (!apiURL.endsWith("/chat/completions")) {
@@ -36,7 +36,7 @@ export const callAI = async (
           i18n.t("common.apiFailed", {
             status: response.status,
             defaultValue: `API request failed: ${response.status}`,
-          })
+          }),
       );
     }
 
@@ -61,7 +61,7 @@ export const callAIStream = async (
   apiKey: string,
   model: string,
   messages: { role: string; content: string }[],
-  onChunk: (chunk: string) => void
+  onChunk: (chunk: string) => void,
 ): Promise<string> => {
   let apiURL = baseUrl;
   if (!apiURL.endsWith("/chat/completions")) {
@@ -89,7 +89,7 @@ export const callAIStream = async (
           i18n.t("common.apiFailed", {
             status: response.status,
             defaultValue: `API request failed: ${response.status}`,
-          })
+          }),
       );
     }
 
@@ -98,7 +98,7 @@ export const callAIStream = async (
       throw new Error(
         i18n.t("common.streamReadFailed", {
           defaultValue: "Unable to read response stream",
-        })
+        }),
       );
     }
 
@@ -110,9 +110,7 @@ export const callAIStream = async (
       if (done) break;
 
       const chunk = decoder.decode(value);
-      const lines = chunk
-        .split("\n")
-        .filter((line) => line.trim().startsWith("data:"));
+      const lines = chunk.split("\n").filter((line) => line.trim().startsWith("data:"));
 
       for (const line of lines) {
         const data = line.replace(/^data: /, "");
@@ -125,7 +123,7 @@ export const callAIStream = async (
             fullText += content;
             onChunk(content);
           }
-        } catch (e) {
+        } catch (_e) {
           // Ignore parsing errors for partial chunks
         }
       }

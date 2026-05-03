@@ -107,21 +107,13 @@ Correct Answer: D:jsp:include;`,
 /**
  * Gets the example content based on current language
  */
-export const getScriptExampleContent = (
-  template: ScriptTemplate,
-  lang: string = "zh"
-): string => {
-  return lang.startsWith("en")
-    ? SCRIPT_EXAMPLES_EN[template]
-    : SCRIPT_EXAMPLES[template];
+export const getScriptExampleContent = (template: ScriptTemplate, lang: string = "zh"): string => {
+  return lang.startsWith("en") ? SCRIPT_EXAMPLES_EN[template] : SCRIPT_EXAMPLES[template];
 };
 
 /**
  * Gets the template example title
  */
-export const getScriptExampleTitle = (
-  template: ScriptTemplate,
-  t: any
-): string => {
+export const getScriptExampleTitle = (template: ScriptTemplate, t: any): string => {
   return t(`convert.examples.${template}`);
 };

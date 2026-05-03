@@ -48,10 +48,8 @@ export function usePracticeSession() {
   }, [currentQuestion, userAnswers]);
 
   const isLastQuestion = useMemo(
-    () =>
-      currentQuestionIndex === practiceQuestions.length - 1 &&
-      practiceQuestions.length > 0,
-    [currentQuestionIndex, practiceQuestions.length]
+    () => currentQuestionIndex === practiceQuestions.length - 1 && practiceQuestions.length > 0,
+    [currentQuestionIndex, practiceQuestions.length],
   );
 
   const canPressNext = useMemo(() => {
@@ -106,15 +104,13 @@ export function usePracticeSession() {
     const wrongRecords = records.filter((r) => !r.isCorrect);
     const wrongQuestionsFromBank = bank.questions
       .filter((question: Question) =>
-        wrongRecords.some((record) => record.questionId === question.id)
+        wrongRecords.some((record) => record.questionId === question.id),
       )
       .map((q: Question) => {
         const originalRecord = wrongRecords.find((r) => r.questionId === q.id);
         return {
           ...q,
-          originalUserAnswer: originalRecord
-            ? originalRecord.userAnswer
-            : undefined,
+          originalUserAnswer: originalRecord ? originalRecord.userAnswer : undefined,
         };
       });
 
@@ -132,11 +128,7 @@ export function usePracticeSession() {
 
     if (settings.shuffleReviewOptions) {
       questionsToSet = questionsToSet.map((q_item) => {
-        if (
-          q_item.options &&
-          q_item.type !== QuestionType.TrueFalse &&
-          q_item.options.length > 1
-        ) {
+        if (q_item.options && q_item.type !== QuestionType.TrueFalse && q_item.options.length > 1) {
           const shuffledOptions = shuffleArray([...q_item.options]);
           return { ...q_item, options: shuffledOptions };
         }
@@ -166,11 +158,7 @@ export function usePracticeSession() {
 
     setAllBankQuestions(loadedQuestions);
 
-    if (
-      practiceQuestions.length === 0 &&
-      loadedQuestions.length > 0 &&
-      !quizCompleted
-    ) {
+    if (practiceQuestions.length === 0 && loadedQuestions.length > 0 && !quizCompleted) {
       setIsNumQuestionsModalOpen(true);
     }
 
@@ -196,7 +184,7 @@ export function usePracticeSession() {
     (updates: Partial<typeof practiceSession>) => {
       setPracticeSession(updates);
     },
-    [setPracticeSession]
+    [setPracticeSession],
   );
 
   return {

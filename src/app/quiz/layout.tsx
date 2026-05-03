@@ -21,11 +21,7 @@ import { useTranslation } from "react-i18next";
  * Layout component for the quiz system
  * Supports responsive design, collapsible sidebar, and mobile bottom navigation
  */
-export default function QuizLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function QuizLayout({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -83,9 +79,7 @@ export default function QuizLayout({
           >
             {mobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">
-            {t("nav.title")}
-          </h1>
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white">{t("nav.title")}</h1>
         </div>
       </div>
 
@@ -93,13 +87,13 @@ export default function QuizLayout({
       <aside
         className={cn(
           "hidden md:flex flex-col flex-none h-full bg-white dark:bg-gray-800 shadow-md transition-all duration-300 border-r dark:border-gray-700 overflow-y-auto custom-scrollbar",
-          sidebarCollapsed ? "w-16" : "w-64"
+          sidebarCollapsed ? "w-16" : "w-64",
         )}
       >
         <div
           className={cn(
             "flex-none p-4 border-b border-gray-200 dark:border-gray-700 flex items-center sticky top-0 bg-white dark:bg-gray-800 z-10",
-            sidebarCollapsed ? "justify-center" : "justify-between"
+            sidebarCollapsed ? "justify-center" : "justify-between",
           )}
         >
           {!sidebarCollapsed && (
@@ -112,13 +106,9 @@ export default function QuizLayout({
               onClick={toggleSidebar}
               className={cn(
                 "ml-2 p-1 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700",
-                sidebarCollapsed && "mx-auto"
+                sidebarCollapsed && "mx-auto",
               )}
-              aria-label={
-                sidebarCollapsed
-                  ? t("nav.expandSidebar")
-                  : t("nav.collapseSidebar")
-              }
+              aria-label={sidebarCollapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
             >
               {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
             </button>
@@ -136,16 +126,11 @@ export default function QuizLayout({
                     pathname === item.href
                       ? "bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-400"
                       : "text-gray-700 dark:text-gray-200",
-                    sidebarCollapsed && "justify-center"
+                    sidebarCollapsed && "justify-center",
                   )}
                   title={sidebarCollapsed ? item.label : undefined}
                 >
-                  <span
-                    className={cn(
-                      "flex-none",
-                      sidebarCollapsed ? "text-lg" : "mr-3"
-                    )}
-                  >
+                  <span className={cn("flex-none", sidebarCollapsed ? "text-lg" : "mr-3")}>
                     {item.icon}
                   </span>
                   {!sidebarCollapsed && <span>{item.label}</span>}
@@ -159,15 +144,10 @@ export default function QuizLayout({
       {/* Mobile Menu - Drawer */}
       {isMobile && mobileMenuOpen && (
         <>
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={toggleMobileMenu}
-          />
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={toggleMobileMenu} />
           <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col h-full">
             <div className="flex-none p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h1 className="text-xl font-bold text-gray-800 dark:text-white">
-                {t("nav.title")}
-              </h1>
+              <h1 className="text-xl font-bold text-gray-800 dark:text-white">{t("nav.title")}</h1>
               <button
                 onClick={toggleMobileMenu}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -187,7 +167,7 @@ export default function QuizLayout({
                         "hover:bg-gray-100 dark:hover:bg-gray-700",
                         pathname === item.href
                           ? "bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-400"
-                          : "text-gray-700 dark:text-gray-200"
+                          : "text-gray-700 dark:text-gray-200",
                       )}
                       onClick={toggleMobileMenu}
                     >
@@ -209,7 +189,7 @@ export default function QuizLayout({
           // Practice page doesn't need padding, others do
           pathname?.startsWith("/quiz/practice") ? "" : "p-4 md:p-8",
           // Mobile bottom padding to avoid nav overlap
-          isMobile && !pathname?.startsWith("/quiz/practice") && "pb-24"
+          isMobile && !pathname?.startsWith("/quiz/practice") && "pb-24",
         )}
       >
         {children}
@@ -227,7 +207,7 @@ export default function QuizLayout({
                   "flex flex-col items-center py-3 px-2 flex-1",
                   pathname === item.href
                     ? "text-blue-600 dark:text-blue-400"
-                    : "text-gray-600 dark:text-gray-400"
+                    : "text-gray-600 dark:text-gray-400",
                 )}
               >
                 <span className="text-lg">{item.icon}</span>

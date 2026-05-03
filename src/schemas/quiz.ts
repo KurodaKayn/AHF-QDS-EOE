@@ -6,22 +6,18 @@ import i18n from "@/i18n/config";
  * Question option validation schema
  */
 export const questionOptionSchema = z.object({
-  id: z
-    .string()
-    .min(
-      1,
-      i18n.t("questionForm.validation.optionIdRequired", {
-        defaultValue: "Option ID is required",
-      })
-    ),
-  content: z
-    .string()
-    .min(
-      1,
-      i18n.t("questionForm.validation.optionContentRequired", {
-        defaultValue: "Option content is required",
-      })
-    ),
+  id: z.string().min(
+    1,
+    i18n.t("questionForm.validation.optionIdRequired", {
+      defaultValue: "Option ID is required",
+    }),
+  ),
+  content: z.string().min(
+    1,
+    i18n.t("questionForm.validation.optionContentRequired", {
+      defaultValue: "Option content is required",
+    }),
+  ),
 });
 
 /**
@@ -35,9 +31,7 @@ export const questionSchema = z
         defaultValue: "Invalid question type",
       }),
     }),
-    content: z
-      .string()
-      .min(1, i18n.t("questionForm.validation.contentRequired")),
+    content: z.string().min(1, i18n.t("questionForm.validation.contentRequired")),
     options: z.array(questionOptionSchema).optional(),
     answer: z.union([z.string(), z.array(z.string())], {
       message: i18n.t("questionForm.validation.invalidAnswerFormat", {
@@ -52,10 +46,7 @@ export const questionSchema = z
   .refine(
     (data) => {
       // Multiple choice and single choice must have options
-      if (
-        data.type === QuestionType.SingleChoice ||
-        data.type === QuestionType.MultipleChoice
-      ) {
+      if (data.type === QuestionType.SingleChoice || data.type === QuestionType.MultipleChoice) {
         return data.options && data.options.length >= 2;
       }
       return true;
@@ -65,7 +56,7 @@ export const questionSchema = z
         defaultValue: "At least 2 options are required",
       }),
       path: ["options"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -78,7 +69,7 @@ export const questionSchema = z
     {
       message: i18n.t("questionForm.validation.multipleAnswerRequired"),
       path: ["answer"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -93,7 +84,7 @@ export const questionSchema = z
         defaultValue: 'True/False answer must be "true" or "false"',
       }),
       path: ["answer"],
-    }
+    },
   );
 
 /**
@@ -108,7 +99,7 @@ export const questionBankSchema = z.object({
       100,
       i18n.t("bankManage.validation.nameTooLong", {
         defaultValue: "Bank name cannot exceed 100 characters",
-      })
+      }),
     ),
   description: z
     .string()
@@ -116,7 +107,7 @@ export const questionBankSchema = z.object({
       500,
       i18n.t("bankManage.validation.descTooLong", {
         defaultValue: "Description cannot exceed 500 characters",
-      })
+      }),
     )
     .optional(),
   questions: z.array(questionSchema).default([]),
@@ -129,14 +120,12 @@ export const questionBankSchema = z.object({
  */
 export const questionRecordSchema = z.object({
   id: z.string().optional(),
-  questionId: z
-    .string()
-    .min(
-      1,
-      i18n.t("validation.questionIdRequired", {
-        defaultValue: "Question ID is required",
-      })
-    ),
+  questionId: z.string().min(
+    1,
+    i18n.t("validation.questionIdRequired", {
+      defaultValue: "Question ID is required",
+    }),
+  ),
   userAnswer: z.union([z.string(), z.array(z.string())]),
   isCorrect: z.boolean(),
   answeredAt: z.number(),

@@ -8,35 +8,22 @@ import { useQuizStore } from "@/store/quizStore";
 import { useTranslation } from "react-i18next";
 
 interface UseConversionLogicProps {
-  onSuccess?: (
-    questions: Omit<Question, "id">[],
-    bankId: string,
-    bankName: string
-  ) => void;
+  onSuccess?: (questions: Omit<Question, "id">[], bankId: string, bankName: string) => void;
 }
 
 /**
  * Question Conversion Business Logic Hook
  * Handles core logic for AI and script conversion
  */
-export function useConversionLogic({
-  onSuccess,
-}: UseConversionLogicProps = {}) {
+export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) {
   const { t, i18n } = useTranslation();
-  const {
-    settings,
-    addQuestionBank,
-    addQuestionToBank,
-    getQuestionBankById,
-    setConversionState,
-  } = useQuizStore();
+  const { settings, addQuestionBank, addQuestionToBank, getQuestionBankById, setConversionState } =
+    useQuizStore();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingScript, setIsLoadingScript] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [convertedQuestions, setConvertedQuestions] = useState<
-    Omit<Question, "id">[]
-  >([]);
+  const [convertedQuestions, setConvertedQuestions] = useState<Omit<Question, "id">[]>([]);
 
   /**
    * AI Conversion
@@ -87,7 +74,7 @@ export function useConversionLogic({
                 isConverting: false,
               });
             }
-          }
+          },
         );
 
         if (result.success && result.content) {
@@ -110,7 +97,7 @@ export function useConversionLogic({
         setIsLoading(false);
       }
     },
-    [settings, setConversionState, t]
+    [settings, setConversionState, t],
   );
 
   /**
@@ -139,7 +126,7 @@ export function useConversionLogic({
         setIsLoadingScript(false);
       }
     },
-    [t]
+    [t],
   );
 
   /**
@@ -156,10 +143,7 @@ export function useConversionLogic({
       let targetBankName = "";
 
       if (config.mode === "new" && config.newBankName?.trim()) {
-        const newBank = addQuestionBank(
-          config.newBankName,
-          config.newBankDescription || ""
-        );
+        const newBank = addQuestionBank(config.newBankName, config.newBankDescription || "");
         targetBankId = newBank.id;
         targetBankName = newBank.name;
       } else if (config.mode === "existing" && config.bankId) {
@@ -180,14 +164,7 @@ export function useConversionLogic({
 
       return { success: true, bankId: targetBankId, bankName: targetBankName };
     },
-    [
-      convertedQuestions,
-      addQuestionBank,
-      addQuestionToBank,
-      getQuestionBankById,
-      onSuccess,
-      t,
-    ]
+    [convertedQuestions, addQuestionBank, addQuestionToBank, getQuestionBankById, onSuccess, t],
   );
 
   /**

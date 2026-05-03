@@ -6,9 +6,7 @@ import { FaExclamationTriangle, FaTimes, FaListUl } from "react-icons/fa";
 import { toast } from "sonner";
 import { useQuizStore } from "@/store/quizStore";
 import { Question } from "@/types/quiz";
-import WrongQuestionItem, {
-  WrongQuestionDisplay,
-} from "@/components/quiz/WrongQuestionItem";
+import WrongQuestionItem, { WrongQuestionDisplay } from "@/components/quiz/WrongQuestionItem";
 import SimilarQuestionsModal from "@/components/quiz/SimilarQuestionsModal";
 import { useTranslation } from "react-i18next";
 import { useAiExplanation } from "@/hooks/useAiExplanation";
@@ -63,9 +61,7 @@ export default function ReviewPage() {
     const questions = wrongRecords
       .map((record) => {
         for (const bank of questionBanks) {
-          const question = bank.questions.find(
-            (q) => q.id === record.questionId
-          );
+          const question = bank.questions.find((q) => q.id === record.questionId);
           if (question) {
             const wrongQuestionDisplayItem: WrongQuestionDisplay = {
               ...question,
@@ -115,7 +111,7 @@ export default function ReviewPage() {
       return;
     }
     const bankWithWrong = questionBanks.find((bank) =>
-      bank.questions.some((q) => wrongRecs.some((r) => r.questionId === q.id))
+      bank.questions.some((q) => wrongRecs.some((r) => r.questionId === q.id)),
     );
     if (bankWithWrong) {
       router.push(`/quiz/practice?bankId=${bankWithWrong.id}&mode=review`);
@@ -181,7 +177,7 @@ export default function ReviewPage() {
               explanation,
             });
           }
-        }
+        },
       );
     }
   };
@@ -227,9 +223,7 @@ export default function ReviewPage() {
           </h1>
         </div>
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
-            {t("review.emptyState")}
-          </p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">{t("review.emptyState")}</p>
           <button
             onClick={() => router.push("/quiz")}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-md"
@@ -247,9 +241,7 @@ export default function ReviewPage() {
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
           {t("review.headerTitle")}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          {t("review.headerSubtitle")}
-        </p>
+        <p className="text-gray-600 dark:text-gray-400">{t("review.headerSubtitle")}</p>
       </header>
 
       {aiError && (
@@ -273,8 +265,7 @@ export default function ReviewPage() {
         filteredQuestionsCount={filteredQuestions.length}
         selectedCount={selectedQuestions.size}
         isAllSelected={
-          selectedQuestions.size === filteredQuestions.length &&
-          filteredQuestions.length > 0
+          selectedQuestions.size === filteredQuestions.length && filteredQuestions.length > 0
         }
         isGenerating={generatingExplanations.size > 0}
         generatingCount={generatingExplanations.size}
@@ -302,9 +293,7 @@ export default function ReviewPage() {
       {filteredQuestions.length === 0 && (
         <div className="text-center py-10">
           <FaListUl className="mx-auto text-5xl text-gray-400 dark:text-gray-500 mb-4" />
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            {t("review.search.noResults")}
-          </p>
+          <p className="text-lg text-gray-600 dark:text-gray-400">{t("review.search.noResults")}</p>
           {wrongQuestions.length > 0 && (
             <p className="text-sm text-gray-500 dark:text-gray-500">
               {t("review.search.noResultsHint")}
@@ -320,9 +309,7 @@ export default function ReviewPage() {
 
       <div
         className={`grid gap-4 ${
-          viewMode === "options"
-            ? "md:grid-cols-2 lg:grid-cols-3"
-            : "grid-cols-1"
+          viewMode === "options" ? "md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
         }`}
       >
         {filteredQuestions.map(
@@ -336,7 +323,7 @@ export default function ReviewPage() {
                 onSelect={() => handleSelectQuestion(q)}
                 isGeneratingExplanation={generatingExplanations.has(q.id)}
               />
-            )
+            ),
         )}
       </div>
 
@@ -349,16 +336,13 @@ export default function ReviewPage() {
         isLoading={generatingSimilarQuestions}
         availableBanks={questionBanks}
         onImport={async (questionsToImport, bankId) => {
-          const result = await importGeneratedQuestions(
-            questionsToImport,
-            bankId
-          );
+          const result = await importGeneratedQuestions(questionsToImport, bankId);
           if (result.success) {
             toast.success(
               t("review.import.success", {
                 imported: result.importedCount,
                 skipped: result.skippedCount,
-              })
+              }),
             );
           } else {
             toast.error(t("review.import.failed", { error: result.error }));

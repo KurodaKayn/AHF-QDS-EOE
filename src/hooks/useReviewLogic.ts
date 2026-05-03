@@ -20,9 +20,7 @@ export function useReviewLogic({
   currentExplanations,
   completedExplanations,
 }: UseReviewLogicProps) {
-  const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set());
 
   /**
    * Search and filter questions
@@ -34,28 +32,16 @@ export function useReviewLogic({
         const lowerSearchTerm = searchTerm.toLowerCase();
         return (
           q.content.toLowerCase().includes(lowerSearchTerm) ||
-          (q.options?.some((opt) =>
-            opt.content.toLowerCase().includes(lowerSearchTerm)
-          ) ??
+          (q.options?.some((opt) => opt.content.toLowerCase().includes(lowerSearchTerm)) ??
             false) ||
           (q.explanation?.toLowerCase().includes(lowerSearchTerm) ?? false) ||
-          (currentExplanations[q.id]?.toLowerCase().includes(lowerSearchTerm) ??
-            false) ||
-          (completedExplanations[q.id]
-            ?.toLowerCase()
-            .includes(lowerSearchTerm) ??
-            false)
+          (currentExplanations[q.id]?.toLowerCase().includes(lowerSearchTerm) ?? false) ||
+          (completedExplanations[q.id]?.toLowerCase().includes(lowerSearchTerm) ?? false)
         );
       }
       return true;
     });
-  }, [
-    wrongQuestions,
-    filterBankId,
-    searchTerm,
-    currentExplanations,
-    completedExplanations,
-  ]);
+  }, [wrongQuestions, filterBankId, searchTerm, currentExplanations, completedExplanations]);
 
   /**
    * Handle question selection/deselection
@@ -76,10 +62,7 @@ export function useReviewLogic({
    * Select all / Deselect all
    */
   const handleSelectAll = () => {
-    if (
-      selectedQuestions.size === filteredQuestions.length &&
-      filteredQuestions.length > 0
-    ) {
+    if (selectedQuestions.size === filteredQuestions.length && filteredQuestions.length > 0) {
       setSelectedQuestions(new Set());
     } else {
       const newSelected = new Set<string>();

@@ -30,9 +30,7 @@ export function BankDetailsCard({
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(bank.name);
-  const [editDescription, setEditDescription] = useState(
-    bank.description || ""
-  );
+  const [editDescription, setEditDescription] = useState(bank.description || "");
 
   useEffect(() => {
     setEditName(bank.name);
@@ -57,11 +55,7 @@ export function BankDetailsCard({
           </CardTitle>
           <div className="flex gap-2">
             {!isEditing && (
-              <Button
-                variant="outline"
-                onClick={() => setIsEditing(true)}
-                size="sm"
-              >
+              <Button variant="outline" onClick={() => setIsEditing(true)} size="sm">
                 <FaEdit className="mr-2" /> {t("bankManage.editInfo")}
               </Button>
             )}
@@ -106,11 +100,7 @@ export function BankDetailsCard({
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsEditing(false)}
-                size="sm"
-              >
+              <Button variant="outline" onClick={() => setIsEditing(false)} size="sm">
                 {t("bankManage.cancel")}
               </Button>
               <Button onClick={handleSave} size="sm">
@@ -130,16 +120,13 @@ export function BankDetailsCard({
               <span className="font-semibold text-gray-700 dark:text-gray-200">
                 {t("bankManage.questionCount")}:
               </span>{" "}
-              {bank.questions ? bank.questions.length : 0}{" "}
-              {t("bankManage.questionUnit")}
+              {bank.questions ? bank.questions.length : 0} {t("bankManage.questionUnit")}
             </p>
             <p className="text-gray-600 dark:text-gray-300">
               <span className="font-semibold text-gray-700 dark:text-gray-200">
                 {t("bankManage.createdAt")}
               </span>{" "}
-              {bank.createdAt
-                ? new Date(bank.createdAt).toLocaleString()
-                : t("bankManage.unknown")}
+              {bank.createdAt ? new Date(bank.createdAt).toLocaleString() : t("bankManage.unknown")}
             </p>
           </div>
         )}

@@ -10,10 +10,7 @@ export const generateId = (): string => nanoid();
 /**
  * Creates an empty question bank
  */
-export const createEmptyBank = (
-  name: string,
-  description?: string
-): QuestionBank => {
+export const createEmptyBank = (name: string, description?: string): QuestionBank => {
   const now = Date.now();
   return {
     id: generateId(),
@@ -34,7 +31,7 @@ export const createQuestion = (
   options: { content: string }[] = [],
   answer: string | string[] = "",
   explanation?: string,
-  tags: string[] = []
+  tags: string[] = [],
 ): Question => {
   const now = Date.now();
   return {
@@ -58,10 +55,7 @@ const convertQuestionToExportFormat = (q: Question): Record<string, any> => {
   let formattedAnswer = q.answer;
   if (q.type === QuestionType.MultipleChoice && Array.isArray(q.answer)) {
     formattedAnswer = q.answer.join(",");
-  } else if (
-    q.type === QuestionType.TrueFalse &&
-    typeof q.answer === "string"
-  ) {
+  } else if (q.type === QuestionType.TrueFalse && typeof q.answer === "string") {
     formattedAnswer = q.answer.toLowerCase();
   }
 
@@ -128,13 +122,9 @@ const convertImportRowToQuestion = (row: any): Question => {
   } else if (type === QuestionType.TrueFalse) {
     if (typeof row.answer === "string") {
       const answerText = String(row.answer).trim().toLowerCase();
-      if (
-        ["true", "t", "1", "正确", "对", "yes", "y", "√"].includes(answerText)
-      ) {
+      if (["true", "t", "1", "正确", "对", "yes", "y", "√"].includes(answerText)) {
         answer = "true";
-      } else if (
-        ["false", "f", "0", "错误", "错", "no", "n", "×"].includes(answerText)
-      ) {
+      } else if (["false", "f", "0", "错误", "错", "no", "n", "×"].includes(answerText)) {
         answer = "false";
       } else {
         answer = answerText;
@@ -143,9 +133,7 @@ const convertImportRowToQuestion = (row: any): Question => {
   }
 
   // Find all option keys (optionA, optionB, etc.)
-  const optionKeys = Object.keys(row).filter((key) =>
-    /^option[A-Z]$/.test(key)
-  );
+  const optionKeys = Object.keys(row).filter((key) => /^option[A-Z]$/.test(key));
   const options = optionKeys
     .filter((key) => {
       const val = row[key];
@@ -179,10 +167,7 @@ const convertImportRowToQuestion = (row: any): Question => {
 /**
  * Imports question bank from CSV string
  */
-export const importFromCSV = (
-  csvString: string,
-  bankName: string
-): QuestionBank => {
+export const importFromCSV = (csvString: string, bankName: string): QuestionBank => {
   const workbook = XLSX.read(csvString, { type: "string" });
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
@@ -205,10 +190,7 @@ export const importFromCSV = (
 /**
  * Imports question bank from Excel buffer
  */
-export const importFromExcel = (
-  buffer: ArrayBuffer,
-  bankName: string
-): QuestionBank => {
+export const importFromExcel = (buffer: ArrayBuffer, bankName: string): QuestionBank => {
   const workbook = XLSX.read(buffer, { type: "array" });
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];

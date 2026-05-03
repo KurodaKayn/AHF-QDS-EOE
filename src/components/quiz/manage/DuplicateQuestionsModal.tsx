@@ -28,9 +28,7 @@ export function DuplicateQuestionsModal({
   onDeleteSelected,
 }: DuplicateQuestionsModalProps) {
   const { t } = useTranslation();
-  const [selectedDuplicates, setSelectedDuplicates] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedDuplicates, setSelectedDuplicates] = useState<Set<string>>(new Set());
 
   const handleSelectDuplicate = (questionId: string) => {
     const newSelected = new Set(selectedDuplicates);
@@ -57,19 +55,14 @@ export function DuplicateQuestionsModal({
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{t("bankManage.duplicates.title")}</DialogTitle>
-          <DialogDescription>
-            {t("bankManage.duplicates.description")}
-          </DialogDescription>
+          <DialogDescription>{t("bankManage.duplicates.description")}</DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="flex-1 mt-4 max-h-[60vh] overflow-auto pr-4">
           <div className="pb-4">
             {Array.from(duplicateGroups.entries()).map(
               ([normalizedContent, questions], groupIndex) => (
-                <div
-                  key={normalizedContent}
-                  className="mb-6 pb-6 border-b dark:border-gray-700"
-                >
+                <div key={normalizedContent} className="mb-6 pb-6 border-b dark:border-gray-700">
                   <div className="mb-2 font-medium">
                     <Badge variant="outline" className="mr-2">
                       {t("bankManage.duplicates.group", {
@@ -91,9 +84,7 @@ export function DuplicateQuestionsModal({
                         <Checkbox
                           id={`question-${question.id}`}
                           checked={selectedDuplicates.has(question.id)}
-                          onCheckedChange={() =>
-                            handleSelectDuplicate(question.id)
-                          }
+                          onCheckedChange={() => handleSelectDuplicate(question.id)}
                           className="mt-1"
                         />
                         <div className="flex-1">
@@ -112,9 +103,7 @@ export function DuplicateQuestionsModal({
                             {question.createdAt && (
                               <span>
                                 {t("bankManage.duplicates.addedAt", {
-                                  time: new Date(
-                                    question.createdAt
-                                  ).toLocaleString(),
+                                  time: new Date(question.createdAt).toLocaleString(),
                                 })}
                               </span>
                             )}
@@ -124,7 +113,7 @@ export function DuplicateQuestionsModal({
                     ))}
                   </ul>
                 </div>
-              )
+              ),
             )}
           </div>
         </ScrollArea>

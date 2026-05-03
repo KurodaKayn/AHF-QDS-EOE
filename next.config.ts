@@ -3,8 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   // 恢复静态导出设置
-  output: 'export',
-  distDir: 'out',
+  output: "export",
+  distDir: "out",
   // 启用图片优化
   images: {
     unoptimized: true,

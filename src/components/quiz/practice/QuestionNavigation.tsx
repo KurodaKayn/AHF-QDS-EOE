@@ -1,15 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  FaArrowLeft,
-  FaArrowRight,
-  FaCheck,
-  FaHome,
-  FaRedo,
-} from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaCheck, FaHome, FaRedo } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 
 interface QuestionNavigationProps {
@@ -135,11 +129,7 @@ export function QuestionNavigation({
               {t("practice.nav.finish")}
             </Button>
           ) : (
-            <Button
-              onClick={onNext}
-              disabled={!canPressNext}
-              className="flex items-center gap-2"
-            >
+            <Button onClick={onNext} disabled={!canPressNext} className="flex items-center gap-2">
               {t("practice.nav.next")}
               <FaArrowRight />
             </Button>

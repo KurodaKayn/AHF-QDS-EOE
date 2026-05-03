@@ -11,18 +11,12 @@ interface AiConfigFormProps {
   onCancel: () => void;
 }
 
-export const AiConfigForm: React.FC<AiConfigFormProps> = ({
-  initialConfig,
-  onSave,
-  onCancel,
-}) => {
+export const AiConfigForm: React.FC<AiConfigFormProps> = ({ initialConfig, onSave, onCancel }) => {
   const { t } = useTranslation();
   const [name, setName] = useState(initialConfig?.name || "");
-  const [type, setType] = useState<"preset" | "custom">(
-    initialConfig?.type || "preset"
-  );
+  const [type, setType] = useState<"preset" | "custom">(initialConfig?.type || "preset");
   const [provider, setProvider] = useState<"deepseek" | "alibaba" | undefined>(
-    initialConfig?.provider
+    initialConfig?.provider,
   );
   const [baseUrl, setBaseUrl] = useState(initialConfig?.baseUrl || "");
   const [apiKey, setApiKey] = useState(initialConfig?.apiKey || "");
@@ -113,9 +107,7 @@ export const AiConfigForm: React.FC<AiConfigFormProps> = ({
           </label>
           <select
             value={provider}
-            onChange={(e) =>
-              handleProviderChange(e.target.value as "deepseek" | "alibaba")
-            }
+            onChange={(e) => handleProviderChange(e.target.value as "deepseek" | "alibaba")}
             className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="deepseek">DeepSeek</option>
@@ -165,9 +157,7 @@ export const AiConfigForm: React.FC<AiConfigFormProps> = ({
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           {t("settings.ai.baseUrl")}{" "}
           {type === "preset" && (
-            <span className="text-xs text-gray-500">
-              {t("settings.ai.baseUrlDesc")}
-            </span>
+            <span className="text-xs text-gray-500">{t("settings.ai.baseUrlDesc")}</span>
           )}
         </label>
         <div className="relative">
@@ -182,18 +172,14 @@ export const AiConfigForm: React.FC<AiConfigFormProps> = ({
             placeholder="https://api.example.com/v1"
           />
         </div>
-        <p className="text-xs text-gray-500 mt-1">
-          {t("settings.ai.baseUrlHint")}
-        </p>
+        <p className="text-xs text-gray-500 mt-1">{t("settings.ai.baseUrlHint")}</p>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           {t("settings.ai.model")}{" "}
           {type === "preset" && (
-            <span className="text-xs text-gray-500">
-              {t("settings.ai.baseUrlDesc")}
-            </span>
+            <span className="text-xs text-gray-500">{t("settings.ai.baseUrlDesc")}</span>
           )}
         </label>
         <div className="relative">

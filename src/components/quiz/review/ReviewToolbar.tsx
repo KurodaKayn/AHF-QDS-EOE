@@ -1,10 +1,4 @@
-import {
-  FaPlayCircle,
-  FaCheck,
-  FaRobot,
-  FaSyncAlt,
-  FaTrash,
-} from "react-icons/fa";
+import { FaPlayCircle, FaCheck, FaRobot, FaSyncAlt, FaTrash } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 
 interface ReviewToolbarProps {
@@ -93,9 +87,7 @@ export function ReviewToolbar({
       <div className="flex items-center gap-3">
         <select
           value={viewMode}
-          onChange={(e) =>
-            onViewModeChange(e.target.value as "options" | "list")
-          }
+          onChange={(e) => onViewModeChange(e.target.value as "options" | "list")}
           className="px-3 py-2 text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500"
         >
           <option value="options">{t("review.actions.viewCard")}</option>

@@ -20,16 +20,10 @@ export default function BankDetailPage() {
   const { t } = useTranslation();
 
   // Ensure bankId is always a string
-  const bankId = Array.isArray(params.bankId)
-    ? params.bankId[0] || ""
-    : params.bankId || "";
+  const bankId = Array.isArray(params.bankId) ? params.bankId[0] || "" : params.bankId || "";
 
-  const {
-    getQuestionBankById,
-    updateQuestionInBank,
-    deleteQuestionFromBank,
-    addQuestionToBank,
-  } = useQuizStore();
+  const { getQuestionBankById, updateQuestionInBank, deleteQuestionFromBank, addQuestionToBank } =
+    useQuizStore();
 
   const bank = getQuestionBankById(bankId);
 
@@ -57,14 +51,7 @@ export default function BankDetailPage() {
   };
 
   const handleDeleteQuestion = (questionId: string) => {
-    if (
-      confirm(
-        t("bankManage.deleteConfirm.questionMessage", { content: "" }).replace(
-          '""',
-          ""
-        )
-      )
-    ) {
+    if (confirm(t("bankManage.deleteConfirm.questionMessage", { content: "" }).replace('""', ""))) {
       deleteQuestionFromBank(bankId, questionId);
     }
   };
@@ -81,9 +68,7 @@ export default function BankDetailPage() {
         <h1 className="text-3xl font-bold text-red-500 dark:text-red-400 mb-4">
           {t("practice.bankNotFound")}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">
-          {t("bankManage.selectBankPrompt")}
-        </p>
+        <p className="text-gray-600 dark:text-gray-400 mb-8">{t("bankManage.selectBankPrompt")}</p>
         <button
           onClick={() => router.push("/quiz")}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg flex items-center"
@@ -110,9 +95,7 @@ export default function BankDetailPage() {
       return (
         q.content.toLowerCase().includes(searchLower) ||
         (q.explanation?.toLowerCase() || "").includes(searchLower) ||
-        (q.options || []).some((opt) =>
-          opt.content.toLowerCase().includes(searchLower)
-        )
+        (q.options || []).some((opt) => opt.content.toLowerCase().includes(searchLower))
       );
     })
     .sort((a, b) => {

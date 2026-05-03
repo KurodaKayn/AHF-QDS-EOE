@@ -8,10 +8,7 @@ export class PracticeHandlers {
   /**
    * Checks if the user answer is correct
    */
-  static checkIsCorrect(
-    question: Question,
-    userAnswer: string | string[] | undefined
-  ): boolean {
+  static checkIsCorrect(question: Question, userAnswer: string | string[] | undefined): boolean {
     if (!userAnswer) return false;
 
     const correctAnswer = question.answer;
@@ -19,10 +16,7 @@ export class PracticeHandlers {
     switch (question.type) {
       case QuestionType.SingleChoice:
       case QuestionType.TrueFalse:
-        return (
-          (userAnswer as string).toLowerCase() ===
-          (correctAnswer as string).toLowerCase()
-        );
+        return (userAnswer as string).toLowerCase() === (correctAnswer as string).toLowerCase();
 
       case QuestionType.MultipleChoice:
         if (!Array.isArray(userAnswer) || !Array.isArray(correctAnswer)) {
@@ -33,26 +27,18 @@ export class PracticeHandlers {
         }
         const sortedUserAnswer = [...userAnswer].sort();
         const sortedCorrectAnswer = [...correctAnswer].sort();
-        return sortedUserAnswer.every(
-          (ans, index) => ans === sortedCorrectAnswer[index]
-        );
+        return sortedUserAnswer.every((ans, index) => ans === sortedCorrectAnswer[index]);
 
       case QuestionType.FillInBlank:
         if (typeof correctAnswer !== "string") return false;
-        const correctAnswers = correctAnswer
-          .split(";")
-          .map((a) => a.trim().toLowerCase());
-        const userAnswerStr =
-          typeof userAnswer === "string" ? userAnswer : userAnswer.join(";");
+        const correctAnswers = correctAnswer.split(";").map((a) => a.trim().toLowerCase());
+        const userAnswerStr = typeof userAnswer === "string" ? userAnswer : userAnswer.join(";");
         const userAnswerLower = userAnswerStr.trim().toLowerCase();
         return correctAnswers.some((ans) => ans === userAnswerLower);
 
       case QuestionType.ShortAnswer:
-        if (typeof correctAnswer !== "string" || typeof userAnswer !== "string")
-          return false;
-        return (
-          userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase()
-        );
+        if (typeof correctAnswer !== "string" || typeof userAnswer !== "string") return false;
+        return userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
 
       default:
         return false;
@@ -79,7 +65,7 @@ export class PracticeHandlers {
     options: {
       shuffleQuestionOrder?: boolean;
       shuffleOptions?: boolean;
-    }
+    },
   ): Question[] {
     let questionsToSet = [...questions];
 
@@ -89,11 +75,7 @@ export class PracticeHandlers {
 
     if (options.shuffleOptions) {
       questionsToSet = questionsToSet.map((q) => {
-        if (
-          q.options &&
-          q.type !== QuestionType.TrueFalse &&
-          q.options.length > 1
-        ) {
+        if (q.options && q.type !== QuestionType.TrueFalse && q.options.length > 1) {
           const shuffledOptions = this.shuffleArray([...q.options]);
           return { ...q, options: shuffledOptions };
         }
@@ -109,7 +91,7 @@ export class PracticeHandlers {
    */
   static calculateStats(
     practiceQuestions: Question[],
-    userAnswers: Record<string, string | string[]>
+    userAnswers: Record<string, string | string[]>,
   ) {
     let correctCount = 0;
     let wrongCount = 0;
@@ -117,10 +99,7 @@ export class PracticeHandlers {
 
     practiceQuestions.forEach((question) => {
       const userAnswer = userAnswers[question.id];
-      if (
-        !userAnswer ||
-        (Array.isArray(userAnswer) && userAnswer.length === 0)
-      ) {
+      if (!userAnswer || (Array.isArray(userAnswer) && userAnswer.length === 0)) {
         unansweredCount++;
       } else if (this.checkIsCorrect(question, userAnswer)) {
         correctCount++;
@@ -131,8 +110,7 @@ export class PracticeHandlers {
 
     const totalQuestions = practiceQuestions.length;
     const answeredCount = totalQuestions - unansweredCount;
-    const accuracy =
-      answeredCount > 0 ? (correctCount / answeredCount) * 100 : 0;
+    const accuracy = answeredCount > 0 ? (correctCount / answeredCount) * 100 : 0;
 
     return {
       totalQuestions,

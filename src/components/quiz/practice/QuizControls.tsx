@@ -27,9 +27,7 @@ export function QuizControls({
 }: QuizControlsProps) {
   const { t } = useTranslation();
 
-  const nextButtonText = isLastQuestion
-    ? t("practice.nav.finish")
-    : t("practice.nav.next");
+  const nextButtonText = isLastQuestion ? t("practice.nav.finish") : t("practice.nav.next");
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t dark:border-gray-700">

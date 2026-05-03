@@ -39,11 +39,7 @@ export function BankSelector({
               </SelectItem>
             )}
             {banks.map((bank) => (
-              <SelectItem
-                key={bank.id}
-                value={bank.id}
-                className="text-base py-2"
-              >
+              <SelectItem key={bank.id} value={bank.id} className="text-base py-2">
                 {bank.name} (
                 {t("home.questionCount", {
                   count: bank.questions ? bank.questions.length : 0,

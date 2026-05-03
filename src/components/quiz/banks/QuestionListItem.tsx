@@ -12,11 +12,7 @@ interface QuestionListItemProps {
   onDelete: (questionId: string) => void;
 }
 
-export function QuestionListItem({
-  question,
-  onEdit,
-  onDelete,
-}: QuestionListItemProps) {
+export function QuestionListItem({ question, onEdit, onDelete }: QuestionListItemProps) {
   const { t, i18n } = useTranslation();
   const getOptionLetter = (index: number) => String.fromCharCode(65 + index);
 
@@ -47,9 +43,7 @@ export function QuestionListItem({
                 isCorrect =
                   question.answer.includes(option.id) ||
                   question.answer.some(
-                    (ans) =>
-                      typeof ans === "string" &&
-                      ans.toUpperCase() === optionLetter
+                    (ans) => typeof ans === "string" && ans.toUpperCase() === optionLetter,
                   );
               }
             }
@@ -104,9 +98,7 @@ export function QuestionListItem({
         <div className="text-sm mt-2 text-gray-700 dark:text-gray-300">
           {t("bankManage.item.answer")}{" "}
           <span className="font-medium text-green-600 dark:text-green-400">
-            {question.answer === "true"
-              ? t("aiExplanation.correct")
-              : t("aiExplanation.incorrect")}
+            {question.answer === "true" ? t("aiExplanation.correct") : t("aiExplanation.incorrect")}
           </span>
         </div>
       );
@@ -159,9 +151,7 @@ export function QuestionListItem({
           </div>
         </div>
 
-        <div className="mb-3 text-gray-800 dark:text-white">
-          {question.content}
-        </div>
+        <div className="mb-3 text-gray-800 dark:text-white">{question.content}</div>
 
         {renderOptions()}
         {renderAnswer()}
@@ -169,9 +159,7 @@ export function QuestionListItem({
         {question.explanation && (
           <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium">
-                {t("bankManage.item.explanation")}
-              </span>{" "}
+              <span className="font-medium">{t("bankManage.item.explanation")}</span>{" "}
               {question.explanation}
             </div>
           </div>

@@ -32,8 +32,7 @@ export function QuestionContent({
   const { t } = useTranslation();
 
   const renderOriginalWrongAnswer = () => {
-    if (!isReviewMode || !showAnswer || !question.originalUserAnswer)
-      return null;
+    if (!isReviewMode || !showAnswer || !question.originalUserAnswer) return null;
 
     const originalAns = question.originalUserAnswer;
 
@@ -51,16 +50,12 @@ export function QuestionContent({
       return (
         originalAnswerArray
           .map((ansId: string) => {
-            const option = currentQOptions.find(
-              (opt: QuestionOption) => opt.id === ansId
-            );
+            const option = currentQOptions.find((opt: QuestionOption) => opt.id === ansId);
             if (option) {
               const optionIndex = currentQOptions.findIndex(
-                (opt: QuestionOption) => opt.id === ansId
+                (opt: QuestionOption) => opt.id === ansId,
               );
-              return `${String.fromCharCode(65 + (optionIndex ?? 0))}. ${
-                option.content
-              }`;
+              return `${String.fromCharCode(65 + (optionIndex ?? 0))}. ${option.content}`;
             }
             return `${t("practice.completion.unknownOption")}: ${ansId}`;
           })
@@ -70,8 +65,8 @@ export function QuestionContent({
       return originalAns === "true"
         ? t("aiExplanation.correct")
         : originalAns === "false"
-        ? t("aiExplanation.incorrect")
-        : originalAns || t("practice.completion.notRecorded");
+          ? t("aiExplanation.incorrect")
+          : originalAns || t("practice.completion.notRecorded");
     } else {
       return originalAns || t("practice.completion.notRecorded");
     }

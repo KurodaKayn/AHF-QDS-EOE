@@ -11,10 +11,7 @@ interface ImageOCRUploadProps {
   onError?: (error: string) => void;
 }
 
-export function ImageOCRUpload({
-  onTextExtracted,
-  onError,
-}: ImageOCRUploadProps) {
+export function ImageOCRUpload({ onTextExtracted, onError }: ImageOCRUploadProps) {
   const { t } = useTranslation();
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);

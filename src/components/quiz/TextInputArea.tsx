@@ -58,9 +58,7 @@ export function TextInputArea({
     }
   };
 
-  const handleTextareaPaste = async (
-    e: React.ClipboardEvent<HTMLTextAreaElement>
-  ) => {
+  const handleTextareaPaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     if (!showOCR) return;
 
     const items = e.clipboardData?.items;
@@ -89,9 +87,7 @@ export function TextInputArea({
         {t("convert.input.label")}
       </label>
 
-      {showOCR && (
-        <ImageOCRUpload onTextExtracted={handleOCRText} onError={onOCRError} />
-      )}
+      {showOCR && <ImageOCRUpload onTextExtracted={handleOCRText} onError={onOCRError} />}
 
       <div className="relative">
         <textarea

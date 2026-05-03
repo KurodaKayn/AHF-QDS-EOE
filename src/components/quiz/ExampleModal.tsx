@@ -10,12 +10,7 @@ interface ExampleModalProps {
   onClose: () => void;
 }
 
-export function ExampleModal({
-  isOpen,
-  title,
-  content,
-  onClose,
-}: ExampleModalProps) {
+export function ExampleModal({ isOpen, title, content, onClose }: ExampleModalProps) {
   const { t } = useTranslation();
   if (!isOpen) return null;
 
@@ -23,9 +18,7 @@ export function ExampleModal({
     <div className="fixed inset-0 bg-gray-600 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center px-4">
       <div className="relative mx-auto p-6 border w-full max-w-md md:max-w-lg shadow-lg rounded-md bg-white dark:bg-gray-800 dark:border-gray-700">
         <div className="flex justify-between items-center mb-4 pb-3 border-b dark:border-gray-700">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {title}
-          </h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"

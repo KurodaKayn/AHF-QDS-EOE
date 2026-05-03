@@ -15,12 +15,9 @@ export function QuestionList({ questions, maxPreview = 3 }: QuestionListProps) {
   const { t } = useTranslation();
   const [showAll, setShowAll] = useState(false);
 
-  const countByType = (type: QuestionType) =>
-    questions.filter((q) => q.type === type).length;
+  const countByType = (type: QuestionType) => questions.filter((q) => q.type === type).length;
 
-  const displayedQuestions = showAll
-    ? questions
-    : questions.slice(0, maxPreview);
+  const displayedQuestions = showAll ? questions : questions.slice(0, maxPreview);
 
   return (
     <div className="mt-8">

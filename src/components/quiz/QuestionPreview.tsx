@@ -8,31 +8,25 @@ interface QuestionPreviewProps {
   index?: number;
 }
 
-export function QuestionPreview({ question, index }: QuestionPreviewProps) {
+export function QuestionPreview({ question, index: _index }: QuestionPreviewProps) {
   const { t } = useTranslation();
   const { type, content, options = [], answer } = question;
 
   const renderAnswer = () => {
-    if (
-      type === QuestionType.SingleChoice &&
-      typeof answer === "string" &&
-      options.length > 0
-    ) {
+    if (type === QuestionType.SingleChoice && typeof answer === "string" && options.length > 0) {
       const correctOptionIndex = options.findIndex((opt) => opt.id === answer);
       if (correctOptionIndex !== -1) {
         const optionLetter = String.fromCharCode(65 + correctOptionIndex);
         const correctOption = options[correctOptionIndex];
         return (
           <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
-            {t("convert.preview.answer")}: {optionLetter}.{" "}
-            {correctOption.content}
+            {t("convert.preview.answer")}: {optionLetter}. {correctOption.content}
           </div>
         );
       } else {
         return (
           <div className="mt-1 text-red-500 dark:text-red-400 font-medium">
-            {t("convert.preview.answer")}: (
-            {t("convert.preview.optionNotFound", { id: answer })})
+            {t("convert.preview.answer")}: ({t("convert.preview.optionNotFound", { id: answer })})
           </div>
         );
       }
@@ -43,9 +37,7 @@ export function QuestionPreview({ question, index }: QuestionPreviewProps) {
     ) {
       const answerDetails = answer
         .map((ansId) => {
-          const correctOptionIndex = options.findIndex(
-            (opt) => opt.id === ansId
-          );
+          const correctOptionIndex = options.findIndex((opt) => opt.id === ansId);
           if (correctOptionIndex !== -1) {
             const optionLetter = String.fromCharCode(65 + correctOptionIndex);
             return `${optionLetter}. ${options[correctOptionIndex].content}`;
@@ -63,8 +55,7 @@ export function QuestionPreview({ question, index }: QuestionPreviewProps) {
       } else {
         return (
           <div className="mt-1 text-red-500 dark:text-red-400 font-medium">
-            {t("convert.preview.answer")}: (
-            {t("convert.preview.optionNotFound", { id: "" })})
+            {t("convert.preview.answer")}: ({t("convert.preview.optionNotFound", { id: "" })})
           </div>
         );
       }
@@ -72,15 +63,10 @@ export function QuestionPreview({ question, index }: QuestionPreviewProps) {
       return (
         <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
           {t("convert.preview.answer")}:{" "}
-          {answer === "true"
-            ? t("aiExplanation.correct")
-            : t("aiExplanation.incorrect")}
+          {answer === "true" ? t("aiExplanation.correct") : t("aiExplanation.incorrect")}
         </div>
       );
-    } else if (
-      type === QuestionType.ShortAnswer &&
-      typeof answer === "string"
-    ) {
+    } else if (type === QuestionType.ShortAnswer && typeof answer === "string") {
       return (
         <div className="mt-1 text-green-600 dark:text-green-400 font-medium">
           {t("convert.preview.answer")}: {answer}
@@ -99,23 +85,19 @@ export function QuestionPreview({ question, index }: QuestionPreviewProps) {
         </span>
       </div>
       <p className="text-gray-900 dark:text-white">{content}</p>
-      {(type === QuestionType.SingleChoice ||
-        type === QuestionType.MultipleChoice) &&
-        options && (
-          <div className="mt-2 space-y-2">
-            {options.map((opt, i) => (
-              <div
-                key={opt.id}
-                className="text-sm text-gray-700 dark:text-gray-300 p-2 bg-gray-50 dark:bg-gray-700 rounded"
-              >
-                <span className="font-medium mr-2">
-                  {String.fromCharCode(65 + i)}.
-                </span>
-                <span className="whitespace-pre-wrap">{opt.content}</span>
-              </div>
-            ))}
-          </div>
-        )}
+      {(type === QuestionType.SingleChoice || type === QuestionType.MultipleChoice) && options && (
+        <div className="mt-2 space-y-2">
+          {options.map((opt, i) => (
+            <div
+              key={opt.id}
+              className="text-sm text-gray-700 dark:text-gray-300 p-2 bg-gray-50 dark:bg-gray-700 rounded"
+            >
+              <span className="font-medium mr-2">{String.fromCharCode(65 + i)}.</span>
+              <span className="whitespace-pre-wrap">{opt.content}</span>
+            </div>
+          ))}
+        </div>
+      )}
       {renderAnswer()}
     </div>
   );

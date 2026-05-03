@@ -57,7 +57,7 @@ export function PracticeContent() {
       {
         shuffleQuestionOrder: settings.shufflePracticeQuestionOrder,
         shuffleOptions: settings.shufflePracticeOptions,
-      }
+      },
     );
 
     updateSession({
@@ -123,7 +123,7 @@ export function PracticeContent() {
   const handleCompleteQuiz = () => {
     if (!startTime) return;
 
-    const totalTime = Math.floor((Date.now() - startTime) / 1000);
+    const _totalTime = Math.floor((Date.now() - startTime) / 1000);
 
     practiceQuestions.forEach((question) => {
       const userAnswer = userAnswers[question.id];
@@ -136,11 +136,7 @@ export function PracticeContent() {
         answeredAt: Date.now(),
       });
 
-      if (
-        isReviewMode &&
-        isCorrect &&
-        settings.markMistakeAsCorrectedOnReviewSuccess
-      ) {
+      if (isReviewMode && isCorrect && settings.markMistakeAsCorrectedOnReviewSuccess) {
         removeWrongRecordsByQuestionId(question.id);
       }
     });
@@ -158,13 +154,10 @@ export function PracticeContent() {
       clearPracticeSession();
       router.push(`/quiz/practice?bankId=${currentBank?.id}&mode=review`);
     } else {
-      const questionsToSet = PracticeHandlers.preparePracticeQuestions(
-        allBankQuestions,
-        {
-          shuffleQuestionOrder: settings.shufflePracticeQuestionOrder,
-          shuffleOptions: settings.shufflePracticeOptions,
-        }
-      );
+      const questionsToSet = PracticeHandlers.preparePracticeQuestions(allBankQuestions, {
+        shuffleQuestionOrder: settings.shufflePracticeQuestionOrder,
+        shuffleOptions: settings.shufflePracticeOptions,
+      });
 
       updateSession({
         practiceQuestions: questionsToSet,
@@ -223,21 +216,14 @@ export function PracticeContent() {
       <div className="flex h-screen flex-col items-center justify-center gap-4">
         <FaTimesCircle className="text-6xl text-red-500" />
         <p className="text-xl">{t("practice.bankNotFound")}</p>
-        <Button onClick={handleReturnToQuizList}>
-          {t("practice.backToList")}
-        </Button>
+        <Button onClick={handleReturnToQuizList}>{t("practice.backToList")}</Button>
       </div>
     );
   }
 
   if (quizCompleted) {
-    const stats = PracticeHandlers.calculateStats(
-      practiceQuestions,
-      userAnswers
-    );
-    const totalTime = startTime
-      ? Math.floor((Date.now() - startTime) / 1000)
-      : 0;
+    const stats = PracticeHandlers.calculateStats(practiceQuestions, userAnswers);
+    const totalTime = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
 
     return (
       <QuizCompletionSummary
@@ -256,14 +242,10 @@ export function PracticeContent() {
       <>
         <div className="flex h-screen flex-col items-center justify-center gap-4">
           <p className="text-xl">
-            {isReviewMode
-              ? t("practice.noWrongQuestions")
-              : t("practice.noQuestions")}
+            {isReviewMode ? t("practice.noWrongQuestions") : t("practice.noQuestions")}
           </p>
           <div className="flex gap-4">
-            <Button onClick={handleReturnToQuizList}>
-              {t("practice.backToList")}
-            </Button>
+            <Button onClick={handleReturnToQuizList}>{t("practice.backToList")}</Button>
             {!isReviewMode && (
               <Button onClick={handleManageBankClick} variant="outline">
                 {t("practice.manageBank")}

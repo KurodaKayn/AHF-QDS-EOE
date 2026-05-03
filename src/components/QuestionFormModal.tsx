@@ -31,11 +31,7 @@ interface QuestionFormModalProps {
   bankId: string;
   questionToEdit?: Question | null;
   onSubmitSuccess?: () => void;
-  onSave: (
-    bankId: string,
-    questionData: Omit<Question, "id">,
-    questionId?: string
-  ) => void;
+  onSave: (bankId: string, questionData: Omit<Question, "id">, questionId?: string) => void;
 }
 
 /**
@@ -91,9 +87,7 @@ export default function QuestionFormModal({
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            {isEditMode
-              ? t("questionForm.titleEdit")
-              : t("questionForm.titleAdd")}
+            {isEditMode ? t("questionForm.titleEdit") : t("questionForm.titleAdd")}
           </DialogTitle>
         </DialogHeader>
 
@@ -103,10 +97,7 @@ export default function QuestionFormModal({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {t("questionForm.questionType")}
             </label>
-            <Select
-              value={type}
-              onValueChange={(value) => handleTypeChange(value as QuestionType)}
-            >
+            <Select value={type} onValueChange={(value) => handleTypeChange(value as QuestionType)}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -147,8 +138,7 @@ export default function QuestionFormModal({
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t("questionForm.options")}
                 </label>
-                {(type === QuestionType.SingleChoice ||
-                  type === QuestionType.MultipleChoice) && (
+                {(type === QuestionType.SingleChoice || type === QuestionType.MultipleChoice) && (
                   <Button
                     type="button"
                     variant="outline"
@@ -164,15 +154,11 @@ export default function QuestionFormModal({
                 {options.map((option, index) => (
                   <div key={option.id} className="flex items-center space-x-2">
                     <span className="text-sm text-gray-500 dark:text-gray-400 min-w-[20px]">
-                      {type !== QuestionType.TrueFalse
-                        ? String.fromCharCode(65 + index) + "."
-                        : ""}
+                      {type !== QuestionType.TrueFalse ? String.fromCharCode(65 + index) + "." : ""}
                     </span>
                     <Input
                       value={option.content}
-                      onChange={(e) =>
-                        handleOptionContentChange(option.id, e.target.value)
-                      }
+                      onChange={(e) => handleOptionContentChange(option.id, e.target.value)}
                       placeholder={t("questionForm.optionPlaceholder", {
                         letter: String.fromCharCode(65 + index),
                       })}
@@ -186,10 +172,7 @@ export default function QuestionFormModal({
                         variant="ghost"
                         size="icon"
                         onClick={() => handleRemoveOption(option.id)}
-                        disabled={
-                          options.length <=
-                          (type === QuestionType.SingleChoice ? 2 : 1)
-                        }
+                        disabled={options.length <= (type === QuestionType.SingleChoice ? 2 : 1)}
                         className="h-8 w-8 text-red-500 hover:text-red-700 disabled:text-gray-400"
                       >
                         <FaTrash className="h-4 w-4" />
@@ -206,16 +189,10 @@ export default function QuestionFormModal({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {t("questionForm.correctAnswer")}
             </label>
-            {(type === QuestionType.SingleChoice ||
-              type === QuestionType.TrueFalse) && (
-              <Select
-                value={answer as string}
-                onValueChange={handleAnswerSelection}
-              >
+            {(type === QuestionType.SingleChoice || type === QuestionType.TrueFalse) && (
+              <Select value={answer as string} onValueChange={handleAnswerSelection}>
                 <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={t("questionForm.selectAnswerPlaceholder")}
-                  />
+                  <SelectValue placeholder={t("questionForm.selectAnswerPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {options.map((option, index) => (
@@ -238,9 +215,7 @@ export default function QuestionFormModal({
                   >
                     <input
                       type="checkbox"
-                      checked={
-                        Array.isArray(answer) && answer.includes(option.id)
-                      }
+                      checked={Array.isArray(answer) && answer.includes(option.id)}
                       onChange={() => handleAnswerSelection(option.id)}
                       className="form-checkbox h-4 w-4 text-blue-600 dark:text-blue-500 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
                     />
@@ -251,8 +226,7 @@ export default function QuestionFormModal({
                 ))}
               </div>
             )}
-            {(type === QuestionType.ShortAnswer ||
-              type === QuestionType.FillInBlank) && (
+            {(type === QuestionType.ShortAnswer || type === QuestionType.FillInBlank) && (
               <>
                 <Textarea
                   value={answer as string}
@@ -300,9 +274,7 @@ export default function QuestionFormModal({
             </Button>
           </DialogClose>
           <Button type="submit" onClick={handleSubmit}>
-            {isEditMode
-              ? t("questionForm.saveChanges")
-              : t("questionForm.addQuestion")}
+            {isEditMode ? t("questionForm.saveChanges") : t("questionForm.addQuestion")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Question, QuestionType } from "@/types/quiz";
+import { Question } from "@/types/quiz";
 import { QuestionContent } from "./QuestionContent";
 import { Button } from "@/components/ui/button";
 import { FaLightbulb } from "react-icons/fa";
@@ -36,9 +36,7 @@ export function QuestionDisplay({
   if (!question) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-lg text-gray-500">
-          {t("practice.loadingQuestions")}
-        </p>
+        <p className="text-lg text-gray-500">{t("practice.loadingQuestions")}</p>
       </div>
     );
   }

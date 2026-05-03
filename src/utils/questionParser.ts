@@ -27,10 +27,7 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
       const firstLine = lines[0];
 
       // Detect question type
-      if (
-        firstLine.includes("单选题：") ||
-        firstLine.toLowerCase().includes("single choice:")
-      ) {
+      if (firstLine.includes("单选题：") || firstLine.toLowerCase().includes("single choice:")) {
         questionType = QuestionType.SingleChoice;
         content = firstLine.replace(/^(单选题：|single choice:)/i, "").trim();
         const result = parseOptions(lines, 1);
@@ -51,9 +48,7 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
         firstLine.toLowerCase().includes("true-false:")
       ) {
         questionType = QuestionType.TrueFalse;
-        content = firstLine
-          .replace(/^(判断题：|true\/false:|true-false:)/i, "")
-          .trim();
+        content = firstLine.replace(/^(判断题：|true\/false:|true-false:)/i, "").trim();
         answer = parseTrueFalseAnswer(lines);
       } else if (
         firstLine.includes("简答题：") ||
@@ -61,9 +56,7 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
       ) {
         questionType = QuestionType.ShortAnswer;
         content = firstLine.replace(/^(简答题：|short answer:)/i, "").trim();
-        const answerIndex = lines.findIndex((line) =>
-          /^ (答案：|answer:)/i.test(" " + line)
-        );
+        const answerIndex = lines.findIndex((line) => /^ (答案：|answer:)/i.test(" " + line));
         if (answerIndex >= 0) {
           answer = lines[answerIndex].replace(/^(答案：|answer:)/i, "").trim();
         }
@@ -73,43 +66,31 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
         firstLine.toLowerCase().includes("fill in blank:")
       ) {
         questionType = QuestionType.FillInBlank;
-        content = firstLine
-          .replace(/^(填空题：|fill in the blank:|fill in blank:)/i, "")
-          .trim();
+        content = firstLine.replace(/^(填空题：|fill in the blank:|fill in blank:)/i, "").trim();
         if (!content.includes("____") && !content.includes("_____")) {
           content = content.replace(/\(([^)]+)\)/g, "____");
         }
-        const answerIndex = lines.findIndex((line) =>
-          /^ (答案：|answer:)/i.test(" " + line)
-        );
+        const answerIndex = lines.findIndex((line) => /^ (答案：|answer:)/i.test(" " + line));
         if (answerIndex >= 0) {
           answer = lines[answerIndex].replace(/^(答案：|answer:)/i, "").trim();
         }
       } else {
         // Auto-detect type
         const hasOptions = lines.some((line) => /^[A-Za-z]\./.test(line));
-        const hasFillBlank =
-          lines[0].includes("____") || lines[0].includes("_____");
+        const hasFillBlank = lines[0].includes("____") || lines[0].includes("_____");
 
         if (hasFillBlank) {
           questionType = QuestionType.FillInBlank;
         } else if (hasOptions) {
-          const answerLine = lines.find((line) =>
-            /^ (答案：|answer:)/i.test(" " + line)
-          );
+          const answerLine = lines.find((line) => /^ (答案：|answer:)/i.test(" " + line));
           questionType =
-            answerLine &&
-            (answerLine.includes(",") || answerLine.includes("，"))
+            answerLine && (answerLine.includes(",") || answerLine.includes("，"))
               ? QuestionType.MultipleChoice
               : QuestionType.SingleChoice;
         } else {
-          const answerLine = lines.find((line) =>
-            /^ (答案：|answer:)/i.test(" " + line)
-          );
+          const answerLine = lines.find((line) => /^ (答案：|answer:)/i.test(" " + line));
           if (answerLine) {
-            const answerText = answerLine
-              .replace(/^(答案：|answer:)/i, "")
-              .trim();
+            const answerText = answerLine.replace(/^(答案：|answer:)/i, "").trim();
             if (
               [
                 "对",
@@ -148,40 +129,31 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
         } else if (questionType === QuestionType.TrueFalse) {
           answer = parseTrueFalseAnswer(lines);
         } else if (questionType === QuestionType.FillInBlank) {
-          const answerLine = lines.find((line) =>
-            /^ (答案：|answer:)/i.test(" " + line)
-          );
+          const answerLine = lines.find((line) => /^ (答案：|answer:)/i.test(" " + line));
           if (answerLine) {
             answer = answerLine.replace(/^(答案：|answer:)/i, "").trim();
           }
         } else {
-          const answerIndex = lines.findIndex((line) =>
-            /^ (答案：|answer:)/i.test(" " + line)
-          );
+          const answerIndex = lines.findIndex((line) => /^ (答案：|answer:)/i.test(" " + line));
           if (answerIndex >= 0) {
-            answer = lines[answerIndex]
-              .replace(/^(答案：|answer:)/i, "")
-              .trim();
+            answer = lines[answerIndex].replace(/^(答案：|answer:)/i, "").trim();
           }
         }
       }
 
       // Parse explanation
       const explanationIndex = lines.findIndex((line) =>
-        /^ (解析：|explanation:)/i.test(" " + line)
+        /^ (解析：|explanation:)/i.test(" " + line),
       );
       if (explanationIndex >= 0) {
-        explanation = lines[explanationIndex]
-          .replace(/^(解析：|explanation:)/i, "")
-          .trim();
+        explanation = lines[explanationIndex].replace(/^(解析：|explanation:)/i, "").trim();
       }
 
       questions.push({
         content,
         type: questionType,
         options:
-          questionType === QuestionType.SingleChoice ||
-          questionType === QuestionType.MultipleChoice
+          questionType === QuestionType.SingleChoice || questionType === QuestionType.MultipleChoice
             ? options
             : [],
         answer,
@@ -190,7 +162,7 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
-    } catch (error) {
+    } catch (_error) {
       // Ignore parsing errors for individual blocks
     }
   }
@@ -201,10 +173,7 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
 /**
  * Parses options, supporting multi-line content
  */
-function parseOptions(
-  lines: string[],
-  startIndex: number
-): { options: QuestionOption[] } {
+function parseOptions(lines: string[], startIndex: number): { options: QuestionOption[] } {
   const options: QuestionOption[] = [];
   let currentOption: { id: string; content: string } | null = null;
 
@@ -251,11 +220,9 @@ function parseOptions(
 function findAnswer(
   lines: string[],
   options: QuestionOption[],
-  questionType: QuestionType
+  questionType: QuestionType,
 ): string | string[] {
-  const answerLine = lines.find((line) =>
-    /^ (答案：|answer:)/i.test(" " + line)
-  );
+  const answerLine = lines.find((line) => /^ (答案：|answer:)/i.test(" " + line));
   if (!answerLine) return "";
 
   const answerText = answerLine.replace(/^(答案：|answer:)/i, "").trim();
@@ -287,9 +254,7 @@ function findAnswer(
  * Parses True/False answer
  */
 function parseTrueFalseAnswer(lines: string[]): string {
-  const answerLine = lines.find((line) =>
-    /^ (答案：|answer:)/i.test(" " + line)
-  );
+  const answerLine = lines.find((line) => /^ (答案：|answer:)/i.test(" " + line));
   if (!answerLine) return "";
 
   const answerText = answerLine

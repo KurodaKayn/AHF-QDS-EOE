@@ -37,10 +37,7 @@ export function FillInBlankInput({
           {(question.answer as string).includes(";") ? (
             <div>
               {(question.answer as string).split(/;(?!;)/).map((ans, i) => (
-                <p
-                  key={i}
-                  className="text-gray-800 dark:text-gray-100 whitespace-pre-wrap"
-                >
+                <p key={i} className="text-gray-800 dark:text-gray-100 whitespace-pre-wrap">
                   {i + 1}. {ans.replace(/;;/g, ";").trim()}
                 </p>
               ))}

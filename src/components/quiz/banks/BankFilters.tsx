@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  FaFilter,
-  FaSearch,
-  FaSortAmountDown,
-  FaSortAmountUp,
-} from "react-icons/fa";
+import { FaFilter, FaSearch, FaSortAmountDown, FaSortAmountUp } from "react-icons/fa";
 import { QuestionType } from "@/types/quiz";
 import { useTranslation } from "react-i18next";
 
@@ -53,9 +48,7 @@ export function BankFilters({
             </div>
             <select
               value={filterType}
-              onChange={(e) =>
-                onFilterChange(e.target.value as QuestionType | "all")
-              }
+              onChange={(e) => onFilterChange(e.target.value as QuestionType | "all")}
               className="form-select border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             >
               <option value="all">{t("bankManage.allTypes")}</option>

@@ -63,9 +63,7 @@ function stripOpeningFenceForStream(markdown: string): string {
   const openingMatch = newMarkdown.match(openingFenceStartRegex);
 
   if (openingMatch) {
-    let contentAfterOpeningFence = newMarkdown.substring(
-      openingMatch[0].length
-    );
+    let contentAfterOpeningFence = newMarkdown.substring(openingMatch[0].length);
     if (contentAfterOpeningFence.trim() === "" && !openingMatch[1]) {
       return "";
     }
@@ -133,15 +131,13 @@ export default function WrongQuestionItem({
             </div>
           )}
           <span
-            className={`px-2 py-1 text-xs rounded-md ${getTagColor(
-              t(`questionTypes.${q.type}`)
-            )}`}
+            className={`px-2 py-1 text-xs rounded-md ${getTagColor(t(`questionTypes.${q.type}`))}`}
           >
             {t(`questionTypes.${q.type}`)}
           </span>
           <span
             className={`px-2 py-1 text-xs rounded-md ${getTagColor(
-              q.bankName || t("review.item.unknownBank")
+              q.bankName || t("review.item.unknownBank"),
             )}`}
           >
             {q.bankName || t("review.item.unknownBank")}
@@ -149,12 +145,7 @@ export default function WrongQuestionItem({
           {q.tags &&
             q.tags.length > 0 &&
             q.tags.map((tag: string) => (
-              <span
-                key={tag}
-                className={`px-1.5 py-0.5 text-xs rounded-full ${getTagColor(
-                  tag
-                )}`}
-              >
+              <span key={tag} className={`px-1.5 py-0.5 text-xs rounded-full ${getTagColor(tag)}`}>
                 {tag}
               </span>
             ))}
@@ -164,14 +155,11 @@ export default function WrongQuestionItem({
         </div>
       </div>
 
-      <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-3">
-        {q.content}
-      </h3>
+      <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-3">{q.content}</h3>
 
       {q.options &&
         q.options.length > 0 &&
-        (q.type === QuestionType.SingleChoice ||
-          q.type === QuestionType.MultipleChoice) && (
+        (q.type === QuestionType.SingleChoice || q.type === QuestionType.MultipleChoice) && (
           <div className="space-y-1 mb-3 text-sm">
             {q.options.map((option: QuestionOption, idx: number) => {
               const optionId = option.id;
@@ -181,28 +169,20 @@ export default function WrongQuestionItem({
               const isUserSelected = Array.isArray(q.userAnswer)
                 ? q.userAnswer.includes(optionId)
                 : q.userAnswer === optionId;
-              let optionStyle =
-                "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300";
+              let optionStyle = "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300";
               if (isCorrectOption) {
-                optionStyle =
-                  "bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200";
+                optionStyle = "bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200";
               }
               if (isUserSelected && !isCorrectOption) {
-                optionStyle =
-                  "bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200";
+                optionStyle = "bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200";
               }
               if (isUserSelected && isCorrectOption) {
                 optionStyle =
                   "bg-green-200 dark:bg-green-700 text-green-900 dark:text-green-100 font-semibold";
               }
               return (
-                <div
-                  key={option.id}
-                  className={`p-2 rounded-md flex items-center ${optionStyle}`}
-                >
-                  <span className="font-medium mr-2">
-                    {String.fromCharCode(65 + idx)}.
-                  </span>
+                <div key={option.id} className={`p-2 rounded-md flex items-center ${optionStyle}`}>
+                  <span className="font-medium mr-2">{String.fromCharCode(65 + idx)}.</span>
                   <span>{option.content}</span>
                   {isUserSelected && !isCorrectOption && (
                     <FaTimes className="inline ml-auto text-red-500 dark:text-red-400" />
@@ -231,15 +211,11 @@ export default function WrongQuestionItem({
             }`}
           >
             {t("review.item.yourAnswer")}:{" "}
-            {q.userAnswer === "true"
-              ? t("aiExplanation.correct")
-              : t("aiExplanation.incorrect")}
+            {q.userAnswer === "true" ? t("aiExplanation.correct") : t("aiExplanation.incorrect")}
           </p>
           <p className="text-green-600 dark:text-green-400">
             {t("review.item.correctAnswer")}:{" "}
-            {q.answer === "true"
-              ? t("aiExplanation.correct")
-              : t("aiExplanation.incorrect")}
+            {q.answer === "true" ? t("aiExplanation.correct") : t("aiExplanation.incorrect")}
           </p>
         </div>
       )}
@@ -253,14 +229,12 @@ export default function WrongQuestionItem({
               : q.userAnswer || t("review.item.notAnswered")}
           </div>
           <div className="p-2 rounded-md bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300">
-            <span className="font-medium">
-              {t("review.item.correctAnswer")}:{" "}
-            </span>
+            <span className="font-medium">{t("review.item.correctAnswer")}: </span>
             {typeof q.answer === "string"
               ? q.answer
               : Array.isArray(q.answer)
-              ? q.answer.join(", ")
-              : ""}
+                ? q.answer.join(", ")
+                : ""}
           </div>
         </div>
       )}

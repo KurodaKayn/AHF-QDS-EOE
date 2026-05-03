@@ -22,11 +22,7 @@ interface CreateBankModalProps {
 /**
  * Modal dialog component for creating a new question bank.
  */
-export default function CreateBankModal({
-  isOpen,
-  onClose,
-  onSubmit,
-}: CreateBankModalProps) {
+export default function CreateBankModal({ isOpen, onClose, onSubmit }: CreateBankModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -67,8 +63,7 @@ export default function CreateBankModal({
               htmlFor="bankName"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              {t("practice.createModal.nameLabel")}{" "}
-              <span className="text-red-500">*</span>
+              {t("practice.createModal.nameLabel")} <span className="text-red-500">*</span>
             </label>
             <Input
               id="bankName"
@@ -104,9 +99,7 @@ export default function CreateBankModal({
           <Button variant="outline" onClick={onClose} className="mr-2">
             {t("practice.createModal.cancel")}
           </Button>
-          <Button onClick={handleSubmit}>
-            {t("practice.createModal.create")}
-          </Button>
+          <Button onClick={handleSubmit}>{t("practice.createModal.create")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

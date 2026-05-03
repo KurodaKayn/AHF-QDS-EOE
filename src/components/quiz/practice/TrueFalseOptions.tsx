@@ -33,20 +33,15 @@ export function TrueFalseOptions({
     let indicator = null;
 
     if (showAnswer) {
-      const isCorrectAnswer =
-        (question.answer as string).toLowerCase() === option.id;
+      const isCorrectAnswer = (question.answer as string).toLowerCase() === option.id;
       if (isCorrectAnswer) {
         buttonClass =
           "bg-green-100 dark:bg-green-800/50 border-green-500 dark:border-green-600 text-green-700 dark:text-green-300";
-        indicator = (
-          <FaCheckCircle className="text-green-500 dark:text-green-400" />
-        );
+        indicator = <FaCheckCircle className="text-green-500 dark:text-green-400" />;
       } else if (isSelected) {
         buttonClass =
           "bg-red-100 dark:bg-red-800/50 border-red-500 dark:border-red-600 text-red-700 dark:text-red-300";
-        indicator = (
-          <FaTimesCircle className="text-red-500 dark:text-red-400" />
-        );
+        indicator = <FaTimesCircle className="text-red-500 dark:text-red-400" />;
       }
     } else if (isSelected) {
       buttonClass =
@@ -61,9 +56,7 @@ export function TrueFalseOptions({
         onClick={() => onAnswerSelect(option.id)}
         disabled={showAnswer}
       >
-        <span className="flex-1 break-words whitespace-pre-wrap">
-          {option.content}
-        </span>
+        <span className="flex-1 break-words whitespace-pre-wrap">{option.content}</span>
         {indicator && <span className="ml-3 text-xl">{indicator}</span>}
       </Button>
     );

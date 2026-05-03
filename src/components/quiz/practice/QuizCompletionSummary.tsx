@@ -1,13 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaArrowLeft, FaRedo } from "react-icons/fa";
 import { Question, QuestionType } from "@/types/quiz";
 import { QuestionOption } from "@/types/quiz";
@@ -34,12 +28,11 @@ export function QuizCompletionSummary({
 
   const checkIsCorrect = (
     question: Question,
-    userAnswer: string | string[] | undefined
+    userAnswer: string | string[] | undefined,
   ): boolean => {
     if (userAnswer === undefined || userAnswer === null) return false;
     if (question.type === QuestionType.MultipleChoice) {
-      if (!Array.isArray(question.answer) || !Array.isArray(userAnswer))
-        return false;
+      if (!Array.isArray(question.answer) || !Array.isArray(userAnswer)) return false;
       const correctAnswers = new Set(question.answer as string[]);
       const userAnswersSet = new Set(userAnswer as string[]);
       if (correctAnswers.size === 0 && userAnswersSet.size === 0) return true;
@@ -48,10 +41,7 @@ export function QuizCompletionSummary({
         [...correctAnswers].every((ans) => userAnswersSet.has(ans))
       );
     } else if (question.type === QuestionType.TrueFalse) {
-      return (
-        (userAnswer as string).toLowerCase() ===
-        (question.answer as string).toLowerCase()
-      );
+      return (userAnswer as string).toLowerCase() === (question.answer as string).toLowerCase();
     } else if (question.type === QuestionType.FillInBlank) {
       const userAns = (userAnswer as string).trim();
       if (!userAns) return false;
@@ -61,16 +51,12 @@ export function QuizCompletionSummary({
           return ans.replace(/;;/g, ";").trim();
         });
         return acceptableAnswers.some(
-          (acceptableAns) =>
-            userAns.toLowerCase() === acceptableAns.toLowerCase()
+          (acceptableAns) => userAns.toLowerCase() === acceptableAns.toLowerCase(),
         );
       }
       return userAns.toLowerCase() === correctAns.toLowerCase();
     }
-    return (
-      (userAnswer as string).toLowerCase() ===
-      (question.answer as string).toLowerCase()
-    );
+    return (userAnswer as string).toLowerCase() === (question.answer as string).toLowerCase();
   };
 
   const getCompletionTitle = () => {
@@ -80,31 +66,22 @@ export function QuizCompletionSummary({
     return t("practice.completion.title");
   };
 
-  const correctCount = practiceQuestions.filter((q) =>
-    checkIsCorrect(q, userAnswers[q.id])
-  ).length;
+  const correctCount = practiceQuestions.filter((q) => checkIsCorrect(q, userAnswers[q.id])).length;
   const totalPracticed = practiceQuestions.length;
-  const accuracy =
-    totalPracticed > 0 ? ((correctCount / totalPracticed) * 100).toFixed(1) : 0;
-  const practiceTime = startTime
-    ? ((Date.now() - startTime) / 1000).toFixed(0)
-    : 0;
+  const accuracy = totalPracticed > 0 ? ((correctCount / totalPracticed) * 100).toFixed(1) : 0;
+  const practiceTime = startTime ? ((Date.now() - startTime) / 1000).toFixed(0) : 0;
 
   const renderUserAnswerDisplay = (
     question: Question,
-    userAnswer: string | string[] | undefined
+    userAnswer: string | string[] | undefined,
   ) => {
     if (userAnswer === undefined) return t("practice.completion.notAnswered");
 
     if (question.type === QuestionType.MultipleChoice) {
-      return Array.isArray(userAnswer) &&
-        userAnswer.length > 0 &&
-        question.options
+      return Array.isArray(userAnswer) && userAnswer.length > 0 && question.options
         ? userAnswer
             .map(
-              (ansId) =>
-                (question.options || []).find((opt) => opt.id === ansId)
-                  ?.content || ansId
+              (ansId) => (question.options || []).find((opt) => opt.id === ansId)?.content || ansId,
             )
             .join(", ")
         : t("practice.completion.notAnswered");
@@ -112,12 +89,11 @@ export function QuizCompletionSummary({
       return userAnswer === "true"
         ? t("aiExplanation.correct")
         : userAnswer === "false"
-        ? t("aiExplanation.incorrect")
-        : t("practice.completion.notAnswered");
+          ? t("aiExplanation.incorrect")
+          : t("practice.completion.notAnswered");
     } else if (question.options && question.options.length > 0) {
       return (
-        (question.options || []).find((opt) => opt.id === userAnswer)
-          ?.content ||
+        (question.options || []).find((opt) => opt.id === userAnswer)?.content ||
         (userAnswer as string) ||
         t("practice.completion.notAnswered")
       );
@@ -131,20 +107,15 @@ export function QuizCompletionSummary({
       return Array.isArray(question.answer) && question.options
         ? question.answer
             .map(
-              (ansId) =>
-                (question.options || []).find((opt) => opt.id === ansId)
-                  ?.content || ansId
+              (ansId) => (question.options || []).find((opt) => opt.id === ansId)?.content || ansId,
             )
             .join(", ")
         : "N/A";
     } else if (question.type === QuestionType.TrueFalse) {
-      return question.answer === "true"
-        ? t("aiExplanation.correct")
-        : t("aiExplanation.incorrect");
+      return question.answer === "true" ? t("aiExplanation.correct") : t("aiExplanation.incorrect");
     } else if (question.options && question.options.length > 0) {
       return (
-        (question.options || []).find((opt) => opt.id === question.answer)
-          ?.content ||
+        (question.options || []).find((opt) => opt.id === question.answer)?.content ||
         (question.answer as string) ||
         "N/A"
       );
@@ -166,7 +137,7 @@ export function QuizCompletionSummary({
   };
 
   const renderOriginalWrongAnswer = (
-    question: Question & { originalUserAnswer?: string | string[] }
+    question: Question & { originalUserAnswer?: string | string[] },
   ) => {
     if (!question.originalUserAnswer) return null;
 
@@ -176,8 +147,7 @@ export function QuizCompletionSummary({
       question.type === QuestionType.MultipleChoice
     ) {
       const currentQOptions = question.options;
-      if (!currentQOptions || currentQOptions.length === 0)
-        return "Missing options";
+      if (!currentQOptions || currentQOptions.length === 0) return "Missing options";
 
       const originalAnswerArray = Array.isArray(originalAns)
         ? originalAns
@@ -185,16 +155,12 @@ export function QuizCompletionSummary({
       return (
         originalAnswerArray
           .map((ansId: string) => {
-            const option = currentQOptions.find(
-              (opt: QuestionOption) => opt.id === ansId
-            );
+            const option = currentQOptions.find((opt: QuestionOption) => opt.id === ansId);
             if (option) {
               const optionIndex = currentQOptions.findIndex(
-                (opt: QuestionOption) => opt.id === ansId
+                (opt: QuestionOption) => opt.id === ansId,
               );
-              return `${String.fromCharCode(65 + (optionIndex ?? 0))}. ${
-                option.content
-              }`;
+              return `${String.fromCharCode(65 + (optionIndex ?? 0))}. ${option.content}`;
             }
             return `Unknown ID: ${ansId}`;
           })
@@ -204,8 +170,8 @@ export function QuizCompletionSummary({
       return originalAns === "true"
         ? t("aiExplanation.correct")
         : originalAns === "false"
-        ? t("aiExplanation.incorrect")
-        : originalAns || "Not recorded";
+          ? t("aiExplanation.incorrect")
+          : originalAns || "Not recorded";
     } else {
       return originalAns || "Not recorded";
     }
@@ -245,9 +211,7 @@ export function QuizCompletionSummary({
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {t("practice.completion.stats.accuracy")}:
               </p>
-              <p className="text-xl font-semibold text-blue-600 dark:text-blue-400">
-                {accuracy}%
-              </p>
+              <p className="text-xl font-semibold text-blue-600 dark:text-blue-400">{accuracy}%</p>
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -268,12 +232,8 @@ export function QuizCompletionSummary({
                 {practiceQuestions.map((question, index) => {
                   const userAnswer = userAnswers[question.id];
                   const isCorrect = checkIsCorrect(question, userAnswer);
-                  const userAnswerDisplay = renderUserAnswerDisplay(
-                    question,
-                    userAnswer
-                  );
-                  const correctAnswerDisplay =
-                    renderCorrectAnswerDisplay(question);
+                  const userAnswerDisplay = renderUserAnswerDisplay(question, userAnswer);
+                  const correctAnswerDisplay = renderCorrectAnswerDisplay(question);
 
                   return (
                     <div
@@ -323,16 +283,14 @@ export function QuizCompletionSummary({
                         </p>
                       )}
 
-                      {isReviewMode &&
-                        !isCorrect &&
-                        renderOriginalWrongAnswer(question) && (
-                          <p className="text-xs mt-1 text-amber-600 dark:text-amber-400">
-                            <span className="font-semibold">
-                              {t("practice.completion.originalWrong")}:
-                            </span>{" "}
-                            {renderOriginalWrongAnswer(question)}
-                          </p>
-                        )}
+                      {isReviewMode && !isCorrect && renderOriginalWrongAnswer(question) && (
+                        <p className="text-xs mt-1 text-amber-600 dark:text-amber-400">
+                          <span className="font-semibold">
+                            {t("practice.completion.originalWrong")}:
+                          </span>{" "}
+                          {renderOriginalWrongAnswer(question)}
+                        </p>
+                      )}
 
                       {question.explanation && (
                         <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
@@ -356,11 +314,7 @@ export function QuizCompletionSummary({
           </div>
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row justify-center gap-3 pt-6">
-          <Button
-            onClick={onReturnToQuizList}
-            variant="outline"
-            className="w-full sm:w-auto"
-          >
+          <Button onClick={onReturnToQuizList} variant="outline" className="w-full sm:w-auto">
             <FaArrowLeft className="mr-2" /> {t("practice.backToList")}
           </Button>
           <Button onClick={onRetryQuiz} className="w-full sm:w-auto">

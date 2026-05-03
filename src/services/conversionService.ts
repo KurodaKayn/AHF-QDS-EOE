@@ -32,13 +32,8 @@ class ConversionService {
     if (typeof window === "undefined") return;
 
     if (!this.worker) {
-      this.worker = new Worker(
-        new URL("../workers/conversion.worker.ts", import.meta.url)
-      );
-      this.worker.addEventListener(
-        "message",
-        this.handleWorkerMessage.bind(this)
-      );
+      this.worker = new Worker(new URL("../workers/conversion.worker.ts", import.meta.url));
+      this.worker.addEventListener("message", this.handleWorkerMessage.bind(this));
       this.worker.addEventListener("error", this.handleWorkerError.bind(this));
     }
   }
@@ -80,10 +75,7 @@ class ConversionService {
     this.pendingRequests.clear();
   }
 
-  async convert(
-    request: ConversionRequest,
-    callback?: ResultCallback
-  ): Promise<ConversionResult> {
+  async convert(request: ConversionRequest, callback?: ResultCallback): Promise<ConversionResult> {
     this.initialize();
 
     if (!this.worker) {

@@ -34,9 +34,7 @@ export function NoDuplicatesDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="sm:justify-end">
-          <Button onClick={onClose}>
-            {t("bankManage.duplicates.confirm")}
-          </Button>
+          <Button onClick={onClose}>{t("bankManage.duplicates.confirm")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -52,23 +52,16 @@ export function useImportExport() {
       });
 
       // Create new bank in store
-      const newBank = addQuestionBank(
-        result.bank.name,
-        result.bank.description
-      );
+      const newBank = addQuestionBank(result.bank.name, result.bank.description);
 
       // Add questions to the newly created bank
       let addedCount = 0;
       let duplicateCount = 0;
       const totalCount = result.bank.questions?.length || 0;
 
-      if (
-        newBank &&
-        result.bank.questions &&
-        result.bank.questions.length > 0
-      ) {
+      if (newBank && result.bank.questions && result.bank.questions.length > 0) {
         result.bank.questions.forEach((question) => {
-          const { id, ...questionData } = question; // Remove original ID
+          const { id: _id, ...questionData } = question; // Remove original ID
           const addResult = addQuestionToBank(newBank.id, questionData);
           if (addResult.isDuplicate) {
             duplicateCount++;
@@ -97,7 +90,7 @@ export function useImportExport() {
       toast.error(
         t("importExport.alerts.importFailed", {
           error: error.message || t("importExport.alerts.parseError"),
-        })
+        }),
       );
     }
   };

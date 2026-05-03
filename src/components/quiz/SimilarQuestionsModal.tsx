@@ -11,10 +11,7 @@ interface SimilarQuestionsModalProps {
   generatedQuestions: Question[];
   isLoading: boolean;
   availableBanks: QuestionBank[];
-  onImport: (
-    selectedQuestions: Question[],
-    targetBankId: string
-  ) => Promise<void>;
+  onImport: (selectedQuestions: Question[], targetBankId: string) => Promise<void>;
 }
 
 /**
@@ -30,9 +27,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
   onImport,
 }) => {
   const { t } = useTranslation();
-  const [selectedQuestionsMap, setSelectedQuestionsMap] = useState<
-    Record<string, boolean>
-  >({});
+  const [selectedQuestionsMap, setSelectedQuestionsMap] = useState<Record<string, boolean>>({});
   const [targetBankId, setTargetBankId] = useState<string>("");
   const [isImporting, setIsImporting] = useState(false);
 
@@ -62,13 +57,10 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
     }));
   };
 
-  const selectedCount =
-    Object.values(selectedQuestionsMap).filter(Boolean).length;
+  const selectedCount = Object.values(selectedQuestionsMap).filter(Boolean).length;
 
   const handleImportClick = async () => {
-    const questionsToImport = generatedQuestions.filter(
-      (q) => q.id && selectedQuestionsMap[q.id]
-    );
+    const questionsToImport = generatedQuestions.filter((q) => q.id && selectedQuestionsMap[q.id]);
     if (questionsToImport.length === 0) {
       toast.warning(t("review.similarModal.errorNoSelection"));
       return;
@@ -83,11 +75,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
       await onImport(questionsToImport, targetBankId);
       onClose();
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("review.similarModal.importFailed")
-      );
+      toast.error(error instanceof Error ? error.message : t("review.similarModal.importFailed"));
     } finally {
       setIsImporting(false);
     }
@@ -116,9 +104,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
         {isLoading && (
           <div className="flex flex-col items-center justify-center h-64">
             <div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-300">
-              {t("review.similarModal.loading")}
-            </p>
+            <p className="text-gray-600 dark:text-gray-300">{t("review.similarModal.loading")}</p>
           </div>
         )}
 
@@ -190,19 +176,14 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                                 ? q.answer.includes(opt.id)
                                 : q.answer === opt.id;
 
-                              let optionStyle =
-                                "block text-gray-600 dark:text-gray-400 py-0.5";
+                              let optionStyle = "block text-gray-600 dark:text-gray-400 py-0.5";
                               if (isCorrectOption) {
                                 optionStyle =
                                   "block font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-0.5 rounded-sm";
                               }
                               return (
-                                <span
-                                  key={opt.id || `opt-${optIdx}`}
-                                  className={optionStyle}
-                                >
-                                  {String.fromCharCode(65 + optIdx)}.{" "}
-                                  {opt.content}
+                                <span key={opt.id || `opt-${optIdx}`} className={optionStyle}>
+                                  {String.fromCharCode(65 + optIdx)}. {opt.content}
                                 </span>
                               );
                             })}
@@ -219,8 +200,8 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                                 {q.answer === "true"
                                   ? t("aiExplanation.correct")
                                   : q.answer === "false"
-                                  ? t("aiExplanation.incorrect")
-                                  : String(q.answer)}
+                                    ? t("aiExplanation.incorrect")
+                                    : String(q.answer)}
                               </span>
                             </p>
                           </div>
@@ -261,13 +242,11 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
 
                       <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-2 gap-y-1 items-center">
                         <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-sm">
-                          {t("review.similarModal.typeLabel")}:{" "}
-                          {t(`questionTypes.${q.type}`)}
+                          {t("review.similarModal.typeLabel")}: {t(`questionTypes.${q.type}`)}
                         </span>
                         {q.tags && q.tags.length > 0 && (
                           <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-sm">
-                            {t("review.similarModal.tagLabel")}:{" "}
-                            {q.tags.join(", ")}
+                            {t("review.similarModal.tagLabel")}: {q.tags.join(", ")}
                           </span>
                         )}
                       </div>
@@ -294,9 +273,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                     className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md disabled:opacity-50"
                   >
                     {availableBanks.length === 0 && (
-                      <option value="">
-                        {t("review.similarModal.noBanks")}
-                      </option>
+                      <option value="">{t("review.similarModal.noBanks")}</option>
                     )}
                     {availableBanks.map((bank) => (
                       <option key={bank.id} value={bank.id}>
@@ -307,12 +284,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                 </div>
                 <button
                   onClick={handleImportClick}
-                  disabled={
-                    selectedCount === 0 ||
-                    !targetBankId ||
-                    isImporting ||
-                    isLoading
-                  }
+                  disabled={selectedCount === 0 || !targetBankId || isImporting || isLoading}
                   className="w-full sm:w-auto px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
                 >
                   {isImporting ? (

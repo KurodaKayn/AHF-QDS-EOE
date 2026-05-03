@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  FaFileImport,
-  FaFileExport,
-  FaCheck,
-  FaExclamationTriangle,
-} from "react-icons/fa";
+import { FaFileImport, FaFileExport, FaCheck, FaExclamationTriangle } from "react-icons/fa";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTranslation } from "react-i18next";
 
@@ -43,10 +38,7 @@ export default function ImportExportPage() {
         {/* Import Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center mb-4">
-            <FaFileImport
-              className="text-blue-600 dark:text-blue-400 mr-2"
-              size={20}
-            />
+            <FaFileImport className="text-blue-600 dark:text-blue-400 mr-2" size={20} />
             <h2 className="text-lg font-semibold dark:text-white">
               {t("importExport.import.title")}
             </h2>
@@ -79,9 +71,7 @@ export default function ImportExportPage() {
                     onChange={() => setImportFormat("excel")}
                     className="mr-2"
                   />
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Excel
-                  </span>
+                  <span className="text-gray-700 dark:text-gray-300">Excel</span>
                 </label>
               </div>
             </div>
@@ -143,10 +133,7 @@ export default function ImportExportPage() {
         {/* Export Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <div className="flex items-center mb-4">
-            <FaFileExport
-              className="text-green-600 dark:text-green-400 mr-2"
-              size={20}
-            />
+            <FaFileExport className="text-green-600 dark:text-green-400 mr-2" size={20} />
             <h2 className="text-lg font-semibold dark:text-white">
               {t("importExport.export.title")}
             </h2>
@@ -179,9 +166,7 @@ export default function ImportExportPage() {
                     onChange={() => setExportFormat("excel")}
                     className="mr-2"
                   />
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Excel
-                  </span>
+                  <span className="text-gray-700 dark:text-gray-300">Excel</span>
                 </label>
               </div>
             </div>
@@ -196,13 +181,10 @@ export default function ImportExportPage() {
                 onChange={(e) => setSelectedBankId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
-                <option value="">
-                  {t("importExport.export.selectBankPlaceholder")}
-                </option>
+                <option value="">{t("importExport.export.selectBankPlaceholder")}</option>
                 {questionBanks.map((bank) => (
                   <option key={bank.id} value={bank.id}>
-                    {bank.name} ({bank.questions.length}{" "}
-                    {t("importExport.export.questions")})
+                    {bank.name} ({bank.questions.length} {t("importExport.export.questions")})
                   </option>
                 ))}
               </select>

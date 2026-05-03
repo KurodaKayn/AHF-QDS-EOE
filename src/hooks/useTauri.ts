@@ -30,12 +30,12 @@ export const useTauri = () => {
    */
   const invokeCommand = async <T = unknown>(
     command: string,
-    args?: Record<string, unknown>
+    args?: Record<string, unknown>,
   ): Promise<T | null> => {
     if (isTauriEnv) {
       try {
         return await invoke<T>(command, args);
-      } catch (error) {
+      } catch (_error) {
         toast.error(i18n.t("common.tauriError", { command }));
         return null;
       }

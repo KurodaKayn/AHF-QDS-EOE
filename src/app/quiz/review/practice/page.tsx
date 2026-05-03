@@ -22,16 +22,12 @@ export default function ReviewPracticePage() {
 
     // Find the first bank with wrong questions
     const bankWithWrongQuestions = questionBanks.find((bank) =>
-      bank.questions.some((q) =>
-        wrongRecords.some((record) => record.questionId === q.id)
-      )
+      bank.questions.some((q) => wrongRecords.some((record) => record.questionId === q.id)),
     );
 
     if (bankWithWrongQuestions) {
       // Jump to normal practice page, but add param indicating review mode
-      router.push(
-        `/quiz/practice?bankId=${bankWithWrongQuestions.id}&mode=review`
-      );
+      router.push(`/quiz/practice?bankId=${bankWithWrongQuestions.id}&mode=review`);
     } else {
       // If records exist but bank/questions not found
       router.push("/quiz/review");
@@ -41,9 +37,7 @@ export default function ReviewPracticePage() {
   return (
     <div className="dark:bg-gray-900 min-h-screen p-4 md:p-8 flex flex-col items-center justify-center">
       <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-gray-600 dark:text-gray-400 mt-4">
-        {t("practice.loadingQuestions")}
-      </p>
+      <p className="text-gray-600 dark:text-gray-400 mt-4">{t("practice.loadingQuestions")}</p>
     </div>
   );
 }

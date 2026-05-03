@@ -1,10 +1,5 @@
-import { QuestionBank, Question } from "@/types/quiz";
-import {
-  exportToCSV,
-  exportToExcel,
-  importFromCSV,
-  importFromExcel,
-} from "@/utils/quiz";
+import { QuestionBank } from "@/types/quiz";
+import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from "@/utils/quiz";
 import { DEFAULT_EXPORT_FILENAME } from "@/constants/quiz";
 
 export interface ExportOptions {
@@ -23,17 +18,12 @@ export interface ImportResult {
   fileName: string;
 }
 
-export async function exportQuestionBank(
-  options: ExportOptions
-): Promise<void> {
+export async function exportQuestionBank(options: ExportOptions): Promise<void> {
   const { bank, format } = options;
-  const fileName = `${bank.name || DEFAULT_EXPORT_FILENAME}.${
-    format === "csv" ? "csv" : "xlsx"
-  }`;
+  const fileName = `${bank.name || DEFAULT_EXPORT_FILENAME}.${format === "csv" ? "csv" : "xlsx"}`;
 
   const hasTauri =
-    typeof window !== "undefined" &&
-    ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+    typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
 
   if (hasTauri) {
     console.log("[Export] Using Tauri dialog");
@@ -44,9 +34,7 @@ export async function exportQuestionBank(
   }
 }
 
-export async function importQuestionBank(
-  options: ImportOptions
-): Promise<ImportResult> {
+export async function importQuestionBank(options: ImportOptions): Promise<ImportResult> {
   const { file, format, bankName } = options;
 
   const fileNameWithoutExt = file.name.replace(/\.(csv|xlsx?)$/i, "");
@@ -95,7 +83,7 @@ export async function importQuestionBank(
 async function exportWithTauriDialog(
   bank: QuestionBank,
   format: "csv" | "excel",
-  fileName: string
+  fileName: string,
 ): Promise<void> {
   try {
     const { save } = await import("@tauri-apps/plugin-dialog");
@@ -139,7 +127,7 @@ async function exportWithTauriDialog(
 async function exportWithBrowserDialog(
   bank: QuestionBank,
   format: "csv" | "excel",
-  fileName: string
+  fileName: string,
 ): Promise<void> {
   if ("showSaveFilePicker" in window) {
     try {
@@ -152,8 +140,9 @@ async function exportWithBrowserDialog(
             accept: {
               [format === "csv"
                 ? "text/csv"
-                : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]:
-                [format === "csv" ? ".csv" : ".xlsx"],
+                : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]: [
+                format === "csv" ? ".csv" : ".xlsx",
+              ],
             },
           },
         ],
@@ -177,10 +166,7 @@ async function exportWithBrowserDialog(
       if (error.name === "AbortError") {
         throw new Error("User cancelled save dialog");
       }
-      console.warn(
-        "[Browser] File System Access API failed, falling back to download:",
-        error
-      );
+      console.warn("[Browser] File System Access API failed, falling back to download:", error);
     }
   }
 

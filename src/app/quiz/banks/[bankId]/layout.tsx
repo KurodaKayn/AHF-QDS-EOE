@@ -6,10 +6,6 @@ export function generateStaticParams() {
   return [{ bankId: "default" }];
 }
 
-export default function BankLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function BankLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

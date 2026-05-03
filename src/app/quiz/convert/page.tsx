@@ -8,10 +8,7 @@ import { FiXCircle } from "react-icons/fi";
 import { useQuizStore } from "@/store/quizStore";
 import { EXAMPLE_QUESTION_TEXT } from "@/constants/quiz";
 import { ScriptTemplate } from "@/utils/scriptParser";
-import {
-  getScriptExampleContent,
-  getScriptExampleTitle,
-} from "@/constants/scriptExamples";
+import { getScriptExampleContent, getScriptExampleTitle } from "@/constants/scriptExamples";
 import { ConversionModeSelector } from "@/components/quiz/ConversionModeSelector";
 import { AIProviderInfo } from "@/components/quiz/AIProviderInfo";
 import { TextInputArea } from "@/components/quiz/TextInputArea";
@@ -29,16 +26,13 @@ import { toast } from "sonner";
  */
 export default function ConvertPage() {
   const router = useRouter();
-  const { settings, questionBanks, conversionState, setConversionState } =
-    useQuizStore();
+  const { settings, questionBanks, conversionState, setConversionState } = useQuizStore();
   const { t, i18n } = useTranslation();
 
   // Local UI state
   const [inputText, setInputText] = useState("");
   const [conversionMode, setConversionMode] = useState<"ai" | "script">("ai");
-  const [scriptTemplate, setScriptTemplate] = useState<ScriptTemplate>(
-    ScriptTemplate.ChaoXing
-  );
+  const [scriptTemplate, setScriptTemplate] = useState<ScriptTemplate>(ScriptTemplate.ChaoXing);
   const [isExampleModalOpen, setIsExampleModalOpen] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [savedBankId, setSavedBankId] = useState("");
@@ -75,8 +69,7 @@ export default function ConvertPage() {
       setInputText(conversionState.inputText || "");
       setConversionMode(conversionState.mode || "ai");
       setScriptTemplate(
-        (conversionState.scriptTemplate as ScriptTemplate) ||
-          ScriptTemplate.ChaoXing
+        (conversionState.scriptTemplate as ScriptTemplate) || ScriptTemplate.ChaoXing,
       );
       setTimeout(() => {
         isUpdatingFromStore.current = false;
@@ -142,9 +135,7 @@ export default function ConvertPage() {
     setSavedBankName("");
   };
 
-  const activeConfig = settings.aiConfigs.find(
-    (c) => c.id === settings.activeAiConfigId
-  );
+  const activeConfig = settings.aiConfigs.find((c) => c.id === settings.activeAiConfigId);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 flex flex-col items-center">
@@ -165,15 +156,11 @@ export default function ConvertPage() {
           value={inputText}
           onChange={setInputText}
           onLoadExample={() => setInputText(EXAMPLE_QUESTION_TEXT)}
-          onOCRError={(err) =>
-            setError(t("convert.errors.ocrError", { error: err }))
-          }
+          onOCRError={(err) => setError(t("convert.errors.ocrError", { error: err }))}
           showOCR={true}
         />
 
-        {conversionMode === "ai" && activeConfig && (
-          <AIProviderInfo config={activeConfig} />
-        )}
+        {conversionMode === "ai" && activeConfig && <AIProviderInfo config={activeConfig} />}
 
         <button
           onClick={handleConvert}
@@ -183,8 +170,8 @@ export default function ConvertPage() {
               isLoading || isLoadingScript || !inputText.trim()
                 ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
                 : conversionMode === "ai"
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-green-600 hover:bg-green-700"
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-green-600 hover:bg-green-700"
             }
           `}
         >
@@ -201,8 +188,8 @@ export default function ConvertPage() {
               ? t("convert.actions.aiConverting")
               : t("convert.actions.startAI")
             : isLoadingScript
-            ? t("convert.actions.scriptParsing")
-            : t("convert.actions.startScript")}
+              ? t("convert.actions.scriptParsing")
+              : t("convert.actions.startScript")}
         </button>
 
         {error && (
@@ -228,9 +215,7 @@ export default function ConvertPage() {
             questionCount={convertedQuestions.length}
             bankName={savedBankName}
             onContinue={handleContinue}
-            onStartPractice={() =>
-              router.push(`/quiz/practice?bankId=${savedBankId}`)
-            }
+            onStartPractice={() => router.push(`/quiz/practice?bankId=${savedBankId}`)}
           />
         )}
       </div>

@@ -19,16 +19,11 @@ interface UseQuestionFormProps {
  * Question Form Logic Hook
  * Manages all state and validation logic for question editing/creation
  */
-export function useQuestionForm({
-  questionToEdit,
-  isOpen,
-}: UseQuestionFormProps) {
+export function useQuestionForm({ questionToEdit, isOpen }: UseQuestionFormProps) {
   const { t } = useTranslation();
   const [content, setContent] = useState("");
   const [type, setType] = useState<QuestionType>(QuestionType.SingleChoice);
-  const [options, setOptions] = useState<QuestionOption[]>(
-    defaultQuestionOptions
-  );
+  const [options, setOptions] = useState<QuestionOption[]>(defaultQuestionOptions);
   const [answer, setAnswer] = useState<string | string[]>("");
   const [explanation, setExplanation] = useState("");
 
@@ -45,7 +40,7 @@ export function useQuestionForm({
         setOptions(
           questionToEdit.options && questionToEdit.options.length > 0
             ? questionToEdit.options.map((opt) => ({ ...opt }))
-            : defaultQuestionOptions.map((opt) => ({ ...opt }))
+            : defaultQuestionOptions.map((opt) => ({ ...opt })),
         );
         setAnswer(questionToEdit.answer);
         setExplanation(questionToEdit.explanation || "");
@@ -79,10 +74,7 @@ export function useQuestionForm({
           { id: "false", content: t("questionForm.optionFalse") },
         ]);
         setAnswer("");
-      } else if (
-        newType === QuestionType.ShortAnswer ||
-        newType === QuestionType.FillInBlank
-      ) {
+      } else if (newType === QuestionType.ShortAnswer || newType === QuestionType.FillInBlank) {
         setOptions([]);
         setAnswer("");
       } else {
@@ -102,31 +94,23 @@ export function useQuestionForm({
         setAnswer(newType === QuestionType.MultipleChoice ? [] : "");
       }
     },
-    [t]
+    [t],
   );
 
   /**
    * Handle option content change
    */
-  const handleOptionContentChange = useCallback(
-    (optionId: string, value: string) => {
-      setOptions((prevOptions) =>
-        prevOptions.map((opt) =>
-          opt.id === optionId ? { ...opt, content: value } : opt
-        )
-      );
-    },
-    []
-  );
+  const handleOptionContentChange = useCallback((optionId: string, value: string) => {
+    setOptions((prevOptions) =>
+      prevOptions.map((opt) => (opt.id === optionId ? { ...opt, content: value } : opt)),
+    );
+  }, []);
 
   /**
    * Add option
    */
   const handleAddOption = useCallback(() => {
-    setOptions((prevOptions) => [
-      ...prevOptions,
-      { id: uuidv4(), content: "" },
-    ]);
+    setOptions((prevOptions) => [...prevOptions, { id: uuidv4(), content: "" }]);
   }, []);
 
   /**
@@ -134,9 +118,7 @@ export function useQuestionForm({
    */
   const handleRemoveOption = useCallback(
     (optionId: string) => {
-      setOptions((prevOptions) =>
-        prevOptions.filter((opt) => opt.id !== optionId)
-      );
+      setOptions((prevOptions) => prevOptions.filter((opt) => opt.id !== optionId));
 
       // Sync cleanup answer
       if (type === QuestionType.SingleChoice && answer === optionId) {
@@ -147,12 +129,10 @@ export function useQuestionForm({
         Array.isArray(answer) &&
         answer.includes(optionId)
       ) {
-        setAnswer((prevAns) =>
-          (prevAns as string[]).filter((id) => id !== optionId)
-        );
+        setAnswer((prevAns) => (prevAns as string[]).filter((id) => id !== optionId));
       }
     },
-    [type, answer]
+    [type, answer],
   );
 
   /**
@@ -160,10 +140,7 @@ export function useQuestionForm({
    */
   const handleAnswerSelection = useCallback(
     (optionId: string) => {
-      if (
-        type === QuestionType.SingleChoice ||
-        type === QuestionType.TrueFalse
-      ) {
+      if (type === QuestionType.SingleChoice || type === QuestionType.TrueFalse) {
         setAnswer(optionId);
       } else if (type === QuestionType.MultipleChoice) {
         setAnswer((prevAns) => {
@@ -175,7 +152,7 @@ export function useQuestionForm({
         });
       }
     },
-    [type]
+    [type],
   );
 
   /**
@@ -190,8 +167,7 @@ export function useQuestionForm({
     }
 
     if (
-      (type === QuestionType.SingleChoice ||
-        type === QuestionType.MultipleChoice) &&
+      (type === QuestionType.SingleChoice || type === QuestionType.MultipleChoice) &&
       options.some((opt) => !opt.content.trim())
     ) {
       return {
@@ -200,20 +176,14 @@ export function useQuestionForm({
       };
     }
 
-    if (
-      (type === QuestionType.SingleChoice || type === QuestionType.TrueFalse) &&
-      !answer
-    ) {
+    if ((type === QuestionType.SingleChoice || type === QuestionType.TrueFalse) && !answer) {
       return {
         valid: false,
         error: t("questionForm.validation.singleAnswerRequired"),
       };
     }
 
-    if (
-      type === QuestionType.MultipleChoice &&
-      (!Array.isArray(answer) || answer.length === 0)
-    ) {
+    if (type === QuestionType.MultipleChoice && (!Array.isArray(answer) || answer.length === 0)) {
       return {
         valid: false,
         error: t("questionForm.validation.multipleAnswerRequired"),
@@ -221,8 +191,7 @@ export function useQuestionForm({
     }
 
     if (
-      (type === QuestionType.ShortAnswer ||
-        type === QuestionType.FillInBlank) &&
+      (type === QuestionType.ShortAnswer || type === QuestionType.FillInBlank) &&
       !(answer as string).trim()
     ) {
       return {

@@ -22,7 +22,7 @@ export enum ScriptTemplate {
  */
 export function parseTextByScript(
   text: string,
-  template: ScriptTemplate = ScriptTemplate.Other
+  template: ScriptTemplate = ScriptTemplate.Other,
 ): Omit<Question, "id" | "bankId">[] {
   switch (template) {
     case ScriptTemplate.ChaoXing:
@@ -86,9 +86,7 @@ function parseOtherTemplate(text: string): Omit<Question, "id" | "bankId">[] {
         continue;
       }
 
-      const answerMatch = line.match(
-        /^(正确答案|Correct Answer):([A-Z])(?:[:：](.*?))?;?$/i
-      );
+      const answerMatch = line.match(/^(正确答案|Correct Answer):([A-Z])(?:[:：](.*?))?;?$/i);
       if (answerMatch) {
         correctAnswerLetter = answerMatch[2];
         answerLineFound = true;
@@ -96,8 +94,7 @@ function parseOtherTemplate(text: string): Omit<Question, "id" | "bankId">[] {
       }
     }
 
-    if (!answerLineFound || !correctAnswerLetter || parsedOptions.length === 0)
-      continue;
+    if (!answerLineFound || !correctAnswerLetter || parsedOptions.length === 0) continue;
 
     const finalOptions: QuestionOption[] = parsedOptions.map((opt) => ({
       id: opt.id,
@@ -105,9 +102,7 @@ function parseOtherTemplate(text: string): Omit<Question, "id" | "bankId">[] {
     }));
     let questionAnswer: string | string[] = "";
 
-    const correctOption = parsedOptions.find(
-      (opt) => opt.letter === correctAnswerLetter
-    );
+    const correctOption = parsedOptions.find((opt) => opt.letter === correctAnswerLetter);
     if (correctOption) {
       questionAnswer = correctOption.id;
     } else {
@@ -134,9 +129,7 @@ function parseOtherTemplate(text: string): Omit<Question, "id" | "bankId">[] {
  * Parses text using the "ChaoXing" template, supporting Chinese and English
  * @param text Raw text input
  */
-function parseChaoXingTemplate(
-  text: string
-): Omit<Question, "id" | "bankId">[] {
+function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] {
   const questions: Omit<Question, "id" | "bankId">[] = [];
   if (!text.trim()) {
     return questions;
@@ -146,14 +139,10 @@ function parseChaoXingTemplate(
   let cleanedText = text.replace(/\r\n/g, "\n").replace(/\n\s*\n/g, "\n");
 
   // Mark AI explanations to avoid interference with recognition
-  cleanedText = cleanedText.replace(
-    /(AI讲解|AI Explanation)/g,
-    "###AI_EXPLANATION###"
-  );
+  cleanedText = cleanedText.replace(/(AI讲解|AI Explanation)/g, "###AI_EXPLANATION###");
 
   // Identification patterns (supporting Chinese & English)
-  const questionRegex1 =
-    /(\d+\s*\.\s*\([^)]+\)[^]*?)(?=\d+\s*\.\s*\(|\s*###AI_EXPLANATION###|$)/g;
+  const questionRegex1 = /(\d+\s*\.\s*\([^)]+\)[^]*?)(?=\d+\s*\.\s*\(|\s*###AI_EXPLANATION###|$)/g;
   const questionRegex2 =
     /(\d+\s*\.\s*[^]*?(?:我的答案|My Answer)[^]*?(?:正确答案|Correct Answer)[^]*?)(?=\d+\s*\.\s*|\s*###AI_EXPLANATION###|$)/g;
   const questionRegex3 =
@@ -184,10 +173,7 @@ function parseChaoXingTemplate(
 
   // Process each question block
   for (let i = 0; i < questionBlocks.length; i++) {
-    const block = questionBlocks[i].replace(
-      /###AI_EXPLANATION###[^]*?(?=\d+\s*\.\s*|$)/g,
-      ""
-    );
+    const block = questionBlocks[i].replace(/###AI_EXPLANATION###[^]*?(?=\d+\s*\.\s*|$)/g, "");
     if (!block.trim()) {
       continue;
     }
@@ -206,9 +192,7 @@ function parseChaoXingTemplate(
     let questionContent = "";
 
     // Match block: digit. (Type) Content
-    const questionTypeMatch = lines[0].match(
-      /^\d+\s*\.\s*(?:\(([^)]+)\))?\s*(.+)$/
-    );
+    const questionTypeMatch = lines[0].match(/^\d+\s*\.\s*(?:\(([^)]+)\))?\s*(.+)$/);
 
     // Find position of first option 'A'
     let firstOptionIndex = -1;
@@ -222,11 +206,7 @@ function parseChaoXingTemplate(
     let extraContent = "";
     if (firstOptionIndex > 1) {
       for (let k = 1; k < firstOptionIndex; k++) {
-        if (
-          !lines[k].match(
-            /(?:我的答案|My Answer|正确答案|Correct Answer|分|score)/i
-          )
-        ) {
+        if (!lines[k].match(/(?:我的答案|My Answer|正确答案|Correct Answer|分|score)/i)) {
           extraContent += "\n" + lines[k];
         }
       }
@@ -235,9 +215,7 @@ function parseChaoXingTemplate(
       for (let k = 1; k < lines.length; k++) {
         if (
           !lines[k].match(/^([A-Z])[.．]\s+/) &&
-          !lines[k].match(
-            /(?:我的答案|My Answer|正确答案|Correct Answer|分|score)/i
-          )
+          !lines[k].match(/(?:我的答案|My Answer|正确答案|Correct Answer|分|score)/i)
         ) {
           extraContent += "\n" + lines[k];
         } else {
@@ -247,9 +225,7 @@ function parseChaoXingTemplate(
     }
 
     if (questionTypeMatch) {
-      const typeText = questionTypeMatch[1]
-        ? questionTypeMatch[1].toLowerCase()
-        : "";
+      const typeText = questionTypeMatch[1] ? questionTypeMatch[1].toLowerCase() : "";
       questionContent = questionTypeMatch[2].trim() + extraContent;
 
       if (typeText.includes("填空") || typeText.includes("blank")) {
@@ -266,21 +242,13 @@ function parseChaoXingTemplate(
         questionType = QuestionType.TrueFalse;
       } else {
         // Infer from content
-        if (
-          block.includes("A.") ||
-          block.includes("A．") ||
-          block.match(/\([A-D]\)/)
-        ) {
-          questionType = block.match(
-            /(?:正确答案|Correct Answer)[:：]\s*[A-D][,，、\s]*[A-D]/i
-          )
+        if (block.includes("A.") || block.includes("A．") || block.match(/\([A-D]\)/)) {
+          questionType = block.match(/(?:正确答案|Correct Answer)[:：]\s*[A-D][,，、\s]*[A-D]/i)
             ? QuestionType.MultipleChoice
             : QuestionType.SingleChoice;
         } else if (
           block.includes("判断") ||
-          block.match(
-            /(?:正确答案|Correct Answer)[:：]\s*(?:对|错|true|false)/i
-          )
+          block.match(/(?:正确答案|Correct Answer)[:：]\s*(?:对|错|true|false)/i)
         ) {
           questionType = QuestionType.TrueFalse;
         } else if (
@@ -305,30 +273,22 @@ function parseChaoXingTemplate(
       if (lines.some((l) => l.match(/^[A-D][.．]/) || l.match(/\([A-D]\)/))) {
         const multiAnswer = lines.some(
           (l) =>
-            l.match(
-              /(?:正确答案|Correct Answer)[:：]\s*[A-D][,，、\s][A-D]/i
-            ) ||
-            l.match(
-              /(?:正确答案|Correct Answer)[:：]\s*\[[A-D][,，、\s][A-D]\]/i
-            )
+            l.match(/(?:正确答案|Correct Answer)[:：]\s*[A-D][,，、\s][A-D]/i) ||
+            l.match(/(?:正确答案|Correct Answer)[:：]\s*\[[A-D][,，、\s][A-D]\]/i),
         );
 
-        questionType = multiAnswer
-          ? QuestionType.MultipleChoice
-          : QuestionType.SingleChoice;
+        questionType = multiAnswer ? QuestionType.MultipleChoice : QuestionType.SingleChoice;
       } else if (
         lines.some(
           (l) =>
             l.includes("判断") ||
-            l.match(/(?:正确答案|Correct Answer)[:：]\s*(?:对|错|true|false)/i)
+            l.match(/(?:正确答案|Correct Answer)[:：]\s*(?:对|错|true|false)/i),
         )
       ) {
         questionType = QuestionType.TrueFalse;
       } else if (
         questionContent.includes("____") ||
-        lines.some(
-          (l) => l.includes("填空") || l.toLowerCase().includes("fill")
-        )
+        lines.some((l) => l.includes("填空") || l.toLowerCase().includes("fill"))
       ) {
         questionType = QuestionType.FillInBlank;
       } else {
@@ -343,17 +303,15 @@ function parseChaoXingTemplate(
     // Handle fill-in-blank separately
     if (questionType === QuestionType.FillInBlank) {
       let correctAnswer = "";
-      let foundAnswer = false;
 
       for (let j = 1; j < lines.length; j++) {
         const line = lines[j].trim();
         if (line.match(/(?:正确答案|Correct Answer)[:：]/i)) {
           const anyMatch = line.match(
-            /(?:正确答案|Correct Answer)[:：]\s*(?:\(?(?:\d+)\)?)?\s*(.+)/i
+            /(?:正确答案|Correct Answer)[:：]\s*(?:\(?(?:\d+)\)?)?\s*(.+)/i,
           );
           if (anyMatch && anyMatch[1]) {
             correctAnswer = anyMatch[1].trim();
-            foundAnswer = true;
             break;
           }
         }
@@ -369,10 +327,7 @@ function parseChaoXingTemplate(
         content: questionContent,
         type: questionType,
         options: [],
-        answer:
-          multipleAnswers.length === 1
-            ? multipleAnswers[0]
-            : multipleAnswers.join(";"),
+        answer: multipleAnswers.length === 1 ? multipleAnswers[0] : multipleAnswers.join(";"),
         explanation: "",
         tags: [],
         createdAt: now,
@@ -397,22 +352,15 @@ function parseChaoXingTemplate(
         continue;
       }
 
-      const answerMatch = line.match(
-        /.*(?:正确答案|Correct Answer)[:：]\s*([A-Z])/i
-      );
+      const answerMatch = line.match(/.*(?:正确答案|Correct Answer)[:：]\s*([A-Z])/i);
 
       if (answerMatch) {
         correctAnswerLetter = answerMatch[1].toUpperCase();
         break;
-      } else if (
-        line.match(/(?:正确答案|Correct Answer)[:：]\s*(?:对|错|true|false)/i)
-      ) {
+      } else if (line.match(/(?:正确答案|Correct Answer)[:：]\s*(?:对|错|true|false)/i)) {
         const isTrue = line.match(/(?:对|true)/i);
         correctAnswerLetter = isTrue ? "A" : "B";
-        if (
-          parsedOptions.length === 0 &&
-          questionType === QuestionType.TrueFalse
-        ) {
+        if (parsedOptions.length === 0 && questionType === QuestionType.TrueFalse) {
           parsedOptions.push({
             id: generateId(),
             content: "对/True",
@@ -452,23 +400,15 @@ function parseChaoXingTemplate(
     let questionAnswer: string | string[] = "";
 
     if (questionType === QuestionType.MultipleChoice) {
-      const answerLine = lines.find((l) =>
-        l.match(/(?:正确答案|Correct Answer)[:：]/i)
-      );
+      const answerLine = lines.find((l) => l.match(/(?:正确答案|Correct Answer)[:：]/i));
       if (answerLine) {
-        const letters = answerLine.match(
-          /(?:正确答案|Correct Answer)[:：]\s*([A-Z,，、\s]+)/i
-        );
+        const letters = answerLine.match(/(?:正确答案|Correct Answer)[:：]\s*([A-Z,，、\s]+)/i);
         if (letters) {
           const letterStr = letters[1].toUpperCase();
-          const extractedLetters = letterStr
-            .split(/[,，、\s]/)
-            .flatMap((s) => s.split(""));
+          const extractedLetters = letterStr.split(/[,，、\s]/).flatMap((s) => s.split(""));
           questionAnswer = extractedLetters
             .map((letter) => {
-              const option = parsedOptions.find(
-                (opt) => opt.letter === letter.trim()
-              );
+              const option = parsedOptions.find((opt) => opt.letter === letter.trim());
               return option ? option.id : "";
             })
             .filter(Boolean);
@@ -479,9 +419,7 @@ function parseChaoXingTemplate(
         continue;
       }
     } else {
-      const correctOption = parsedOptions.find(
-        (opt) => opt.letter === correctAnswerLetter
-      );
+      const correctOption = parsedOptions.find((opt) => opt.letter === correctAnswerLetter);
       if (correctOption) {
         questionAnswer = correctOption.id;
       } else {
@@ -508,9 +446,7 @@ function parseChaoXingTemplate(
 /**
  * Parses "Single Choice 1" template, suitable for compact formats
  */
-function parseSingleChoice1Template(
-  text: string
-): Omit<Question, "id" | "bankId">[] {
+function parseSingleChoice1Template(text: string): Omit<Question, "id" | "bankId">[] {
   const questions: Omit<Question, "id" | "bankId">[] = [];
   if (!text.trim()) return questions;
 
@@ -528,9 +464,7 @@ function parseSingleChoice1Template(
   const inlineOptReg = /([A-EＡ-Ｅ])[.．]\s*([^A-EＡ-Ｅ]*)/g;
 
   const toHalf = (ch: string) =>
-    String.fromCharCode(
-      ch.charCodeAt(0) > 127 ? ch.charCodeAt(0) - 65248 : ch.charCodeAt(0)
-    );
+    String.fromCharCode(ch.charCodeAt(0) > 127 ? ch.charCodeAt(0) - 65248 : ch.charCodeAt(0));
 
   const lines = text.replace(/\r\n/g, "\n").split("\n");
 
@@ -541,8 +475,7 @@ function parseSingleChoice1Template(
   let bufferAnswer = "";
 
   function pushQuestion() {
-    if (!bufferQuestion.trim() || bufferOptions.length === 0 || !bufferAnswer)
-      return;
+    if (!bufferQuestion.trim() || bufferOptions.length === 0 || !bufferAnswer) return;
     const now = Date.now();
     questions.push({
       content: bufferQuestion.trim(),
@@ -586,14 +519,9 @@ function parseSingleChoice1Template(
           const m = optMatches[j];
           const letter = toHalf(m[1]);
           const content = m[2].trim();
-          let nextStart =
-            j < optMatches.length - 1 ? optMatches[j + 1].index : optStr.length;
-          let fullContent = optStr
-            .substring(m.index! + m[0].length, nextStart)
-            .trim();
-          const optionContent = (content + " " + fullContent)
-            .replace(/\s+/g, " ")
-            .trim();
+          let nextStart = j < optMatches.length - 1 ? optMatches[j + 1].index : optStr.length;
+          let fullContent = optStr.substring(m.index! + m[0].length, nextStart).trim();
+          const optionContent = (content + " " + fullContent).replace(/\s+/g, " ").trim();
           bufferOptions.push({
             id: letter,
             letter,

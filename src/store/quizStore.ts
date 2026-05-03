@@ -1,12 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import {
-  Question,
-  QuestionBank,
-  QuestionRecord,
-  QuestionType,
-  QuestionOption,
-} from "@/types/quiz";
+import { Question, QuestionBank, QuestionRecord, QuestionType, QuestionOption } from "@/types/quiz";
 import { nanoid } from "nanoid";
 import { getPrompts, callAI } from "@/constants/ai";
 import { createStorage } from "@/lib/storage";
@@ -56,26 +50,21 @@ export interface QuizState {
   deleteQuestionBank: (id: string) => void;
   addQuestionToBank: (
     bankId: string,
-    question: Omit<Question, "id">
+    question: Omit<Question, "id">,
   ) => { question: Question | null; isDuplicate: boolean };
   updateQuestionInBank: (
     bankId: string,
     questionId: string,
-    questionData: Partial<Omit<Question, "id">>
+    questionData: Partial<Omit<Question, "id">>,
   ) => Question | null;
   deleteQuestionFromBank: (bankId: string, questionId: string) => void;
-  getQuestionById: (
-    questionId: string
-  ) => { question: Question; bank: QuestionBank } | undefined;
+  getQuestionById: (questionId: string) => { question: Question; bank: QuestionBank } | undefined;
   addRecord: (record: Omit<QuestionRecord, "id">) => void;
   clearRecords: (bankId?: string) => void;
   removeWrongRecordsByQuestionId: (questionIdToRemove: string) => void;
 
   // Common Settings Actions
-  setQuizSetting: <K extends keyof QuizSettings>(
-    key: K,
-    value: QuizSettings[K]
-  ) => void;
+  setQuizSetting: <K extends keyof QuizSettings>(key: K, value: QuizSettings[K]) => void;
   resetQuizSettings: () => void;
 
   // AI Config Management Actions
@@ -90,7 +79,7 @@ export interface QuizState {
   generateSimilarQuestions: (originalQuestions: Question[]) => Promise<void>;
   importGeneratedQuestions: (
     selectedQuestions: Question[],
-    targetBankId: string
+    targetBankId: string,
   ) => Promise<{
     success: boolean;
     importedCount: number;
@@ -227,8 +216,7 @@ export const useQuizStore = create<QuizState>()(
         set((state) => ({ questionBanks: [...state.questionBanks, newBank] }));
         return newBank;
       },
-      getQuestionBankById: (id) =>
-        get().questionBanks.find((bank) => bank.id === id),
+      getQuestionBankById: (id) => get().questionBanks.find((bank) => bank.id === id),
       updateQuestionBank: (id, name, description) => {
         set((state) => ({
           questionBanks: state.questionBanks.map((bank) =>
@@ -239,7 +227,7 @@ export const useQuizStore = create<QuizState>()(
                   description: description ?? bank.description,
                   updatedAt: Date.now(),
                 }
-              : bank
+              : bank,
           ),
         }));
       },
@@ -248,7 +236,7 @@ export const useQuizStore = create<QuizState>()(
           questionBanks: state.questionBanks.filter((bank) => bank.id !== id),
           records: state.records.filter((record) => {
             const questionBank = state.questionBanks.find((qb) =>
-              qb.questions.some((q) => q.id === record.questionId)
+              qb.questions.some((q) => q.id === record.questionId),
             );
             return questionBank ? questionBank.id !== id : true;
           }),
@@ -264,7 +252,7 @@ export const useQuizStore = create<QuizState>()(
         let duplicateQuestion = undefined;
         if (checkDuplicate) {
           duplicateQuestion = bank.questions.find(
-            (q) => q.content.trim() === questionData.content.trim()
+            (q) => q.content.trim() === questionData.content.trim(),
           );
         }
         if (duplicateQuestion) {
@@ -322,11 +310,9 @@ export const useQuizStore = create<QuizState>()(
                   questions: bank.questions.filter((q) => q.id !== questionId),
                   updatedAt: Date.now(),
                 }
-              : bank
+              : bank,
           ),
-          records: state.records.filter(
-            (record) => record.questionId !== questionId
-          ),
+          records: state.records.filter((record) => record.questionId !== questionId),
         }));
       },
       getQuestionById: (questionId) => {
@@ -348,9 +334,7 @@ export const useQuizStore = create<QuizState>()(
           if (!bank) return;
           const questionIdsInBank = bank.questions.map((q) => q.id);
           set((state) => ({
-            records: state.records.filter(
-              (r) => !questionIdsInBank.includes(r.questionId)
-            ),
+            records: state.records.filter((r) => !questionIdsInBank.includes(r.questionId)),
           }));
         } else {
           set({ records: [] });
@@ -359,8 +343,7 @@ export const useQuizStore = create<QuizState>()(
       removeWrongRecordsByQuestionId: (questionIdToRemove) => {
         set((state) => ({
           records: state.records.filter(
-            (record) =>
-              !(record.questionId === questionIdToRemove && !record.isCorrect)
+            (record) => !(record.questionId === questionIdToRemove && !record.isCorrect),
           ),
         }));
       },
@@ -396,17 +379,13 @@ export const useQuizStore = create<QuizState>()(
         set((state) => ({
           settings: {
             ...state.settings,
-            aiConfigs: state.settings.aiConfigs.map((c) =>
-              c.id === id ? { ...c, ...config } : c
-            ),
+            aiConfigs: state.settings.aiConfigs.map((c) => (c.id === id ? { ...c, ...config } : c)),
           },
         }));
       },
       deleteAiConfig: (id) => {
         set((state) => {
-          const newConfigs = state.settings.aiConfigs.filter(
-            (c) => c.id !== id
-          );
+          const newConfigs = state.settings.aiConfigs.filter((c) => c.id !== id);
           let newActiveId = state.settings.activeAiConfigId;
           if (newActiveId === id) {
             newActiveId = newConfigs.length > 0 ? newConfigs[0].id : "";
@@ -458,9 +437,7 @@ export const useQuizStore = create<QuizState>()(
           }
 
           if (!config.apiKey) {
-            throw new Error(
-              i18n.t("review.similarModal.errorNoApiKey", { name: config.name })
-            );
+            throw new Error(i18n.t("review.similarModal.errorNoApiKey", { name: config.name }));
           }
 
           const { baseUrl, apiKey, model } = config;
@@ -483,7 +460,7 @@ export const useQuizStore = create<QuizState>()(
             {
               role: "user",
               content: `${i18n.t(
-                "review.similarModal.errorPrompt"
+                "review.similarModal.errorPrompt",
               )}\n${JSON.stringify(originalQuestionsData, null, 2)}`,
             },
           ];
@@ -514,32 +491,30 @@ export const useQuizStore = create<QuizState>()(
           }
 
           // Process returned data, adding necessary fields
-          const processedQuestions: Question[] = generatedQuestionsData.map(
-            (q: any) => {
-              // Ensure options have IDs
-              let processedOptions: QuestionOption[] = [];
-              if (q.options && Array.isArray(q.options)) {
-                processedOptions = q.options.map((opt: any) => {
-                  if (!opt.id) {
-                    return { ...opt, id: nanoid() };
-                  }
-                  return opt;
-                });
-              }
-
-              return {
-                id: nanoid(),
-                content: q.content,
-                type: q.type,
-                options: processedOptions,
-                answer: q.answer,
-                explanation: q.explanation || "",
-                tags: q.tags || [],
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-              };
+          const processedQuestions: Question[] = generatedQuestionsData.map((q: any) => {
+            // Ensure options have IDs
+            let processedOptions: QuestionOption[] = [];
+            if (q.options && Array.isArray(q.options)) {
+              processedOptions = q.options.map((opt: any) => {
+                if (!opt.id) {
+                  return { ...opt, id: nanoid() };
+                }
+                return opt;
+              });
             }
-          );
+
+            return {
+              id: nanoid(),
+              content: q.content,
+              type: q.type,
+              options: processedOptions,
+              answer: q.answer,
+              explanation: q.explanation || "",
+              tags: q.tags || [],
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            };
+          });
 
           set({
             similarQuestionsList: processedQuestions,
@@ -549,7 +524,7 @@ export const useQuizStore = create<QuizState>()(
           alert(
             `${i18n.t("review.similarModal.importFailed")}: ${
               error instanceof Error ? error.message : "Unknown error"
-            }`
+            }`,
           );
           set({
             similarQuestionsList: [],
@@ -572,7 +547,7 @@ export const useQuizStore = create<QuizState>()(
         }
 
         for (const question of selectedQuestions) {
-          const { id, ...questionData } = question;
+          const { id: _id, ...questionData } = question;
           const result = addQuestionToBank(targetBankId, questionData);
           if (result.question) {
             importedCount++;
@@ -611,8 +586,7 @@ export const useQuizStore = create<QuizState>()(
               name: "DeepSeek (Migrated)",
               type: "preset",
               provider: "deepseek",
-              baseUrl:
-                oldSettings.deepseekBaseUrl || "https://api.deepseek.com/v1",
+              baseUrl: oldSettings.deepseekBaseUrl || "https://api.deepseek.com/v1",
               apiKey: oldSettings.deepseekApiKey,
               model: "deepseek-chat",
             });
@@ -630,8 +604,7 @@ export const useQuizStore = create<QuizState>()(
             });
           }
 
-          const finalConfigs =
-            newConfigs.length > 0 ? newConfigs : defaultAiConfigs;
+          const finalConfigs = newConfigs.length > 0 ? newConfigs : defaultAiConfigs;
           let activeId = finalConfigs[0].id;
 
           if (
@@ -659,8 +632,7 @@ export const useQuizStore = create<QuizState>()(
             ...initialSettings,
             ...(persistedState as QuizState).settings,
             aiConfigs:
-              (persistedState as QuizState).settings.aiConfigs ||
-              initialSettings.aiConfigs,
+              (persistedState as QuizState).settings.aiConfigs || initialSettings.aiConfigs,
           };
         }
 
@@ -673,6 +645,6 @@ export const useQuizStore = create<QuizState>()(
 
         return merged;
       },
-    }
-  )
+    },
+  ),
 );

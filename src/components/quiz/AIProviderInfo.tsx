@@ -9,10 +9,7 @@ interface AIProviderInfoProps {
   showSettingsLink?: boolean;
 }
 
-export function AIProviderInfo({
-  config,
-  showSettingsLink = true,
-}: AIProviderInfoProps) {
+export function AIProviderInfo({ config, showSettingsLink = true }: AIProviderInfoProps) {
   const { t } = useTranslation();
   // Determine logo
   let logoFileName = "Deepseek.jpg"; // default
@@ -53,8 +50,7 @@ export function AIProviderInfo({
               href="/quiz/settings"
               className="underline hover:text-blue-800 dark:hover:text-blue-200"
             >
-              {t("convert.aiInfo.settingsHint").split("[")[1]?.split("]")[0] ||
-                "Settings"}
+              {t("convert.aiInfo.settingsHint").split("[")[1]?.split("]")[0] || "Settings"}
             </a>
             {t("convert.aiInfo.settingsHint").split("]")[1] || ""}
           </p>

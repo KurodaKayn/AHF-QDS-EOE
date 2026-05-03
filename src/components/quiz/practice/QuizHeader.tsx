@@ -28,30 +28,18 @@ export function QuizHeader({
   const { t } = useTranslation();
 
   const progressPercentage =
-    totalQuestions > 0
-      ? ((currentQuestionIndex + 1) / totalQuestions) * 100
-      : 0;
+    totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0;
 
   return (
     <div className="pb-4">
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onBack}
-            className="text-sm"
-          >
+          <Button variant="outline" size="sm" onClick={onBack} className="text-sm">
             <FaArrowLeft className="mr-2" />
             {t("common.back")}
           </Button>
           {currentBank && !isReviewMode && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onManageBank}
-              className="text-sm"
-            >
+            <Button variant="outline" size="sm" onClick={onManageBank} className="text-sm">
               <FaCog className="mr-2" />
               {t("practice.manageBank")}
             </Button>
@@ -59,9 +47,7 @@ export function QuizHeader({
         </div>
         <div className="text-right">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {isReviewMode
-              ? t("practice.reviewMode")
-              : t("practice.currentBank")}
+            {isReviewMode ? t("practice.reviewMode") : t("practice.currentBank")}
           </p>
           <h2
             className="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate max-w-50 sm:max-w-xs md:max-w-sm"
@@ -72,8 +58,8 @@ export function QuizHeader({
                 ? `${currentBank.name}${t("practice.reviewSuffix")}`
                 : currentBank.name
               : isReviewMode
-              ? t("review.pageTitle")
-              : t("practice.normalPractice")}
+                ? t("review.pageTitle")
+                : t("practice.normalPractice")}
           </h2>
         </div>
       </div>

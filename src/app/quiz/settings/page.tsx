@@ -3,17 +3,7 @@
 import { useQuizStore, QuizSettings, AIConfig } from "@/store/quizStore";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Edit2,
-  Plus,
-  Trash2,
-  Check,
-  Server,
-  Globe,
-  Moon,
-  Sun,
-  Monitor,
-} from "lucide-react";
+import { Edit2, Plus, Trash2, Check, Server, Globe, Moon, Sun, Monitor } from "lucide-react";
 import { useThemeStore } from "@/store/themeStore";
 
 import { SettingItem } from "@/components/settings/SettingItem";
@@ -46,10 +36,7 @@ export default function SettingsPage() {
     | "checkDuplicateQuestion"
   >;
 
-  const handleBooleanSettingToggle = (
-    key: BooleanSettingKey,
-    value: boolean
-  ) => {
+  const handleBooleanSettingToggle = (key: BooleanSettingKey, value: boolean) => {
     setQuizSetting(key as any, value);
   };
 
@@ -162,52 +149,39 @@ export default function SettingsPage() {
             title={t("settings.practice.shuffleOptions")}
             description={t("settings.practice.shuffleOptionsDesc")}
             value={settings.shufflePracticeOptions}
-            onChange={(val) =>
-              handleBooleanSettingToggle("shufflePracticeOptions", val)
-            }
+            onChange={(val) => handleBooleanSettingToggle("shufflePracticeOptions", val)}
           />
           <BooleanSettingItem
             title={t("settings.review.shuffleOptions")}
             description={t("settings.review.shuffleOptionsDesc")}
             value={settings.shuffleReviewOptions}
-            onChange={(val) =>
-              handleBooleanSettingToggle("shuffleReviewOptions", val)
-            }
+            onChange={(val) => handleBooleanSettingToggle("shuffleReviewOptions", val)}
           />
           <BooleanSettingItem
             title={t("settings.practice.shuffleQuestions")}
             description={t("settings.practice.shuffleQuestionsDesc")}
             value={settings.shufflePracticeQuestionOrder}
-            onChange={(val) =>
-              handleBooleanSettingToggle("shufflePracticeQuestionOrder", val)
-            }
+            onChange={(val) => handleBooleanSettingToggle("shufflePracticeQuestionOrder", val)}
           />
           <BooleanSettingItem
             title={t("settings.review.shuffleQuestions")}
             description={t("settings.review.shuffleQuestionsDesc")}
             value={settings.shuffleReviewQuestionOrder}
-            onChange={(val) =>
-              handleBooleanSettingToggle("shuffleReviewQuestionOrder", val)
-            }
+            onChange={(val) => handleBooleanSettingToggle("shuffleReviewQuestionOrder", val)}
           />
           <BooleanSettingItem
             title={t("settings.review.autoRemove")}
             description={t("settings.review.autoRemoveDesc")}
             value={settings.markMistakeAsCorrectedOnReviewSuccess}
             onChange={(val) =>
-              handleBooleanSettingToggle(
-                "markMistakeAsCorrectedOnReviewSuccess",
-                val
-              )
+              handleBooleanSettingToggle("markMistakeAsCorrectedOnReviewSuccess", val)
             }
           />
           <BooleanSettingItem
             title={t("settings.import.checkDuplicate")}
             description={t("settings.import.checkDuplicateDesc")}
             value={settings.checkDuplicateQuestion}
-            onChange={(val) =>
-              handleBooleanSettingToggle("checkDuplicateQuestion", val)
-            }
+            onChange={(val) => handleBooleanSettingToggle("checkDuplicateQuestion", val)}
           />
         </div>
 
@@ -229,10 +203,7 @@ export default function SettingsPage() {
 
           {/* Add Form */}
           {isAddingMode && (
-            <AiConfigForm
-              onSave={handleCreateConfig}
-              onCancel={() => setIsAddingMode(false)}
-            />
+            <AiConfigForm onSave={handleCreateConfig} onCancel={() => setIsAddingMode(false)} />
           )}
 
           {/* Config List */}
@@ -270,11 +241,7 @@ export default function SettingsPage() {
                     <div
                       className={`
                          w-5 h-5 rounded-full border flex items-center justify-center
-                         ${
-                           isActive
-                             ? "border-blue-600 bg-blue-600"
-                             : "border-gray-400"
-                         }
+                         ${isActive ? "border-blue-600 bg-blue-600" : "border-gray-400"}
                        `}
                     >
                       {isActive && <Check className="w-3 h-3 text-white" />}
@@ -299,10 +266,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <div
-                    className="flex items-center gap-2"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => setEditingConfigId(config.id)}
                       className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md transition-colors"

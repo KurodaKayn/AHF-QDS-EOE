@@ -34,9 +34,7 @@ export function QuestionList({
               : t("bankManage.noQuestions")}
           </p>
           {(searchTerm || filterType !== "all") && (
-            <Button onClick={onClearFilters}>
-              {t("bankManage.clearFilters")}
-            </Button>
+            <Button onClick={onClearFilters}>{t("bankManage.clearFilters")}</Button>
           )}
         </div>
       </div>

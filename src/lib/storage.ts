@@ -42,10 +42,9 @@ class SqliteStorage implements StateStorage {
     }
 
     try {
-      const result = (await this.db.select(
-        "SELECT value FROM app_state WHERE key = $1",
-        [name]
-      )) as Array<{ value: string }>;
+      const result = (await this.db.select("SELECT value FROM app_state WHERE key = $1", [
+        name,
+      ])) as Array<{ value: string }>;
       return result[0]?.value || null;
     } catch (error) {
       console.error("SQLite getItem error:", error);
@@ -65,7 +64,7 @@ class SqliteStorage implements StateStorage {
       await this.db.execute(
         `INSERT OR REPLACE INTO app_state (key, value, updated_at) 
          VALUES ($1, $2, $3)`,
-        [name, value, Date.now()]
+        [name, value, Date.now()],
       );
     } catch (error) {
       console.error("SQLite setItem error:", error);

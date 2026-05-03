@@ -12,11 +12,7 @@ interface BankDetailHeaderProps {
   onAddQuestion: () => void;
 }
 
-export function BankDetailHeader({
-  bank,
-  onBack,
-  onAddQuestion,
-}: BankDetailHeaderProps) {
+export function BankDetailHeader({ bank, onBack, onAddQuestion }: BankDetailHeaderProps) {
   const { t, i18n } = useTranslation();
 
   const getDateLocale = () => {
@@ -34,13 +30,9 @@ export function BankDetailHeader({
             >
               <FaChevronLeft className="mr-1" /> {t("bankManage.backToList")}
             </button>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-              {bank.name}
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{bank.name}</h1>
             {bank.description && (
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
-                {bank.description}
-              </p>
+              <p className="mt-2 text-gray-600 dark:text-gray-400">{bank.description}</p>
             )}
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">
               {t("home.questionCount", { count: bank.questions.length })} ·{" "}

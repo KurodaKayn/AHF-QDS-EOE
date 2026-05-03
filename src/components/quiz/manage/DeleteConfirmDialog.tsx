@@ -46,9 +46,7 @@ export function DeleteConfirmDialog({
         return {
           title: t("bankManage.deleteConfirm.questionTitle"),
           description: t("bankManage.deleteConfirm.questionMessage", {
-            content:
-              questionContent.substring(0, 50) +
-              (questionContent.length > 50 ? "..." : ""),
+            content: questionContent.substring(0, 50) + (questionContent.length > 50 ? "..." : ""),
           }),
         };
       case "duplicates":
