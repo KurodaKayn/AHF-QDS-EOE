@@ -9,13 +9,14 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  // 禁用React严格模式以避免Electron中的一些问题
-  reactStrictMode: false,
   // 导出时生成基于路由的HTML文件
   trailingSlash: true,
   // 构建时忽略 ESLint 错误
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  experimental: {
+    optimizePackageImports: ["react-icons", "lucide-react"],
   },
 };
 
