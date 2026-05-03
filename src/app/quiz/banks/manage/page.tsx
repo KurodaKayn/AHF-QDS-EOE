@@ -77,7 +77,7 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
       ) {
         setSelectedBankId(initialTempBankId);
       }
-    } catch (error) {
+    } catch {
       // toast.error("Error processing bank ID");
     }
   }, [initialTempBankId, questionBanks]);
@@ -482,7 +482,7 @@ export default function ManageBanksPage() {
           url.searchParams.delete("tempBankId");
           window.history.replaceState({}, "", url.toString());
         }
-      } catch (error) {
+      } catch {
         // console.error("Error getting URL parameters:", error);
       }
     }

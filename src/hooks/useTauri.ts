@@ -35,7 +35,7 @@ export const useTauri = () => {
     if (isTauriEnv) {
       try {
         return await invoke<T>(command, args);
-      } catch (_error) {
+      } catch {
         toast.error(i18n.t("common.tauriError", { command }));
         return null;
       }

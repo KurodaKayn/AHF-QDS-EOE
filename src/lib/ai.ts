@@ -123,7 +123,7 @@ export const callAIStream = async (
             fullText += content;
             onChunk(content);
           }
-        } catch (_e) {
+        } catch {
           // Ignore parsing errors for partial chunks
         }
       }

@@ -162,7 +162,7 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
-    } catch (_error) {
+    } catch {
       // Ignore parsing errors for individual blocks
     }
   }

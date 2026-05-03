@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { Question, QuestionBank, QuestionRecord, QuestionType, QuestionOption } from "@/types/quiz";
+import { Question, QuestionBank, QuestionRecord, QuestionOption } from "@/types/quiz";
 import { nanoid } from "nanoid";
 import { getPrompts, callAI } from "@/constants/ai";
 import { createStorage } from "@/lib/storage";
@@ -472,13 +472,13 @@ export const useQuizStore = create<QuizState>()(
           try {
             // Try direct parse
             generatedQuestionsData = JSON.parse(response);
-          } catch (e) {
+          } catch {
             // Try extracting JSON block if direct parse fails
             const jsonMatch = response.match(/\[\s*\{[\s\S]*\}\s*\]/);
             if (jsonMatch) {
               try {
                 generatedQuestionsData = JSON.parse(jsonMatch[0]);
-              } catch (e2) {
+              } catch {
                 throw new Error(i18n.t("review.similarModal.errorParseFailed"));
               }
             } else {

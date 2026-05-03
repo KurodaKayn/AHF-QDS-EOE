@@ -35,13 +35,11 @@ export function PracticeContent() {
     isLoading,
     isNumQuestionsModalOpen,
     isReviewMode,
-    isCurrentQuestionAnswered,
     isLastQuestion,
     canPressNext,
     setIsNumQuestionsModalOpen,
     updateSession,
     clearPracticeSession,
-    setAllBankQuestions,
     addRecord,
     removeWrongRecordsByQuestionId,
     settings,
@@ -222,8 +220,7 @@ export function PracticeContent() {
   }
 
   if (quizCompleted) {
-    const stats = PracticeHandlers.calculateStats(practiceQuestions, userAnswers);
-    const totalTime = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+    PracticeHandlers.calculateStats(practiceQuestions, userAnswers);
 
     return (
       <QuizCompletionSummary

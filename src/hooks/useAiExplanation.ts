@@ -110,7 +110,7 @@ export function useAiExplanation() {
         if (onComplete) {
           onComplete(questionId, finalExplanation);
         }
-      } catch (_error) {
+      } catch {
         setAiError(
           t("aiExplanation.generationFailed", {
             content: questionInfo.content.substring(0, 20),

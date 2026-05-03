@@ -29,7 +29,6 @@ export function QuestionDisplay({
   onAnswerSelect,
   onAnswerChange,
   onShowAnswer,
-  theme,
 }: QuestionDisplayProps) {
   const { t } = useTranslation();
 
