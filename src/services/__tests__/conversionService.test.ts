@@ -20,7 +20,7 @@ class FakeWorker {
   }
 
   addEventListener(type: "message" | "error", listener: WorkerListeners[typeof type]) {
-    this.listeners[type] = listener;
+    this.listeners[type] = listener as never;
   }
 
   emitMessage(data: unknown) {
