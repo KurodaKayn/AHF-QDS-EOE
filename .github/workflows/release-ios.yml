@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-ios-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release-ios:
     name: iOS Release
@@ -20,11 +24,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: pnpm
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -32,7 +37,7 @@ jobs:
           targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
 
       - name: Install Frontend Dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build Next.js
         run: pnpm run build
@@ -40,10 +45,9 @@ jobs:
       - name: Build iOS
         # Note: Building for iOS device requires signing identities.
         # Fails without valid Apple Development Team ID.
-        # We attempt to build, but it may fail in CI without secrets.
-        continue-on-error: true
+        # Configure signing secrets before treating this workflow as a production release gate.
         run: |
-          pnpm tauri ios build --export-method ad-hoc || echo "iOS build failed or requires signing configuration"
+          pnpm tauri ios build --export-method ad-hoc
 
       - name: Upload iOS Artifact
         uses: softprops/action-gh-release@v1

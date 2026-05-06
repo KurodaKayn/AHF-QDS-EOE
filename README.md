@@ -108,6 +108,16 @@ pnpm dev          # Start Next.js dev server
 cargo tauri dev   # Start Tauri dev mode
 ```
 
+## Testing
+
+```bash
+# Run the full Vitest suite
+pnpm test
+
+# Run the regression smoke suite for parser and import/export flows
+pnpm test:regression
+```
+
 ## Build and Package
 
 ```bash

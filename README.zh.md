@@ -108,6 +108,16 @@ pnpm dev          # 启动 Next.js 开发服务器
 cargo tauri dev   # 启动 Tauri 开发模式
 ```
 
+## 测试
+
+```bash
+# 运行完整 Vitest 测试
+pnpm test
+
+# 运行解析与导入/导出的回归烟雾测试
+pnpm test:regression
+```
+
 ## 构建和打包
 
 ```bash
