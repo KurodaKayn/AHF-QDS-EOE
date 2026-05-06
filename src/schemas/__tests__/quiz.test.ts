@@ -1,4 +1,10 @@
-import { questionBankSchema, questionOptionSchema, questionSchema } from "../quiz";
+import {
+  aiConfigSchema,
+  questionBankSchema,
+  questionOptionSchema,
+  questionRecordSchema,
+  questionSchema,
+} from "../quiz";
 import { QuestionType } from "@/types/quiz";
 
 describe("quiz schemas", () => {
@@ -36,6 +42,24 @@ describe("quiz schemas", () => {
     ).toBe(false);
   });
 
+  it("accepts valid FillInBlank and ShortAnswer questions without options", () => {
+    expect(
+      questionSchema.safeParse({
+        type: QuestionType.FillInBlank,
+        content: "The runtime is ____.",
+        answer: "Node.js",
+      }).success,
+    ).toBe(true);
+
+    expect(
+      questionSchema.safeParse({
+        type: QuestionType.ShortAnswer,
+        content: "Explain React?",
+        answer: "A JavaScript library for building UIs",
+      }).success,
+    ).toBe(true);
+  });
+
   it("validates bank and option fields", () => {
     expect(
       questionOptionSchema.safeParse({
@@ -63,6 +87,68 @@ describe("quiz schemas", () => {
       questionBankSchema.safeParse({
         name: "",
         questions: [],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects bank names over 100 characters and descriptions over 500 characters", () => {
+    expect(
+      questionBankSchema.safeParse({
+        name: "A".repeat(101),
+        questions: [],
+      }).success,
+    ).toBe(false);
+
+    expect(
+      questionBankSchema.safeParse({
+        name: "Valid Name",
+        description: "D".repeat(501),
+        questions: [],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("validates question records", () => {
+    expect(
+      questionRecordSchema.safeParse({
+        questionId: "q-1",
+        userAnswer: "A",
+        isCorrect: true,
+        answeredAt: 1700000000000,
+      }).success,
+    ).toBe(true);
+
+    expect(
+      questionRecordSchema.safeParse({
+        questionId: "",
+        userAnswer: "A",
+        isCorrect: true,
+        answeredAt: 1700000000000,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("validates AI configurations", () => {
+    expect(
+      aiConfigSchema.safeParse({
+        id: "config-1",
+        name: "DeepSeek",
+        type: "preset",
+        provider: "deepseek",
+        baseUrl: "https://api.deepseek.com",
+        apiKey: "key",
+        model: "deepseek-chat",
+      }).success,
+    ).toBe(true);
+
+    expect(
+      aiConfigSchema.safeParse({
+        id: "config-1",
+        name: "Bad Config",
+        type: "invalid-type",
+        baseUrl: "https://example.com",
+        apiKey: "key",
+        model: "model",
       }).success,
     ).toBe(false);
   });

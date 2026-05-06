@@ -14,4 +14,18 @@ describe("shuffleArray", () => {
     expect(result).toBe(items);
     expect(result).toEqual([2, 3, 1]);
   });
+
+  it("returns the same empty array without modification", () => {
+    const items: number[] = [];
+    const result = shuffleArray(items);
+    expect(result).toBe(items);
+    expect(result).toHaveLength(0);
+  });
+
+  it("returns a single-element array unchanged", () => {
+    const items = [42];
+    const result = shuffleArray(items);
+    expect(result).toBe(items);
+    expect(result).toEqual([42]);
+  });
 });

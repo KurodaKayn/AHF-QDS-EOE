@@ -62,6 +62,54 @@ C. Photoshop
     });
   });
 
+  it("returns an empty array for blank or whitespace-only input across all templates", () => {
+    expect(parseTextByScript("", ScriptTemplate.Other)).toEqual([]);
+    expect(parseTextByScript("   ", ScriptTemplate.ChaoXing)).toEqual([]);
+    expect(parseTextByScript("", ScriptTemplate.SingleChoice1)).toEqual([]);
+  });
+
+  it("parses ChaoXing true/false questions and generates paired True/False options", () => {
+    const [question] = parseTextByScript(
+      `1. (判断题) 太阳从东方升起
+正确答案：对`,
+      ScriptTemplate.ChaoXing,
+    );
+
+    expect(question).toMatchObject({
+      content: "太阳从东方升起",
+      type: QuestionType.TrueFalse,
+    });
+    expect(question.options).toHaveLength(2);
+    expect(question.answer).toBe(question.options?.[0].id);
+  });
+
+  it("parses multiple questions from a SingleChoice1 block", () => {
+    const questions = parseTextByScript(
+      `1. 哪个是前端框架？A． React B． Django
+参考答案：A
+
+2. 哪个工具管理包？A． pnpm B． Webpack
+参考答案：A`,
+      ScriptTemplate.SingleChoice1,
+    );
+
+    expect(questions).toHaveLength(2);
+    expect(questions[0]).toMatchObject({
+      content: "哪个是前端框架？",
+      type: QuestionType.SingleChoice,
+      answer: "A",
+      options: [
+        { id: "A", content: "React" },
+        { id: "B", content: "Django" },
+      ],
+    });
+    expect(questions[1]).toMatchObject({
+      content: "哪个工具管理包？",
+      type: QuestionType.SingleChoice,
+      answer: "A",
+    });
+  });
+
   it("parses compact single-choice templates with inline full-width options", () => {
     const [question] = parseTextByScript(
       `1. 哪个框架用于桌面壳？Ａ．Electron Ｂ．Tauri
