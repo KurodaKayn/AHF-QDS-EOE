@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-desktop-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release-desktop:
     name: Desktop Release
@@ -24,15 +28,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
+          cache: pnpm
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -40,7 +45,7 @@ jobs:
           targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Install Frontend Dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build Next.js
         run: pnpm run build
