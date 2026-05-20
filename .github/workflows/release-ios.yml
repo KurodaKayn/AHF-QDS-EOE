@@ -47,7 +47,7 @@ jobs:
         # Fails without valid Apple Development Team ID.
         # Configure signing secrets before treating this workflow as a production release gate.
         run: |
-          pnpm tauri ios build --export-method ad-hoc
+          pnpm tauri ios build --export-method release-testing
 
       - name: Upload iOS Artifact
         uses: softprops/action-gh-release@v1
