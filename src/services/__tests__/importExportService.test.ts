@@ -1,6 +1,17 @@
 import { exportQuestionBank, importQuestionBank } from "../importExportService";
 import { QuestionBank, QuestionType } from "@/types/quiz";
 
+const mockSave = vi.fn();
+const mockWriteFile = vi.fn();
+
+vi.mock("@tauri-apps/plugin-dialog", () => ({
+  save: (...args: unknown[]) => mockSave(...args),
+}));
+
+vi.mock("@tauri-apps/plugin-fs", () => ({
+  writeFile: (...args: unknown[]) => mockWriteFile(...args),
+}));
+
 const bank: QuestionBank = {
   id: "bank-1",
   name: "Service Bank",
@@ -33,9 +44,13 @@ describe("importExportService", () => {
     originalRevokeObjectURL = URL.revokeObjectURL;
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "warn").mockImplementation(() => {});
+    mockSave.mockReset();
+    mockWriteFile.mockReset();
   });
 
   afterEach(() => {
+    delete (window as any).__TAURI_INTERNALS__;
+    delete (window as any).__TAURI__;
     delete (window as any).showSaveFilePicker;
     URL.createObjectURL = originalCreateObjectURL;
     URL.revokeObjectURL = originalRevokeObjectURL;
@@ -127,5 +142,94 @@ single-choice,Which package manager?,B,Repo uses pnpm,tooling,npm,pnpm
     expect(createElement).toHaveBeenCalledWith("a");
     expect(click).toHaveBeenCalled();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:test-url");
+  });
+
+  describe("Tauri dialog export", () => {
+    beforeEach(() => {
+      (window as any).__TAURI_INTERNALS__ = true;
+      vi.spyOn(console, "error").mockImplementation(() => {});
+    });
+
+    it("exports CSV via Tauri save dialog and writeFile", async () => {
+      mockSave.mockResolvedValue("/tmp/export.csv");
+      mockWriteFile.mockResolvedValue(undefined);
+
+      await exportQuestionBank({ bank, format: "csv" });
+
+      expect(mockSave).toHaveBeenCalledWith({
+        defaultPath: "Service Bank.csv",
+        filters: [{ name: "CSV Files", extensions: ["csv"] }],
+      });
+      expect(mockWriteFile.mock.calls[0][0]).toBe("/tmp/export.csv");
+      const bytes = mockWriteFile.mock.calls[0][1];
+      // UTF-8 BOM: 0xEF, 0xBB, 0xBF
+      expect(bytes[0]).toBe(0xef);
+      expect(bytes[1]).toBe(0xbb);
+      expect(bytes[2]).toBe(0xbf);
+      const written = new TextDecoder().decode(bytes);
+      expect(written).toContain("Which package manager?");
+    });
+
+    it("exports Excel via Tauri save dialog and writeFile", async () => {
+      mockSave.mockResolvedValue("/tmp/export.xlsx");
+      mockWriteFile.mockResolvedValue(undefined);
+
+      await exportQuestionBank({ bank, format: "excel" });
+
+      expect(mockSave).toHaveBeenCalledWith({
+        defaultPath: "Service Bank.xlsx",
+        filters: [{ name: "Excel Files", extensions: ["xlsx"] }],
+      });
+      expect(mockWriteFile.mock.calls[0][0]).toBe("/tmp/export.xlsx");
+      expect(mockWriteFile.mock.calls[0][1].byteLength).toBeGreaterThan(0);
+    });
+
+    it("throws when the user cancels the Tauri save dialog", async () => {
+      mockSave.mockResolvedValue(null);
+
+      await expect(exportQuestionBank({ bank, format: "csv" })).rejects.toThrow(
+        "User cancelled save dialog",
+      );
+
+      expect(mockWriteFile).not.toHaveBeenCalled();
+    });
+
+    it("propagates writeFile errors to the caller", async () => {
+      mockSave.mockResolvedValue("/tmp/export.csv");
+      mockWriteFile.mockRejectedValue(new Error("fs:allow-write-file not granted"));
+
+      await expect(exportQuestionBank({ bank, format: "csv" })).rejects.toThrow(
+        "fs:allow-write-file not granted",
+      );
+    });
+
+    it("uses DEFAULT_EXPORT_FILENAME when bank name is empty", async () => {
+      mockSave.mockResolvedValue("/tmp/quiz_export.xlsx");
+      mockWriteFile.mockResolvedValue(undefined);
+
+      await exportQuestionBank({
+        bank: { ...bank, name: "" },
+        format: "excel",
+      });
+
+      expect(mockSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          defaultPath: "quiz_export.xlsx",
+        }),
+      );
+    });
+
+    it("detects Tauri via __TAURI__ global as well", async () => {
+      delete (window as any).__TAURI_INTERNALS__;
+      (window as any).__TAURI__ = true;
+
+      mockSave.mockResolvedValue("/tmp/export.csv");
+      mockWriteFile.mockResolvedValue(undefined);
+
+      await exportQuestionBank({ bank, format: "csv" });
+
+      expect(mockSave).toHaveBeenCalled();
+      expect(mockWriteFile).toHaveBeenCalled();
+    });
   });
 });
