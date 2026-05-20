@@ -16,6 +16,8 @@ jobs:
   release-android:
     name: Android Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -57,7 +59,7 @@ jobs:
       - name: Build Android APK
         run: |
           export NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125
-          pnpm tauri android build --apk
+          pnpm tauri android build --apk true
 
       - name: Upload Artifact to Release
         uses: softprops/action-gh-release@v1

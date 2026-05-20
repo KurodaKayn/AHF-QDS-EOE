@@ -16,6 +16,8 @@ jobs:
   release-desktop:
     name: Desktop Release
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:

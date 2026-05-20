@@ -16,6 +16,8 @@ jobs:
   release-ios:
     name: iOS Release
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
