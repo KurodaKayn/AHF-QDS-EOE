@@ -1,9 +1,18 @@
 name: Release iOS
 
+# Disabled: iOS builds require Apple Developer signing (Team ID, certificates,
+# provisioning profiles) configured as GitHub secrets. Enable this workflow
+# after setting up signing by uncommenting the trigger below.
+#
+# To configure:
+#   1. Add APPLE_DEVELOPMENT_TEAM secret (Team ID)
+#   2. Add signing certificate and provisioning profile secrets
+#   3. Uncomment the 'on' trigger below
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch: # Manual trigger only until signing is configured
+  # push:
+  #   tags:
+  #     - "v*"
 
 permissions:
   contents: write
