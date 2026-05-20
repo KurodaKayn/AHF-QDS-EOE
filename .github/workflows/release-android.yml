@@ -67,6 +67,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          draft: true
           files: |
             src-tauri/gen/android/app/build/outputs/apk/*/release/*.apk
-            src-tauri/gen/android/app/build/outputs/apk/*/debug/*.apk
