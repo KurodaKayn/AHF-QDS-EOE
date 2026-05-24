@@ -24,9 +24,13 @@ export function useImportExport() {
   const { questionBanks, addQuestionBank, addQuestionToBank } = useQuizStore();
 
   const [selectedBankId, setSelectedBankId] = useState<string>("");
-  const [importFormat, setImportFormat] = useState<"csv" | "excel">("csv");
   const [exportFormat, setExportFormat] = useState<"csv" | "excel">("csv");
+
+  // Import states
+  const [importMode, setImportMode] = useState<"new" | "existing">("new");
   const [importName, setImportName] = useState<string>("");
+  const [importTargetBankId, setImportTargetBankId] = useState<string>("");
+
   const [importSuccess, setImportSuccess] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
   const [importResult, setImportResult] = useState<ImportStats | null>(null);
@@ -43,26 +47,42 @@ export function useImportExport() {
       return;
     }
 
+    if (importMode === "existing" && !importTargetBankId) {
+      toast.warning(t("importExport.alerts.bankRequired"));
+      return;
+    }
+
     try {
+      const format = file.name.toLowerCase().endsWith(".csv") ? "csv" : "excel";
+
       // Import the file using service
       const result: ImportResult = await importQuestionBank({
         file,
-        format: importFormat,
-        bankName: importName,
+        format,
+        bankName: importMode === "new" ? importName : undefined,
       });
 
-      // Create new bank in store
-      const newBank = addQuestionBank(result.bank.name, result.bank.description);
+      let targetBankId = "";
+      if (importMode === "new") {
+        const newBank = addQuestionBank(result.bank.name, result.bank.description);
+        targetBankId = newBank?.id || "";
+      } else {
+        targetBankId = importTargetBankId;
+      }
 
-      // Add questions to the newly created bank
+      if (!targetBankId) {
+        throw new Error("Target bank not found");
+      }
+
+      // Add questions to the target bank
       let addedCount = 0;
       let duplicateCount = 0;
       const totalCount = result.bank.questions?.length || 0;
 
-      if (newBank && result.bank.questions && result.bank.questions.length > 0) {
+      if (result.bank.questions && result.bank.questions.length > 0) {
         result.bank.questions.forEach((question) => {
           const { id: _id, ...questionData } = question; // Remove original ID
-          const addResult = addQuestionToBank(newBank.id, questionData);
+          const addResult = addQuestionToBank(targetBankId, questionData);
           if (addResult.isDuplicate) {
             duplicateCount++;
           } else if (addResult.question) {
@@ -125,9 +145,10 @@ export function useImportExport() {
   return {
     // State
     selectedBankId,
-    importFormat,
     exportFormat,
+    importMode,
     importName,
+    importTargetBankId,
     importSuccess,
     exportSuccess,
     importResult,
@@ -136,9 +157,10 @@ export function useImportExport() {
 
     // Actions
     setSelectedBankId,
-    setImportFormat,
     setExportFormat,
+    setImportMode,
     setImportName,
+    setImportTargetBankId,
     handleImport,
     handleExport,
   };

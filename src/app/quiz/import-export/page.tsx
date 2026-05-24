@@ -3,6 +3,7 @@
 import { FaFileImport, FaFileExport, FaCheck, FaExclamationTriangle } from "react-icons/fa";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTranslation } from "react-i18next";
+import { Switch } from "@/components/ui/switch";
 
 export default function ImportExportPage() {
   const { t } = useTranslation();
@@ -10,9 +11,10 @@ export default function ImportExportPage() {
   const {
     // State
     selectedBankId,
-    importFormat,
     exportFormat,
+    importMode,
     importName,
+    importTargetBankId,
     importSuccess,
     exportSuccess,
     importResult,
@@ -21,9 +23,10 @@ export default function ImportExportPage() {
 
     // Actions
     setSelectedBankId,
-    setImportFormat,
     setExportFormat,
+    setImportMode,
     setImportName,
+    setImportTargetBankId,
     handleImport,
     handleExport,
   } = useImportExport();
@@ -45,53 +48,56 @@ export default function ImportExportPage() {
           </div>
 
           <div className="space-y-4">
-            {/* Format Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("importExport.import.format")}
+            {/* Import Mode Switch */}
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t(
+                  "importExport.import.importToExistingBank",
+                  "Import to existing bank (enables deduplication)",
+                )}
               </label>
-              <div className="flex gap-4">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="importFormat"
-                    value="csv"
-                    checked={importFormat === "csv"}
-                    onChange={() => setImportFormat("csv")}
-                    className="mr-2"
-                  />
-                  <span className="text-gray-700 dark:text-gray-300">CSV</span>
-                </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="importFormat"
-                    value="excel"
-                    checked={importFormat === "excel"}
-                    onChange={() => setImportFormat("excel")}
-                    className="mr-2"
-                  />
-                  <span className="text-gray-700 dark:text-gray-300">Excel</span>
-                </label>
-              </div>
+              <Switch
+                checked={importMode === "existing"}
+                onCheckedChange={(checked) => setImportMode(checked ? "existing" : "new")}
+              />
             </div>
 
-            {/* Bank Name Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("importExport.import.bankName")}
-              </label>
-              <input
-                type="text"
-                value={importName}
-                onChange={(e) => setImportName(e.target.value)}
-                placeholder={t("importExport.import.bankNamePlaceholder")}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {t("importExport.import.optional")}
-              </p>
-            </div>
+            {/* Target Bank / New Bank Name */}
+            {importMode === "new" ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t("importExport.import.bankName")}
+                </label>
+                <input
+                  type="text"
+                  value={importName}
+                  onChange={(e) => setImportName(e.target.value)}
+                  placeholder={t("importExport.import.bankNamePlaceholder")}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t("importExport.import.optional")}
+                </p>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t("importExport.import.selectTargetBank", "Select Target Bank")}
+                </label>
+                <select
+                  value={importTargetBankId}
+                  onChange={(e) => setImportTargetBankId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="">{t("importExport.export.selectBankPlaceholder")}</option>
+                  {questionBanks.map((bank) => (
+                    <option key={bank.id} value={bank.id}>
+                      {bank.name} ({bank.questions.length} {t("importExport.export.questions")})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* File Input */}
             <div>
@@ -101,7 +107,7 @@ export default function ImportExportPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept={importFormat === "csv" ? ".csv" : ".xlsx,.xls"}
+                accept=".csv,.xlsx,.xls"
                 onChange={handleImport}
                 className="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-300"
               />

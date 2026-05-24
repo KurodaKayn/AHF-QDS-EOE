@@ -64,6 +64,8 @@
     "title": "Import/Export",
     "import": {
       "title": "Import Bank",
+      "importToExistingBank": "Import to existing bank (enables deduplication)",
+      "selectTargetBank": "Select Target Bank",
       "bankName": "Bank Name",
       "bankNamePlaceholder": "Enter bank name",
       "optional": "(Optional, leave empty to use filename)",
@@ -85,6 +87,7 @@
     },
     "alerts": {
       "inputRequired": "Please select a file",
+      "bankRequired": "Please select a target bank",
       "noBanks": "No banks available, please create or import one first",
       "parseError": "Could not parse data from file.",
       "importFailed": "Import Failed: {{error}}",

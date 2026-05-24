@@ -64,6 +64,8 @@
     "title": "导入/导出题库",
     "import": {
       "title": "导入题库",
+      "importToExistingBank": "导入到已有题库（启用去重）",
+      "selectTargetBank": "选择目标题库",
       "bankName": "题库名称",
       "bankNamePlaceholder": "输入导入后的题库名称",
       "optional": "（可选，留空则使用文件名）",
@@ -85,6 +87,7 @@
     },
     "alerts": {
       "inputRequired": "请选择文件",
+      "bankRequired": "请选择目标题库",
       "noBanks": "暂无题库，请先创建或导入题库",
       "parseError": "无法从文件解析数据。",
       "importFailed": "导入失败: {{error}}",
