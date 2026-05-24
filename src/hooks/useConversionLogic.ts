@@ -3,12 +3,12 @@ import { Question } from "@/types/quiz";
 import { parseTextByScript, ScriptTemplate } from "@/utils/scriptParser";
 import { getPrompts } from "@/constants/ai";
 import { parseQuestions } from "@/utils/questionParser";
-import { conversionService } from "@/services/conversionService";
+import { callAI } from "@/lib/ai";
 import { useQuizStore } from "@/store/quizStore";
 import { useTranslation } from "react-i18next";
 
 interface UseConversionLogicProps {
-  onSuccess?: (questions: Omit<Question, "id">[], bankId: string, bankName: string) => void;
+  onSuccess?: (questions: Question[], bankId: string, bankName: string) => void;
 }
 
 /**
@@ -23,7 +23,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingScript, setIsLoadingScript] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [convertedQuestions, setConvertedQuestions] = useState<Omit<Question, "id">[]>([]);
+  const [convertedQuestions, setConvertedQuestions] = useState<Question[]>([]);
 
   /**
    * AI Conversion
@@ -38,12 +38,18 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
       setError(null);
       setConvertedQuestions([]);
       setIsLoading(true);
+      setConversionState({
+        isConverting: true,
+      });
 
       const { aiConfigs, activeAiConfigId } = settings;
       const activeConfig = aiConfigs.find((c) => c.id === activeAiConfigId);
 
-      if (!activeConfig || !activeConfig.apiKey) {
+      if (!activeConfig) {
         setError(t("convert.errors.noAIConfig"));
+        setConversionState({
+          isConverting: false,
+        });
         setIsLoading(false);
         return;
       }
@@ -55,37 +61,16 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
           { role: "user" as const, content: inputText },
         ];
 
-        const result = await conversionService.convert(
-          {
-            baseUrl: activeConfig.baseUrl,
-            apiKey: activeConfig.apiKey,
-            model: activeConfig.model,
-            messages,
-          },
-          (result) => {
-            if (result.success && result.content) {
-              const parsed = parseQuestions(result.content);
-              setConversionState({
-                generatedQuestions: parsed as Question[],
-                isConverting: false,
-              });
-            } else {
-              setConversionState({
-                isConverting: false,
-              });
-            }
-          },
-        );
-
-        if (result.success && result.content) {
-          const parsed = parseQuestions(result.content);
-          if (parsed.length === 0) {
-            setError(t("convert.errors.aiParseFailed"));
-          } else {
-            setConvertedQuestions(parsed);
-          }
+        const content = await callAI(activeConfig.id, messages);
+        const parsed = await parseQuestions(content);
+        if (parsed.length === 0) {
+          setError(t("convert.errors.aiParseFailed"));
         } else {
-          setError(result.error || t("convert.errors.aiParseFailed"));
+          setConvertedQuestions(parsed);
+          setConversionState({
+            generatedQuestions: parsed,
+            isConverting: false,
+          });
         }
       } catch (e: any) {
         if (e.message && e.message.includes("message channel closed")) {
@@ -94,6 +79,9 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
           setError(e.message || t("convert.errors.noText"));
         }
       } finally {
+        setConversionState({
+          isConverting: false,
+        });
         setIsLoading(false);
       }
     },
@@ -104,7 +92,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
    * Script Conversion
    */
   const convertWithScript = useCallback(
-    (inputText: string, scriptTemplate: ScriptTemplate) => {
+    async (inputText: string, scriptTemplate: ScriptTemplate) => {
       if (!inputText.trim()) {
         setError(t("convert.errors.noText"));
         return;
@@ -115,7 +103,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
       setIsLoadingScript(true);
 
       try {
-        const parsed = parseTextByScript(inputText, scriptTemplate);
+        const parsed = await parseTextByScript(inputText, scriptTemplate);
         if (parsed.length === 0 && inputText.trim().length > 0) {
           setError(t("convert.errors.scriptFailed"));
         }

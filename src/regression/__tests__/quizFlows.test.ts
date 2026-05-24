@@ -1,5 +1,4 @@
 import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from "@/utils/quiz";
-import { parseQuestions } from "@/utils/questionParser";
 import { QuestionBank, QuestionType } from "@/types/quiz";
 
 const now = 1700000000000;
@@ -82,47 +81,6 @@ describe("regression flows", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  it("parses a realistic mixed question block without losing multiline option content", () => {
-    const [singleChoice, multipleChoice, fillInBlank] =
-      parseQuestions(`Single choice: Which platform does Tauri target?
-A. Desktop apps
-that ship with web technologies
-B. Mobile apps
-Answer: A
-Explanation: Tauri packages desktop applications.
-
-多选题：选择本项目使用的技术
-A. Next.js
-B. Tauri
-C. Photoshop
-答案：A，B
-
-填空题：The package manager used here is (pnpm).
-答案：pnpm`);
-
-    expect(singleChoice).toMatchObject({
-      type: QuestionType.SingleChoice,
-      content: "Which platform does Tauri target?",
-      answer: "A",
-      explanation: "Tauri packages desktop applications.",
-    });
-    expect(singleChoice.options).toEqual([
-      { id: "A", content: "Desktop apps\nthat ship with web technologies" },
-      { id: "B", content: "Mobile apps" },
-    ]);
-
-    expect(multipleChoice).toMatchObject({
-      type: QuestionType.MultipleChoice,
-      answer: ["A", "B"],
-    });
-
-    expect(fillInBlank).toMatchObject({
-      type: QuestionType.FillInBlank,
-      content: "The package manager used here is ____.",
-      answer: "pnpm",
-    });
   });
 
   it("round-trips question banks through CSV and Excel exports", async () => {

@@ -1,13 +1,24 @@
-import { Question, QuestionType, QuestionOption } from "@/types/quiz";
+import { invoke } from "@tauri-apps/api/core";
+import { Question, QuestionOption, QuestionType } from "@/types/quiz";
+
+const isTauriRuntime = () =>
+  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
 
 /**
  * Parses text into an array of question objects.
  * Supports multi-line option content (e.g., code blocks).
  * Handles both Chinese and English keywords.
  */
-export const parseQuestions = (text: string): Omit<Question, "id">[] => {
-  const questions: Omit<Question, "id">[] = [];
-  // Split into question blocks
+export async function parseQuestions(text: string): Promise<Question[]> {
+  if (isTauriRuntime()) {
+    return invoke<Question[]>("parse_questions", { text });
+  }
+
+  return parseQuestionsInBrowser(text);
+}
+
+function parseQuestionsInBrowser(text: string): Question[] {
+  const questions: Question[] = [];
   const questionBlocks = text.split(/\n\s*\n+/).filter((block) => block.trim());
 
   for (const block of questionBlocks) {
@@ -22,11 +33,10 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
       let content: string;
       let options: QuestionOption[] = [];
       let answer: string | string[] = "";
-      let explanation: string = "";
+      let explanation = "";
 
       const firstLine = lines[0];
 
-      // Detect question type
       if (firstLine.includes("单选题：") || firstLine.toLowerCase().includes("single choice:")) {
         questionType = QuestionType.SingleChoice;
         content = firstLine.replace(/^(单选题：|single choice:)/i, "").trim();
@@ -75,7 +85,6 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
           answer = lines[answerIndex].replace(/^(答案：|answer:)/i, "").trim();
         }
       } else {
-        // Auto-detect type
         const hasOptions = lines.some((line) => /^[A-Za-z]\./.test(line));
         const hasFillBlank = lines[0].includes("____") || lines[0].includes("_____");
 
@@ -118,7 +127,6 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
 
         content = lines[0].trim();
 
-        // Handle parsed attributes based on type
         if (
           questionType === QuestionType.SingleChoice ||
           questionType === QuestionType.MultipleChoice
@@ -141,7 +149,6 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
         }
       }
 
-      // Parse explanation
       const explanationIndex = lines.findIndex((line) =>
         /^ (解析：|explanation:)/i.test(" " + line),
       );
@@ -150,6 +157,7 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
       }
 
       questions.push({
+        id: "",
         content,
         type: questionType,
         options:
@@ -163,16 +171,13 @@ export const parseQuestions = (text: string): Omit<Question, "id">[] => {
         updatedAt: Date.now(),
       });
     } catch {
-      // Ignore parsing errors for individual blocks
+      // Ignore parsing errors for individual blocks.
     }
   }
 
   return questions;
-};
+}
 
-/**
- * Parses options, supporting multi-line content
- */
 function parseOptions(lines: string[], startIndex: number): { options: QuestionOption[] } {
   const options: QuestionOption[] = [];
   let currentOption: { id: string; content: string } | null = null;
@@ -180,7 +185,6 @@ function parseOptions(lines: string[], startIndex: number): { options: QuestionO
   for (let i = startIndex; i < lines.length; i++) {
     const line = lines[i];
 
-    // Check if it's an answer or explanation line
     if (/^ (答案：|answer:|解析：|explanation:)/i.test(" " + line)) {
       if (currentOption) {
         options.push(currentOption);
@@ -189,20 +193,16 @@ function parseOptions(lines: string[], startIndex: number): { options: QuestionO
       break;
     }
 
-    // Check if it's the start of a new option (e.g., A. Content)
     const optionMatch = line.match(/^([A-Za-z])\.(.*)$/);
     if (optionMatch) {
       if (currentOption) {
         options.push(currentOption);
       }
-      const optionId = optionMatch[1].toUpperCase();
-      const optionContent = optionMatch[2].trim();
       currentOption = {
-        id: optionId,
-        content: optionContent,
+        id: optionMatch[1].toUpperCase(),
+        content: optionMatch[2].trim(),
       };
     } else if (currentOption) {
-      // Continuation of current option (multi-line)
       currentOption.content += "\n" + line;
     }
   }
@@ -214,9 +214,6 @@ function parseOptions(lines: string[], startIndex: number): { options: QuestionO
   return { options };
 }
 
-/**
- * Extracts answer from lines
- */
 function findAnswer(
   lines: string[],
   options: QuestionOption[],
@@ -250,9 +247,6 @@ function findAnswer(
   return "";
 }
 
-/**
- * Parses True/False answer
- */
 function parseTrueFalseAnswer(lines: string[]): string {
   const answerLine = lines.find((line) => /^ (答案：|answer:)/i.test(" " + line));
   if (!answerLine) return "";

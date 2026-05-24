@@ -2,9 +2,14 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { Question, QuestionBank, QuestionRecord, QuestionOption } from "@/types/quiz";
 import { nanoid } from "nanoid";
-import { getPrompts, callAI } from "@/constants/ai";
+import { getPrompts } from "@/constants/ai";
 import { createStorage } from "@/lib/storage";
 import i18n from "@/i18n/config";
+import { callAI } from "@/lib/ai";
+import { deleteAiConfigOnBackend, saveAiConfigOnBackend } from "@/lib/aiConfigSync";
+
+const isTauriRuntime =
+  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
 
 // AI Config Interface
 export interface AIConfig {
@@ -62,6 +67,7 @@ export interface QuizState {
   addRecord: (record: Omit<QuestionRecord, "id">) => void;
   clearRecords: (bankId?: string) => void;
   removeWrongRecordsByQuestionId: (questionIdToRemove: string) => void;
+  replaceQuizData: (data: { questionBanks: QuestionBank[]; records: QuestionRecord[] }) => void;
 
   // Common Settings Actions
   setQuizSetting: <K extends keyof QuizSettings>(key: K, value: QuizSettings[K]) => void;
@@ -347,6 +353,12 @@ export const useQuizStore = create<QuizState>()(
           ),
         }));
       },
+      replaceQuizData: (data) => {
+        set({
+          questionBanks: data.questionBanks,
+          records: data.records,
+        });
+      },
 
       // Settings actions
       setQuizSetting: (key, value) => {
@@ -374,14 +386,19 @@ export const useQuizStore = create<QuizState>()(
             activeAiConfigId: state.settings.activeAiConfigId || newConfig.id,
           },
         }));
+        void saveAiConfigOnBackend(newConfig);
       },
       updateAiConfig: (id, config) => {
+        const nextConfig = get().settings.aiConfigs.find((item) => item.id === id);
         set((state) => ({
           settings: {
             ...state.settings,
             aiConfigs: state.settings.aiConfigs.map((c) => (c.id === id ? { ...c, ...config } : c)),
           },
         }));
+        if (nextConfig) {
+          void saveAiConfigOnBackend({ ...nextConfig, ...config });
+        }
       },
       deleteAiConfig: (id) => {
         set((state) => {
@@ -398,6 +415,7 @@ export const useQuizStore = create<QuizState>()(
             },
           };
         });
+        void deleteAiConfigOnBackend(id);
       },
       setActiveAiConfig: (id) => {
         set((state) => ({
@@ -436,12 +454,6 @@ export const useQuizStore = create<QuizState>()(
             throw new Error(i18n.t("review.similarModal.errorNoConfig"));
           }
 
-          if (!config.apiKey) {
-            throw new Error(i18n.t("review.similarModal.errorNoApiKey", { name: config.name }));
-          }
-
-          const { baseUrl, apiKey, model } = config;
-
           // Prepare input: convert original questions to appropriate format
           const originalQuestionsData = originalQuestions.map((q) => {
             return {
@@ -465,7 +477,7 @@ export const useQuizStore = create<QuizState>()(
             },
           ];
 
-          const response = await callAI(baseUrl, apiKey, model, messages);
+          const response = await callAI(config.id, messages);
 
           // Parse JSON from API response
           let generatedQuestionsData;
@@ -561,13 +573,20 @@ export const useQuizStore = create<QuizState>()(
     {
       name: "quiz-storage",
       storage: createJSONStorage(() => createStorage()),
-      partialize: (state) => ({
-        questionBanks: state.questionBanks,
-        records: state.records,
-        settings: state.settings,
-        conversionState: state.conversionState,
-        practiceSession: state.practiceSession,
-      }),
+      partialize: (state) =>
+        isTauriRuntime
+          ? {
+              settings: state.settings,
+              conversionState: state.conversionState,
+              practiceSession: state.practiceSession,
+            }
+          : {
+              questionBanks: state.questionBanks,
+              records: state.records,
+              settings: state.settings,
+              conversionState: state.conversionState,
+              practiceSession: state.practiceSession,
+            },
       merge: (persistedState, currentState) => {
         const merged = {
           ...currentState,
@@ -634,6 +653,14 @@ export const useQuizStore = create<QuizState>()(
             aiConfigs:
               (persistedState as QuizState).settings.aiConfigs || initialSettings.aiConfigs,
           };
+        }
+
+        if (
+          isTauriRuntime &&
+          (currentState.questionBanks.length > 0 || currentState.records.length > 0)
+        ) {
+          merged.questionBanks = currentState.questionBanks;
+          merged.records = currentState.records;
         }
 
         if (persisted.conversionState) {

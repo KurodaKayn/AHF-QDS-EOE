@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Question } from "@/types/quiz";
@@ -14,6 +14,7 @@ import {
   FaClone,
 } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { searchQuestionIds } from "@/lib/quizQueries";
 
 export enum QuestionSortType {
   ContentAsc = "contentAsc",
@@ -42,6 +43,29 @@ export function QuestionListSection({
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortType, setSortType] = useState<QuestionSortType>(QuestionSortType.ContentAsc);
+  const [backendSearchMatches, setBackendSearchMatches] = useState<Set<string> | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const runSearch = async () => {
+      const matches = await searchQuestionIds(searchQuery);
+      if (!cancelled) {
+        setBackendSearchMatches(matches);
+      }
+    };
+
+    if (!searchQuery.trim()) {
+      setBackendSearchMatches(null);
+      return;
+    }
+
+    void runSearch();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchQuery]);
 
   const filteredQuestions = useMemo(() => {
     let filtered = questions;
@@ -49,6 +73,9 @@ export function QuestionListSection({
       filtered = filtered.filter((q) =>
         q.content.toLowerCase().includes(searchQuery.toLowerCase()),
       );
+      if (backendSearchMatches) {
+        filtered = filtered.filter((q) => backendSearchMatches.has(q.id));
+      }
     }
 
     return [...filtered].sort((a, b) => {
@@ -69,7 +96,7 @@ export function QuestionListSection({
           return a.content.localeCompare(b.content);
       }
     });
-  }, [questions, searchQuery, sortType]);
+  }, [questions, searchQuery, sortType, backendSearchMatches]);
 
   // Get translated question type name
   const getQuestionTypeName = (type: string): string => {

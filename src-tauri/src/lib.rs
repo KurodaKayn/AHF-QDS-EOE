@@ -1,27 +1,70 @@
+mod ai;
+mod file_io;
+mod question_parsing;
+mod quiz;
+
+use axum::{
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
+};
+use log::info;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager, State};
-use serde::{Deserialize, Serialize};
-use log::info;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct AppState {
-    log_path: PathBuf,
+    pub(crate) log_path: PathBuf,
+    pub(crate) db_path: PathBuf,
 }
 
-// Tauri command to get log path
+#[derive(Debug, Serialize)]
+struct HealthResponse {
+    status: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ApiError {
+    message: String,
+}
+
+fn build_axum_router() -> Router {
+    Router::new()
+        .route("/health", get(health))
+        .route("/ai/complete", post(ai_complete_route))
+}
+
+async fn health() -> Json<HealthResponse> {
+    Json(HealthResponse {
+        status: "ok".to_string(),
+    })
+}
+
+async fn ai_complete_route(Json(request): Json<ai::AiCompleteRequest>) -> impl IntoResponse {
+    let _ = request;
+    (
+        StatusCode::NOT_IMPLEMENTED,
+        Json(ApiError {
+            message: "Use the Tauri command instead".to_string(),
+        }),
+    )
+        .into_response()
+}
+
 #[tauri::command]
 async fn get_log_path(state: State<'_, AppState>) -> Result<String, String> {
     Ok(state.log_path.to_string_lossy().to_string())
 }
 
-// Tauri command to restart app
 #[tauri::command]
 async fn restart_app(app_handle: AppHandle) -> Result<(), String> {
     info!("Restart app requested");
     app_handle.restart();
 }
 
-// Tauri command for IPC communication
 #[tauri::command]
 async fn handle_message(message: String) -> Result<String, String> {
     info!("Received message from frontend: {}", message);
@@ -30,40 +73,61 @@ async fn handle_message(message: String) -> Result<String, String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let _axum_router = build_axum_router();
+
     tauri::Builder::default()
-        .plugin(tauri_plugin_log::Builder::default()
-            .level(log::LevelFilter::Info)
-            .build())
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                .level(log::LevelFilter::Info)
+                .build(),
+        )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_sql::Builder::default().build())
         .setup(|app| {
-            // Get app data directory for logs
-            let app_data_dir = app.path().app_data_dir()
+            let app_data_dir = app
+                .path()
+                .app_data_dir()
                 .map_err(|e| format!("Failed to get app data directory: {}", e))?;
-            
-            // Create logs directory
+
             let log_dir = app_data_dir.join("logs");
             std::fs::create_dir_all(&log_dir)
                 .map_err(|e| format!("Failed to create logs directory: {}", e))?;
-            
+
+            let db_path = app_data_dir.join("quiz.db");
+            ai::initialize_database(&db_path)?;
+            quiz::initialize_database(&db_path)?;
+
             let log_path = log_dir.join("app.log");
-            
-            // Initialize app state
+
             app.manage(AppState {
                 log_path: log_path.clone(),
+                db_path,
             });
-            
+
             info!("Application started successfully");
             info!("Log path: {}", log_path.display());
-            
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             get_log_path,
             restart_app,
-            handle_message
+            handle_message,
+            ai::save_ai_config,
+            ai::delete_ai_config,
+            ai::get_ai_config,
+            ai::list_ai_configs,
+            ai::ai_complete,
+            file_io::import_question_bank_from_bytes,
+            file_io::export_question_bank_to_bytes,
+            question_parsing::parse_questions,
+            question_parsing::parse_text_by_script,
+            quiz::replace_quiz_snapshot,
+            quiz::load_quiz_snapshot,
+            quiz::find_duplicate_question_groups,
+            quiz::search_questions
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,29 +1,38 @@
+import { invoke } from "@tauri-apps/api/core";
 import { Question, QuestionOption, QuestionType } from "@/types/quiz";
 import { generateId } from "@/utils/quiz";
 
+const isTauriRuntime = () =>
+  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+
 interface ParsedOption extends QuestionOption {
-  letter?: string; // Temporarily store original letters like 'A', 'B'
+  letter?: string;
 }
 
 /**
- * Supported script template types
+ * Supported script template types.
  */
 export enum ScriptTemplate {
-  ChaoXing = "chaoxing", // Learning Tong
-  Other = "other", // Default/Other
-  SingleChoice1 = "singlechoice1", // Format for single choice questions
+  ChaoXing = "chaoxing",
+  Other = "other",
+  SingleChoice1 = "singlechoice1",
 }
 
-/**
- * Parses text input into question data based on a template
- * @param text Raw text input
- * @param template Template to use
- * @returns Array of parsed questions
- */
-export function parseTextByScript(
+export async function parseTextByScript(
   text: string,
   template: ScriptTemplate = ScriptTemplate.Other,
-): Omit<Question, "id" | "bankId">[] {
+): Promise<Question[]> {
+  if (isTauriRuntime()) {
+    return invoke<Question[]>("parse_text_by_script", { text, template });
+  }
+
+  return parseTextByScriptInBrowser(text, template);
+}
+
+function parseTextByScriptInBrowser(
+  text: string,
+  template: ScriptTemplate = ScriptTemplate.Other,
+): Question[] {
   switch (template) {
     case ScriptTemplate.ChaoXing:
       return parseChaoXingTemplate(text);
@@ -35,17 +44,13 @@ export function parseTextByScript(
   }
 }
 
-/**
- * Parses text using the "Other" template
- * @param text Raw text input
- */
-function parseOtherTemplate(text: string): Omit<Question, "id" | "bankId">[] {
-  const questions: Omit<Question, "id" | "bankId">[] = [];
+function parseOtherTemplate(text: string): Question[] {
+  const questions: Question[] = [];
   if (!text.trim()) {
     return questions;
   }
 
-  const questionBlocks = text.trim().split(/\n\s*\n/); // Split by one or more empty lines
+  const questionBlocks = text.trim().split(/\n\s*\n/);
 
   for (const block of questionBlocks) {
     const lines = block
@@ -58,9 +63,8 @@ function parseOtherTemplate(text: string): Omit<Question, "id" | "bankId">[] {
     let questionContent = "";
     const parsedOptions: ParsedOption[] = [];
     let correctAnswerLetter: string | null = null;
-    const questionType: QuestionType = QuestionType.SingleChoice;
+    const questionType = QuestionType.SingleChoice;
 
-    // Match question line: digits followed by content
     const questionLineMatch = lines[0].match(/^\d+\.\s*(.+?)(?:\s*\(\s*\))?$/);
     if (questionLineMatch && questionLineMatch[1]) {
       questionContent = questionLineMatch[1].trim();
@@ -68,7 +72,7 @@ function parseOtherTemplate(text: string): Omit<Question, "id" | "bankId">[] {
       !lines[0].match(/^([A-Z])\.\s+/) &&
       !lines[0].match(/^(正确答案|Correct Answer):/i)
     ) {
-      questionContent = lines[0]; // Fallback: if not an option or answer line, use as content
+      questionContent = lines[0];
     }
 
     if (!questionContent) continue;
@@ -100,21 +104,16 @@ function parseOtherTemplate(text: string): Omit<Question, "id" | "bankId">[] {
       id: opt.id,
       content: opt.content,
     }));
-    let questionAnswer: string | string[] = "";
-
     const correctOption = parsedOptions.find((opt) => opt.letter === correctAnswerLetter);
-    if (correctOption) {
-      questionAnswer = correctOption.id;
-    } else {
-      continue;
-    }
+    if (!correctOption) continue;
 
     const now = Date.now();
     questions.push({
+      id: "",
       content: questionContent,
       type: questionType,
       options: finalOptions,
-      answer: questionAnswer,
+      answer: correctOption.id,
       explanation: "",
       tags: [],
       createdAt: now,
@@ -125,55 +124,40 @@ function parseOtherTemplate(text: string): Omit<Question, "id" | "bankId">[] {
   return questions;
 }
 
-/**
- * Parses text using the "ChaoXing" template, supporting Chinese and English
- * @param text Raw text input
- */
-function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] {
-  const questions: Omit<Question, "id" | "bankId">[] = [];
+function parseChaoXingTemplate(text: string): Question[] {
+  const questions: Question[] = [];
   if (!text.trim()) {
     return questions;
   }
 
-  // Pre-processing: unify line breaks and colons
   let cleanedText = text.replace(/\r\n/g, "\n").replace(/\n\s*\n/g, "\n");
-
-  // Mark AI explanations to avoid interference with recognition
   cleanedText = cleanedText.replace(/(AI讲解|AI Explanation)/g, "###AI_EXPLANATION###");
 
-  // Identification patterns (supporting Chinese & English)
   const questionRegex1 = /(\d+\s*\.\s*\([^)]+\)[^]*?)(?=\d+\s*\.\s*\(|\s*###AI_EXPLANATION###|$)/g;
   const questionRegex2 =
     /(\d+\s*\.\s*[^]*?(?:我的答案|My Answer)[^]*?(?:正确答案|Correct Answer)[^]*?)(?=\d+\s*\.\s*|\s*###AI_EXPLANATION###|$)/g;
   const questionRegex3 =
     /(\d+\s*\.\s*[^]*?\d+\.?\d*(?:分|score)\s*)(?=\d+\s*\.\s*|\s*###AI_EXPLANATION###|$)/g;
 
-  // Try different matching strategies
-  let matches1 = Array.from(cleanedText.matchAll(questionRegex1));
-  let matches2 = Array.from(cleanedText.matchAll(questionRegex2));
-  let matches3 = Array.from(cleanedText.matchAll(questionRegex3));
+  const matches1 = Array.from(cleanedText.matchAll(questionRegex1));
+  const matches2 = Array.from(cleanedText.matchAll(questionRegex2));
+  const matches3 = Array.from(cleanedText.matchAll(questionRegex3));
 
-  // Choose the strategy with the most matches
-  let questionBlocks: string[] = [];
   let bestMatches = matches1;
   if (matches2.length > bestMatches.length) bestMatches = matches2;
   if (matches3.length > bestMatches.length) bestMatches = matches3;
 
-  if (bestMatches.length > 0) {
-    questionBlocks = bestMatches.map((match) => match[1].trim());
-  } else {
-    // Fallback: simple digit splitting
-    questionBlocks = cleanedText.split(/(?=\d+\s*\.\s*\()/);
-  }
+  let questionBlocks: string[] =
+    bestMatches.length > 0
+      ? bestMatches.map((match) => match[1].trim())
+      : cleanedText.split(/(?=\d+\s*\.\s*\()/);
 
-  // Filter out invalid blocks
   questionBlocks = questionBlocks.filter((block) => {
     return block.trim().length > 10 && /\d+\s*\.\s*/.test(block);
   });
 
-  // Process each question block
-  for (let i = 0; i < questionBlocks.length; i++) {
-    const block = questionBlocks[i].replace(/###AI_EXPLANATION###[^]*?(?=\d+\s*\.\s*|$)/g, "");
+  for (const questionBlock of questionBlocks) {
+    const block = questionBlock.replace(/###AI_EXPLANATION###[^]*?(?=\d+\s*\.\s*|$)/g, "");
     if (!block.trim()) {
       continue;
     }
@@ -187,14 +171,10 @@ function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] 
       continue;
     }
 
-    // Extract content and type
     let questionType: QuestionType;
     let questionContent = "";
-
-    // Match block: digit. (Type) Content
     const questionTypeMatch = lines[0].match(/^\d+\s*\.\s*(?:\(([^)]+)\))?\s*(.+)$/);
 
-    // Find position of first option 'A'
     let firstOptionIndex = -1;
     for (let k = 1; k < lines.length; k++) {
       if (lines[k].match(/^A[.．]\s+/)) {
@@ -211,7 +191,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] 
         }
       }
     } else if (firstOptionIndex === -1) {
-      // Filling blank or true/false
       for (let k = 1; k < lines.length; k++) {
         if (
           !lines[k].match(/^([A-Z])[.．]\s+/) &&
@@ -240,59 +219,51 @@ function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] 
         typeText.includes("false")
       ) {
         questionType = QuestionType.TrueFalse;
+      } else if (block.includes("A.") || block.includes("A．") || block.match(/\([A-D]\)/)) {
+        questionType = block.match(/(?:正确答案|Correct Answer)[:：]\s*[A-D][,，、\s]*[A-D]/i)
+          ? QuestionType.MultipleChoice
+          : QuestionType.SingleChoice;
+      } else if (
+        block.includes("判断") ||
+        block.match(/(?:正确答案|Correct Answer)[:：]\s*(?:对|错|true|false)/i)
+      ) {
+        questionType = QuestionType.TrueFalse;
+      } else if (
+        block.includes("____") ||
+        block.includes("填空") ||
+        block.toLowerCase().includes("fill")
+      ) {
+        questionType = QuestionType.FillInBlank;
       } else {
-        // Infer from content
-        if (block.includes("A.") || block.includes("A．") || block.match(/\([A-D]\)/)) {
-          questionType = block.match(/(?:正确答案|Correct Answer)[:：]\s*[A-D][,，、\s]*[A-D]/i)
-            ? QuestionType.MultipleChoice
-            : QuestionType.SingleChoice;
-        } else if (
-          block.includes("判断") ||
-          block.match(/(?:正确答案|Correct Answer)[:：]\s*(?:对|错|true|false)/i)
-        ) {
-          questionType = QuestionType.TrueFalse;
-        } else if (
-          block.includes("____") ||
-          block.includes("填空") ||
-          block.toLowerCase().includes("fill")
-        ) {
-          questionType = QuestionType.FillInBlank;
-        } else {
-          questionType = QuestionType.SingleChoice; // Default
-        }
+        questionType = QuestionType.SingleChoice;
       }
     } else {
-      // Fallback extraction
       const basicMatch = lines[0].match(/^\d+\s*\.\s*(.+)$/);
-      if (basicMatch) {
-        questionContent = basicMatch[1].trim() + extraContent;
-      } else {
-        questionContent = lines[0] + extraContent;
-      }
+      questionContent = basicMatch ? basicMatch[1].trim() + extraContent : lines[0] + extraContent;
 
-      if (lines.some((l) => l.match(/^[A-D][.．]/) || l.match(/\([A-D]\)/))) {
+      if (lines.some((line) => line.match(/^[A-D][.．]/) || line.match(/\([A-D]\)/))) {
         const multiAnswer = lines.some(
-          (l) =>
-            l.match(/(?:正确答案|Correct Answer)[:：]\s*[A-D][,，、\s][A-D]/i) ||
-            l.match(/(?:正确答案|Correct Answer)[:：]\s*\[[A-D][,，、\s][A-D]\]/i),
+          (line) =>
+            line.match(/(?:正确答案|Correct Answer)[:：]\s*[A-D][,，、\s][A-D]/i) ||
+            line.match(/(?:正确答案|Correct Answer)[:：]\s*\[[A-D][,，、\s][A-D]\]/i),
         );
 
         questionType = multiAnswer ? QuestionType.MultipleChoice : QuestionType.SingleChoice;
       } else if (
         lines.some(
-          (l) =>
-            l.includes("判断") ||
-            l.match(/(?:正确答案|Correct Answer)[:：]\s*(?:对|错|true|false)/i),
+          (line) =>
+            line.includes("判断") ||
+            line.match(/(?:正确答案|Correct Answer)[:：]\s*(?:对|错|true|false)/i),
         )
       ) {
         questionType = QuestionType.TrueFalse;
       } else if (
         questionContent.includes("____") ||
-        lines.some((l) => l.includes("填空") || l.toLowerCase().includes("fill"))
+        lines.some((line) => line.includes("填空") || line.toLowerCase().includes("fill"))
       ) {
         questionType = QuestionType.FillInBlank;
       } else {
-        questionType = QuestionType.SingleChoice; // Default
+        questionType = QuestionType.SingleChoice;
       }
     }
 
@@ -300,7 +271,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] 
       continue;
     }
 
-    // Handle fill-in-blank separately
     if (questionType === QuestionType.FillInBlank) {
       let correctAnswer = "";
 
@@ -319,11 +289,12 @@ function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] 
 
       const multipleAnswers = correctAnswer
         .split(/[;；]/)
-        .map((a) => a.trim())
+        .map((answer) => answer.trim())
         .filter(Boolean);
 
       const now = Date.now();
       questions.push({
+        id: "",
         content: questionContent,
         type: questionType,
         options: [],
@@ -336,7 +307,6 @@ function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] 
       continue;
     }
 
-    // Handle choice and true/false
     const parsedOptions: ParsedOption[] = [];
     let correctAnswerLetter: string | null = null;
 
@@ -400,12 +370,14 @@ function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] 
     let questionAnswer: string | string[] = "";
 
     if (questionType === QuestionType.MultipleChoice) {
-      const answerLine = lines.find((l) => l.match(/(?:正确答案|Correct Answer)[:：]/i));
+      const answerLine = lines.find((line) => line.match(/(?:正确答案|Correct Answer)[:：]/i));
       if (answerLine) {
         const letters = answerLine.match(/(?:正确答案|Correct Answer)[:：]\s*([A-Z,，、\s]+)/i);
         if (letters) {
           const letterStr = letters[1].toUpperCase();
-          const extractedLetters = letterStr.split(/[,，、\s]/).flatMap((s) => s.split(""));
+          const extractedLetters = letterStr
+            .split(/[,，、\s]/)
+            .flatMap((letter) => letter.split(""));
           questionAnswer = extractedLetters
             .map((letter) => {
               const option = parsedOptions.find((opt) => opt.letter === letter.trim());
@@ -429,6 +401,7 @@ function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] 
 
     const now = Date.now();
     questions.push({
+      id: "",
       content: questionContent,
       type: questionType,
       options: finalOptions,
@@ -443,11 +416,8 @@ function parseChaoXingTemplate(text: string): Omit<Question, "id" | "bankId">[] 
   return questions;
 }
 
-/**
- * Parses "Single Choice 1" template, suitable for compact formats
- */
-function parseSingleChoice1Template(text: string): Omit<Question, "id" | "bankId">[] {
-  const questions: Omit<Question, "id" | "bankId">[] = [];
+function parseSingleChoice1Template(text: string): Question[] {
+  const questions: Question[] = [];
   if (!text.trim()) return questions;
 
   enum State {
@@ -456,7 +426,7 @@ function parseSingleChoice1Template(text: string): Omit<Question, "id" | "bankId
     Option,
     Answer,
   }
-  let state: State = State.None;
+  let state = State.None;
 
   const seqReg = /^\s*(\d+)\./;
   const optReg = /^([A-EＡ-Ｅ])[.．]\s*(.*)$/;
@@ -478,6 +448,7 @@ function parseSingleChoice1Template(text: string): Omit<Question, "id" | "bankId
     if (!bufferQuestion.trim() || bufferOptions.length === 0 || !bufferAnswer) return;
     const now = Date.now();
     questions.push({
+      id: "",
       content: bufferQuestion.trim(),
       type: QuestionType.SingleChoice,
       options: bufferOptions
@@ -494,8 +465,8 @@ function parseSingleChoice1Template(text: string): Omit<Question, "id" | "bankId
     });
   }
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
     if (!line) continue;
 
     const seqMatch = line.match(seqReg);
@@ -514,13 +485,13 @@ function parseSingleChoice1Template(text: string): Omit<Question, "id" | "bankId
       if (firstOptIdx !== -1) {
         bufferQuestion = afterSeq.substring(0, firstOptIdx).trim();
         const optStr = afterSeq.substring(firstOptIdx);
-        let optMatches = Array.from(optStr.matchAll(inlineOptReg));
+        const optMatches = Array.from(optStr.matchAll(inlineOptReg));
         for (let j = 0; j < optMatches.length; j++) {
-          const m = optMatches[j];
-          const letter = toHalf(m[1]);
-          const content = m[2].trim();
-          let nextStart = j < optMatches.length - 1 ? optMatches[j + 1].index : optStr.length;
-          let fullContent = optStr.substring(m.index! + m[0].length, nextStart).trim();
+          const match = optMatches[j];
+          const letter = toHalf(match[1]);
+          const content = match[2].trim();
+          const nextStart = j < optMatches.length - 1 ? optMatches[j + 1].index : optStr.length;
+          const fullContent = optStr.substring(match.index! + match[0].length, nextStart).trim();
           const optionContent = (content + " " + fullContent).replace(/\s+/g, " ").trim();
           bufferOptions.push({
             id: letter,
@@ -530,10 +501,10 @@ function parseSingleChoice1Template(text: string): Omit<Question, "id" | "bankId
         }
         state = State.Option;
         continue;
-      } else {
-        bufferQuestion = afterSeq;
-        continue;
       }
+
+      bufferQuestion = afterSeq;
+      continue;
     }
 
     const optMatch = line.match(optReg);
