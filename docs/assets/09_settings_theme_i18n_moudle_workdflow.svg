@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520">
+  <style>text{font-family:'Helvetica Neue',Helvetica,Arial,'PingFang SC','Microsoft YaHei',sans-serif;fill:#111827}.title{font-size:18px;font-weight:700}.label{font-size:13px;font-weight:600}.sub{font-size:11px;fill:#6b7280}.node{fill:#fff;stroke:#d1d5db;stroke-width:1.5}.blue{fill:#eff6ff;stroke:#bfdbfe}.green{fill:#f0fdf4;stroke:#bbf7d0}.purple{fill:#faf5ff;stroke:#e9d5ff}.orange{fill:#fff7ed;stroke:#fed7aa}</style>
+  <defs><marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#2563eb"/></marker><marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#16a34a"/></marker><marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#9333ea"/></marker></defs>
+  <rect width="960" height="520" fill="#fff"/><text x="30" y="34" class="title">设置/主题/i18n 模块数据流</text>
+  <rect x="55" y="75" width="170" height="60" rx="8" class="blue"/><text x="140" y="99" text-anchor="middle" class="label">SettingsPage</text><text x="140" y="118" text-anchor="middle" class="sub">用户设置入口</text>
+  <rect x="300" y="75" width="170" height="60" rx="8" class="green"/><text x="385" y="99" text-anchor="middle" class="label">quizStore.settings</text><text x="385" y="118" text-anchor="middle" class="sub">练习/查重/AI</text>
+  <rect x="545" y="75" width="170" height="60" rx="8" class="purple"/><text x="630" y="99" text-anchor="middle" class="label">themeStore</text><text x="630" y="118" text-anchor="middle" class="sub">light/dark/system</text>
+  <rect x="765" y="75" width="140" height="60" rx="8" class="orange"/><text x="835" y="99" text-anchor="middle" class="label">i18next</text><text x="835" y="118" text-anchor="middle" class="sub">zh/en</text>
+  <rect x="300" y="245" width="170" height="62" rx="8" class="green"/><text x="385" y="269" text-anchor="middle" class="label">Zustand persist</text><text x="385" y="288" text-anchor="middle" class="sub">quiz-storage</text>
+  <rect x="545" y="245" width="170" height="62" rx="8" class="purple"/><text x="630" y="269" text-anchor="middle" class="label">ThemeRegistry</text><text x="630" y="288" text-anchor="middle" class="sub">html/body class</text>
+  <rect x="765" y="245" width="140" height="62" rx="8" class="orange"/><text x="835" y="269" text-anchor="middle" class="label">localStorage</text><text x="835" y="288" text-anchor="middle" class="sub">language/theme</text>
+  <rect x="180" y="390" width="170" height="62" rx="8" class="green"/><text x="265" y="414" text-anchor="middle" class="label">业务模块读取</text><text x="265" y="433" text-anchor="middle" class="sub">洗牌/自动清错/查重</text>
+  <rect x="440" y="390" width="170" height="62" rx="8" class="purple"/><text x="525" y="414" text-anchor="middle" class="label">AI 配置同步</text><text x="525" y="433" text-anchor="middle" class="sub">Tauri ai_configs</text>
+  <rect x="700" y="390" width="170" height="62" rx="8" class="orange"/><text x="785" y="414" text-anchor="middle" class="label">界面文案</text><text x="785" y="433" text-anchor="middle" class="sub">locales/*.json</text>
+  <path d="M225 105 L300 105" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/><path d="M225 105 C300 170,545 170,630 135" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/><path d="M225 105 C360 190,760 190,835 135" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M385 135 L385 245" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/><path d="M630 135 L630 245" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/><path d="M835 135 L835 245" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M385 307 C385 350,265 350,265 390" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
+  <path d="M385 307 C385 350,525 350,525 390" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)" stroke-dasharray="6 4"/>
+  <path d="M835 307 C835 350,785 350,785 390" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+</svg>
+

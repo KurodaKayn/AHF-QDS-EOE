@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520">
+  <style>text{font-family:'Helvetica Neue',Helvetica,Arial,'PingFang SC','Microsoft YaHei',sans-serif;fill:#111827}.title{font-size:18px;font-weight:700}.label{font-size:13px;font-weight:600}.sub{font-size:11px;fill:#6b7280}.node{fill:#fff;stroke:#d1d5db;stroke-width:1.5}.blue{fill:#eff6ff;stroke:#bfdbfe}.green{fill:#f0fdf4;stroke:#bbf7d0}.purple{fill:#faf5ff;stroke:#e9d5ff}.orange{fill:#fff7ed;stroke:#fed7aa}</style>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#2563eb"/></marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#16a34a"/></marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#9333ea"/></marker>
+  </defs>
+  <rect width="960" height="520" fill="#fff"/>
+  <text x="30" y="34" class="title">题库数据模块数据流</text>
+  <rect x="55" y="75" width="150" height="58" rx="8" class="blue"/><text x="130" y="99" text-anchor="middle" class="label">业务页面/Hook</text><text x="130" y="117" text-anchor="middle" class="sub">增删改查/记录</text>
+  <rect x="270" y="75" width="165" height="58" rx="8" class="green"/><text x="352" y="99" text-anchor="middle" class="label">useQuizStore</text><text x="352" y="117" text-anchor="middle" class="sub">状态入口</text>
+  <polygon points="520,75 605,104 520,133 435,104" fill="#fff" stroke="#d1d5db" stroke-width="1.5"/><text x="520" y="109" text-anchor="middle" class="label">Tauri?</text>
+  <rect x="135" y="225" width="175" height="62" rx="8" class="orange"/><text x="222" y="249" text-anchor="middle" class="label">浏览器/开发态</text><text x="222" y="267" text-anchor="middle" class="sub">localStorage persist</text>
+  <rect x="395" y="225" width="175" height="62" rx="8" class="purple"/><text x="482" y="249" text-anchor="middle" class="label">Tauri invoke</text><text x="482" y="267" text-anchor="middle" class="sub">Rust command</text>
+  <rect x="650" y="225" width="175" height="62" rx="8" class="purple"/><text x="737" y="249" text-anchor="middle" class="label">quiz.rs</text><text x="737" y="267" text-anchor="middle" class="sub">写入/读取 snapshot</text>
+  <ellipse cx="737" cy="370" rx="72" ry="16" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.5"/>
+  <rect x="665" y="370" width="144" height="54" fill="#dbeafe"/>
+  <line x1="665" y1="370" x2="665" y2="424" stroke="#60a5fa" stroke-width="1.5"/>
+  <line x1="809" y1="370" x2="809" y2="424" stroke="#60a5fa" stroke-width="1.5"/>
+  <ellipse cx="737" cy="424" rx="72" ry="16" fill="#bfdbfe" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="737" y="397" text-anchor="middle" class="label">SQLite</text><text x="737" y="414" text-anchor="middle" class="sub">banks/questions/records</text>
+  <rect x="270" y="365" width="175" height="58" rx="8" class="green"/><text x="357" y="389" text-anchor="middle" class="label">前端状态回填</text><text x="357" y="407" text-anchor="middle" class="sub">questionBanks/records</text>
+  <path d="M205 104 L270 104" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M435 104 L520 104" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M520 133 C520 170,222 170,222 225" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/><text x="272" y="177" class="sub">否</text>
+  <path d="M520 133 C520 172,482 172,482 225" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/><text x="510" y="178" class="sub">是</text>
+  <path d="M570 256 L650 256" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/>
+  <path d="M737 287 L737 354" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/>
+  <path d="M665 400 C540 400,500 394,445 394" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
+  <path d="M310 256 C350 320,355 330,357 365" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
+  <path d="M357 365 C357 330,352 190,352 133" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
+</svg>

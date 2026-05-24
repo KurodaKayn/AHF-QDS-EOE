@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 650" width="960" height="650">
+  <style>
+    text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif; fill: #111827; }
+    .title { font-size: 18px; font-weight: 700; }
+    .label { font-size: 13px; font-weight: 600; }
+    .sub { font-size: 11px; fill: #6b7280; }
+    .lane { fill-opacity: 0.08; stroke-width: 1.2; stroke-dasharray: 6 4; }
+    .node { fill: #ffffff; stroke: #d1d5db; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/></marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/></marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#9333ea"/></marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/></marker>
+  </defs>
+  <rect width="960" height="650" fill="#ffffff"/>
+  <text x="30" y="34" class="title">AHF QDS EOE 总体架构</text>
+
+  <rect x="30" y="60" width="900" height="95" rx="8" fill="#eff6ff" stroke="#bfdbfe" class="lane"/>
+  <text x="44" y="82" class="sub">CLIENT / ROUTES</text>
+  <rect x="70" y="95" width="130" height="38" rx="8" class="node"/><text x="135" y="119" text-anchor="middle" class="label">用户</text>
+  <rect x="250" y="95" width="165" height="38" rx="8" class="node"/><text x="332" y="119" text-anchor="middle" class="label">Next.js App Router</text>
+  <rect x="465" y="95" width="170" height="38" rx="8" class="node"/><text x="550" y="119" text-anchor="middle" class="label">QuizLayout 导航</text>
+  <rect x="690" y="95" width="170" height="38" rx="8" class="node"/><text x="775" y="119" text-anchor="middle" class="label">业务页面</text>
+
+  <rect x="30" y="185" width="900" height="105" rx="8" fill="#f0fdf4" stroke="#bbf7d0" class="lane"/>
+  <text x="44" y="207" class="sub">FRONTEND BUSINESS</text>
+  <rect x="70" y="225" width="150" height="42" rx="8" class="node"/><text x="145" y="241" text-anchor="middle" class="label">组件层</text><text x="145" y="258" text-anchor="middle" class="sub">quiz/ui/settings</text>
+  <rect x="275" y="225" width="150" height="42" rx="8" class="node"/><text x="350" y="241" text-anchor="middle" class="label">Hooks</text><text x="350" y="258" text-anchor="middle" class="sub">conversion/practice/review</text>
+  <rect x="480" y="225" width="150" height="42" rx="8" class="node"/><text x="555" y="241" text-anchor="middle" class="label">Zustand Stores</text><text x="555" y="258" text-anchor="middle" class="sub">quiz/theme</text>
+  <rect x="685" y="225" width="150" height="42" rx="8" class="node"/><text x="760" y="241" text-anchor="middle" class="label">lib/utils/services</text><text x="760" y="258" text-anchor="middle" class="sub">AI/解析/导入导出</text>
+
+  <rect x="30" y="320" width="900" height="105" rx="8" fill="#faf5ff" stroke="#e9d5ff" class="lane"/>
+  <text x="44" y="342" class="sub">TAURI BACKEND</text>
+  <rect x="85" y="360" width="160" height="42" rx="8" class="node"/><text x="165" y="376" text-anchor="middle" class="label">Tauri Commands</text><text x="165" y="393" text-anchor="middle" class="sub">invoke 边界</text>
+  <rect x="300" y="360" width="150" height="42" rx="8" class="node"/><text x="375" y="376" text-anchor="middle" class="label">quiz.rs</text><text x="375" y="393" text-anchor="middle" class="sub">题库/记录/snapshot</text>
+  <rect x="505" y="360" width="150" height="42" rx="8" class="node"/><text x="580" y="376" text-anchor="middle" class="label">ai.rs</text><text x="580" y="393" text-anchor="middle" class="sub">配置/代理/流式</text>
+  <rect x="710" y="360" width="150" height="42" rx="8" class="node"/><text x="785" y="376" text-anchor="middle" class="label">file/parse</text><text x="785" y="393" text-anchor="middle" class="sub">CSV/XLSX/脚本</text>
+
+  <rect x="30" y="455" width="900" height="120" rx="8" fill="#fff7ed" stroke="#fed7aa" class="lane"/>
+  <text x="44" y="477" class="sub">PERSISTENCE / EXTERNAL</text>
+  <ellipse cx="155" cy="510" rx="58" ry="14" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.5"/>
+  <rect x="97" y="510" width="116" height="42" fill="#dbeafe"/>
+  <line x1="97" y1="510" x2="97" y2="552" stroke="#60a5fa" stroke-width="1.5"/>
+  <line x1="213" y1="510" x2="213" y2="552" stroke="#60a5fa" stroke-width="1.5"/>
+  <ellipse cx="155" cy="552" rx="58" ry="14" fill="#bfdbfe" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="155" y="536" text-anchor="middle" class="label">SQLite quiz.db</text>
+  <rect x="300" y="500" width="150" height="52" rx="8" class="node"/><text x="375" y="520" text-anchor="middle" class="label">localStorage</text><text x="375" y="537" text-anchor="middle" class="sub">开发态/设置/会话</text>
+  <rect x="505" y="500" width="150" height="52" rx="8" class="node"/><text x="580" y="520" text-anchor="middle" class="label">AI Provider</text><text x="580" y="537" text-anchor="middle" class="sub">DeepSeek/Qwen/自定义</text>
+  <rect x="710" y="500" width="150" height="52" rx="8" class="node"/><text x="785" y="520" text-anchor="middle" class="label">文件系统</text><text x="785" y="537" text-anchor="middle" class="sub">CSV / XLSX</text>
+
+  <path d="M200 114 L250 114" stroke="#2563eb" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M415 114 L465 114" stroke="#2563eb" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M635 114 L690 114" stroke="#2563eb" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M775 133 L775 225" stroke="#2563eb" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M220 246 L275 246" stroke="#16a34a" stroke-width="1.8" fill="none" marker-end="url(#arrow-green)"/>
+  <path d="M425 246 L480 246" stroke="#16a34a" stroke-width="1.8" fill="none" marker-end="url(#arrow-green)"/>
+  <path d="M630 246 L685 246" stroke="#16a34a" stroke-width="1.8" fill="none" marker-end="url(#arrow-green)"/>
+  <path d="M555 267 C555 310, 165 310, 165 360" stroke="#9333ea" stroke-width="1.8" fill="none" marker-end="url(#arrow-purple)"/>
+  <path d="M245 381 L300 381" stroke="#9333ea" stroke-width="1.8" fill="none" marker-end="url(#arrow-purple)"/>
+  <path d="M450 381 L505 381" stroke="#9333ea" stroke-width="1.8" fill="none" marker-end="url(#arrow-purple)"/>
+  <path d="M655 381 L710 381" stroke="#9333ea" stroke-width="1.8" fill="none" marker-end="url(#arrow-purple)"/>
+  <path d="M375 402 C375 455, 155 455, 155 495" stroke="#2563eb" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M555 267 C555 455, 375 455, 375 500" stroke="#16a34a" stroke-width="1.8" fill="none" marker-end="url(#arrow-green)" stroke-dasharray="6 4"/>
+  <path d="M580 402 L580 500" stroke="#dc2626" stroke-width="1.8" fill="none" marker-end="url(#arrow-red)"/>
+  <path d="M785 402 L785 500" stroke="#9333ea" stroke-width="1.8" fill="none" marker-end="url(#arrow-purple)"/>
+
+  <g transform="translate(30,604)">
+    <line x1="0" y1="0" x2="32" y2="0" stroke="#2563eb" stroke-width="1.8" marker-end="url(#arrow-blue)"/><text x="42" y="4" class="sub">页面/请求流</text>
+    <line x1="150" y1="0" x2="182" y2="0" stroke="#16a34a" stroke-width="1.8" marker-end="url(#arrow-green)"/><text x="192" y="4" class="sub">前端状态流</text>
+    <line x1="320" y1="0" x2="352" y2="0" stroke="#9333ea" stroke-width="1.8" marker-end="url(#arrow-purple)"/><text x="362" y="4" class="sub">Tauri 调用</text>
+    <line x1="490" y1="0" x2="522" y2="0" stroke="#dc2626" stroke-width="1.8" marker-end="url(#arrow-red)"/><text x="532" y="4" class="sub">外部 AI</text>
+  </g>
+</svg>
+

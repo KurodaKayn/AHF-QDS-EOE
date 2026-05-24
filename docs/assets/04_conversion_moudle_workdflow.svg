@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="960" height="540">
+  <style>text{font-family:'Helvetica Neue',Helvetica,Arial,'PingFang SC','Microsoft YaHei',sans-serif;fill:#111827}.title{font-size:18px;font-weight:700}.label{font-size:13px;font-weight:600}.sub{font-size:11px;fill:#6b7280}.node{fill:#fff;stroke:#d1d5db;stroke-width:1.5}.blue{fill:#eff6ff;stroke:#bfdbfe}.green{fill:#f0fdf4;stroke:#bbf7d0}.purple{fill:#faf5ff;stroke:#e9d5ff}.orange{fill:#fff7ed;stroke:#fed7aa}.red{fill:#fef2f2;stroke:#fecaca}</style>
+  <defs><marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#2563eb"/></marker><marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#16a34a"/></marker><marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#9333ea"/></marker><marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#dc2626"/></marker></defs>
+  <rect width="960" height="540" fill="#fff"/><text x="30" y="34" class="title">题目转换模块数据流</text>
+  <rect x="45" y="75" width="145" height="58" rx="8" class="blue"/><text x="117" y="99" text-anchor="middle" class="label">文本/图片</text><text x="117" y="117" text-anchor="middle" class="sub">粘贴/拖拽/OCR</text>
+  <rect x="240" y="75" width="145" height="58" rx="8" class="node"/><text x="312" y="99" text-anchor="middle" class="label">ConvertPage</text><text x="312" y="117" text-anchor="middle" class="sub">conversionState</text>
+  <polygon points="480,75 565,104 480,133 395,104" fill="#fff" stroke="#d1d5db" stroke-width="1.5"/><text x="480" y="109" text-anchor="middle" class="label">模式?</text>
+  <rect x="165" y="215" width="165" height="60" rx="8" class="red"/><text x="247" y="238" text-anchor="middle" class="label">AI 转换</text><text x="247" y="257" text-anchor="middle" class="sub">callAI + prompt</text>
+  <rect x="405" y="215" width="165" height="60" rx="8" class="orange"/><text x="487" y="238" text-anchor="middle" class="label">脚本解析</text><text x="487" y="257" text-anchor="middle" class="sub">parseTextByScript</text>
+  <rect x="645" y="215" width="165" height="60" rx="8" class="purple"/><text x="727" y="238" text-anchor="middle" class="label">运行时解析</text><text x="727" y="257" text-anchor="middle" class="sub">TS parser / Rust command</text>
+  <rect x="285" y="365" width="165" height="60" rx="8" class="green"/><text x="367" y="388" text-anchor="middle" class="label">Question[]</text><text x="367" y="407" text-anchor="middle" class="sub">标准题目结构</text>
+  <rect x="525" y="365" width="165" height="60" rx="8" class="green"/><text x="607" y="388" text-anchor="middle" class="label">SaveToBankForm</text><text x="607" y="407" text-anchor="middle" class="sub">新题库/已有题库</text>
+  <rect x="745" y="365" width="165" height="60" rx="8" class="purple"/><text x="827" y="388" text-anchor="middle" class="label">useQuizStore</text><text x="827" y="407" text-anchor="middle" class="sub">addQuestionToBank</text>
+  <path d="M190 104 L240 104" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/><path d="M385 104 L395 104" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M480 133 C480 175,247 175,247 215" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-red)"/><text x="305" y="178" class="sub">AI</text>
+  <path d="M480 133 L487 215" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/><text x="505" y="178" class="sub">脚本</text>
+  <path d="M330 245 L405 245" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-red)"/><text x="336" y="232" class="sub">AI 文本</text>
+  <path d="M570 245 L645 245" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/>
+  <path d="M727 275 C727 330,367 330,367 365" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
+  <path d="M450 395 L525 395" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/><path d="M690 395 L745 395" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
+  <path d="M117 133 C117 320,260 332,367 365" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)" stroke-dasharray="6 4"/><text x="98" y="316" class="sub">OCR 文本</text>
+</svg>
+

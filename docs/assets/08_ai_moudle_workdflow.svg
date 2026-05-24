@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560">
+  <style>text{font-family:'Helvetica Neue',Helvetica,Arial,'PingFang SC','Microsoft YaHei',sans-serif;fill:#111827}.title{font-size:18px;font-weight:700}.label{font-size:13px;font-weight:600}.sub{font-size:11px;fill:#6b7280}.node{fill:#fff;stroke:#d1d5db;stroke-width:1.5}.blue{fill:#eff6ff;stroke:#bfdbfe}.green{fill:#f0fdf4;stroke:#bbf7d0}.purple{fill:#faf5ff;stroke:#e9d5ff}.orange{fill:#fff7ed;stroke:#fed7aa}.red{fill:#fef2f2;stroke:#fecaca}</style>
+  <defs><marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#2563eb"/></marker><marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#16a34a"/></marker><marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#9333ea"/></marker><marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#dc2626"/></marker></defs>
+  <rect width="960" height="560" fill="#fff"/><text x="30" y="34" class="title">AI 模块数据流</text>
+  <rect x="45" y="75" width="160" height="60" rx="8" class="blue"/><text x="125" y="99" text-anchor="middle" class="label">设置页</text><text x="125" y="118" text-anchor="middle" class="sub">AiConfigForm</text>
+  <rect x="260" y="75" width="160" height="60" rx="8" class="green"/><text x="340" y="99" text-anchor="middle" class="label">quizStore</text><text x="340" y="118" text-anchor="middle" class="sub">aiConfigs/activeId</text>
+  <rect x="475" y="75" width="160" height="60" rx="8" class="purple"/><text x="555" y="99" text-anchor="middle" class="label">aiConfigSync</text><text x="555" y="118" text-anchor="middle" class="sub">save/delete/list</text>
+  <rect x="690" y="75" width="160" height="60" rx="8" class="purple"/><text x="770" y="99" text-anchor="middle" class="label">Rust ai.rs</text><text x="770" y="118" text-anchor="middle" class="sub">ai_configs 表</text>
+  <rect x="135" y="245" width="165" height="62" rx="8" class="orange"/><text x="217" y="269" text-anchor="middle" class="label">业务场景</text><text x="217" y="288" text-anchor="middle" class="sub">转换/解析/相似题</text>
+  <rect x="380" y="245" width="165" height="62" rx="8" class="green"/><text x="462" y="269" text-anchor="middle" class="label">callAI / Stream</text><text x="462" y="288" text-anchor="middle" class="sub">lib/ai.ts</text>
+  <polygon points="650,245 735,276 650,307 565,276" fill="#fff" stroke="#d1d5db" stroke-width="1.5"/><text x="650" y="281" text-anchor="middle" class="label">Tauri?</text>
+  <rect x="240" y="415" width="165" height="62" rx="8" class="red"/><text x="322" y="439" text-anchor="middle" class="label">浏览器 fetch</text><text x="322" y="458" text-anchor="middle" class="sub">direct provider call</text>
+  <rect x="515" y="415" width="165" height="62" rx="8" class="purple"/><text x="597" y="439" text-anchor="middle" class="label">ai_complete</text><text x="597" y="458" text-anchor="middle" class="sub">reqwest + events</text>
+  <rect x="735" y="415" width="165" height="62" rx="8" class="red"/><text x="817" y="439" text-anchor="middle" class="label">AI Provider</text><text x="817" y="458" text-anchor="middle" class="sub">/chat/completions</text>
+  <path d="M205 105 L260 105" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/><path d="M420 105 L475 105" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/><path d="M635 105 L690 105" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/>
+  <path d="M217 245 C217 190,340 190,340 135" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)" stroke-dasharray="6 4"/>
+  <path d="M300 276 L380 276" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M545 276 L565 276" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <path d="M650 307 C650 360,322 360,322 415" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-red)"/><text x="392" y="361" class="sub">否</text>
+  <path d="M650 307 L597 415" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/><text x="640" y="363" class="sub">是</text>
+  <path d="M405 446 L515 446" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-red)"/><path d="M680 446 L735 446" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-red)"/>
+  <path d="M597 415 C560 350,770 200,770 135" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)" stroke-dasharray="6 4"/><text x="706" y="334" class="sub">读取配置</text>
+</svg>
+

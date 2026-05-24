@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="960" height="540">
+  <style>text{font-family:'Helvetica Neue',Helvetica,Arial,'PingFang SC','Microsoft YaHei',sans-serif;fill:#111827}.title{font-size:18px;font-weight:700}.label{font-size:13px;font-weight:600}.sub{font-size:11px;fill:#6b7280}.node{fill:#fff;stroke:#d1d5db;stroke-width:1.5}.blue{fill:#eff6ff;stroke:#bfdbfe}.green{fill:#f0fdf4;stroke:#bbf7d0}.purple{fill:#faf5ff;stroke:#e9d5ff}.orange{fill:#fff7ed;stroke:#fed7aa}.red{fill:#fef2f2;stroke:#fecaca}</style>
+  <defs><marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#2563eb"/></marker><marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#16a34a"/></marker><marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#9333ea"/></marker><marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#dc2626"/></marker></defs>
+  <rect width="960" height="540" fill="#fff"/><text x="30" y="34" class="title">导入导出模块数据流</text>
+  <rect x="50" y="80" width="160" height="60" rx="8" class="blue"/><text x="130" y="103" text-anchor="middle" class="label">CSV/XLSX 文件</text><text x="130" y="122" text-anchor="middle" class="sub">File input / Save dialog</text>
+  <rect x="270" y="80" width="160" height="60" rx="8" class="green"/><text x="350" y="103" text-anchor="middle" class="label">useImportExport</text><text x="350" y="122" text-anchor="middle" class="sub">导入/导出编排</text>
+  <rect x="490" y="80" width="170" height="60" rx="8" class="purple"/><text x="575" y="103" text-anchor="middle" class="label">importExportService</text><text x="575" y="122" text-anchor="middle" class="sub">运行时适配</text>
+  <polygon points="760,80 845,110 760,140 675,110" fill="#fff" stroke="#d1d5db" stroke-width="1.5"/><text x="760" y="115" text-anchor="middle" class="label">Tauri?</text>
+  <rect x="170" y="245" width="180" height="62" rx="8" class="orange"/><text x="260" y="269" text-anchor="middle" class="label">浏览器解析/下载</text><text x="260" y="288" text-anchor="middle" class="sub">xlsx + Blob</text>
+  <rect x="430" y="245" width="180" height="62" rx="8" class="purple"/><text x="520" y="269" text-anchor="middle" class="label">Rust file_io.rs</text><text x="520" y="288" text-anchor="middle" class="sub">bytes -&gt; QuestionBank</text>
+  <rect x="690" y="245" width="180" height="62" rx="8" class="red"/><text x="780" y="269" text-anchor="middle" class="label">Tauri plugins</text><text x="780" y="288" text-anchor="middle" class="sub">dialog/fs</text>
+  <rect x="300" y="400" width="180" height="62" rx="8" class="green"/><text x="390" y="424" text-anchor="middle" class="label">临时 QuestionBank</text><text x="390" y="443" text-anchor="middle" class="sub">解析后的题库</text>
+  <rect x="560" y="400" width="180" height="62" rx="8" class="purple"/><text x="650" y="424" text-anchor="middle" class="label">useQuizStore</text><text x="650" y="443" text-anchor="middle" class="sub">逐题写入/查重</text>
+  <path d="M210 110 L270 110" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/><path d="M430 110 L490 110" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/><path d="M660 110 L675 110" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/>
+  <path d="M760 140 C760 190,260 190,260 245" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/><text x="324" y="191" class="sub">否</text>
+  <path d="M760 140 C760 190,520 190,520 245" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/><text x="584" y="191" class="sub">是: 导入</text>
+  <path d="M760 140 L780 245" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-red)"/><text x="792" y="193" class="sub">是: 导出</text>
+  <path d="M260 307 C260 350,390 350,390 400" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
+  <path d="M520 307 C520 350,390 350,390 400" stroke="#9333ea" stroke-width="2" fill="none" marker-end="url(#arrow-purple)"/>
+  <path d="M480 431 L560 431" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)"/>
+  <path d="M575 140 C575 210,780 220,780 245" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-red)" stroke-dasharray="6 4"/>
+</svg>
+
