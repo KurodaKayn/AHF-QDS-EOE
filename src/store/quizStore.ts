@@ -655,7 +655,10 @@ export const useQuizStore = create<QuizState>()(
           };
         }
 
-        if (isTauriRuntime) {
+        if (
+          isTauriRuntime &&
+          (currentState.questionBanks.length > 0 || currentState.records.length > 0)
+        ) {
           merged.questionBanks = currentState.questionBanks;
           merged.records = currentState.records;
         }
