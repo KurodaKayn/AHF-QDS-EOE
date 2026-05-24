@@ -19,7 +19,10 @@
     "yes": "是",
     "no": "否",
     "close": "关闭",
-    "tauriError": "调用 Tauri 命令 {{command}} 失败"
+    "tauriError": "调用 Tauri 命令 {{command}} 失败",
+    "aiCallFailed": "未找到 AI 配置",
+    "apiFailed": "API 请求失败: {{status}}",
+    "streamReadFailed": "无法读取响应流"
   },
   "questionTypes": {
     "single-choice": "单选题",
@@ -378,6 +381,7 @@
     "bankTitle": "题库: {{name}}",
     "editInfo": "编辑信息",
     "deleteBank": "删除此题库",
+    "delete": "删除",
     "bankName": "题库名称",
     "bankNamePlaceholder": "输入题库名称",
     "bankDescription": "题库描述 (可选)",
@@ -402,6 +406,7 @@
     "editQuestion": "编辑题目",
     "deleteQuestion": "删除题目",
     "noQuestionsFound": "没有找到匹配的题目。",
+    "noQuestions": "暂无题目。",
     "noQuestionsYet": "此题库中还没有题目。点击上方 \"添加新题目\" 开始创建。",
     "clearFilters": "清除过滤条件",
     "searchDetailedPlaceholder": "搜索题目内容、选项或解析...",
@@ -421,6 +426,7 @@
     "selectBankPrompt": "请从上方选择一个题库进行管理，或创建一个新题库。",
     "noBanksPrompt": "您还没有任何题库。请点击上方 \"创建新题库\" 开始。",
     "loading": "加载题库列表中...",
+    "loadingInterface": "正在加载管理界面...",
     "alerts": {
       "bankNameRequired": "题库名称不能为空。",
       "bankUpdated": "题库 \"{{name}}\" 信息已更新。",

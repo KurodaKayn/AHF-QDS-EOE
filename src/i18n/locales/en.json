@@ -19,7 +19,10 @@
     "yes": "Yes",
     "no": "No",
     "close": "Close",
-    "tauriError": "Failed to call Tauri command {{command}}"
+    "tauriError": "Failed to call Tauri command {{command}}",
+    "aiCallFailed": "AI configuration not found",
+    "apiFailed": "API request failed: {{status}}",
+    "streamReadFailed": "Unable to read response stream"
   },
   "questionTypes": {
     "single-choice": "Single Choice",
@@ -378,6 +381,7 @@
     "bankTitle": "Bank: {{name}}",
     "editInfo": "Edit Info",
     "deleteBank": "Delete This Bank",
+    "delete": "Delete",
     "bankName": "Bank Name",
     "bankNamePlaceholder": "Enter bank name",
     "bankDescription": "Description (Optional)",
@@ -402,6 +406,7 @@
     "editQuestion": "Edit Question",
     "deleteQuestion": "Delete Question",
     "noQuestionsFound": "No matching questions found.",
+    "noQuestions": "No questions found.",
     "noQuestionsYet": "No questions in this bank yet. Click \"Add New Question\" above to start creating.",
     "clearFilters": "Clear Filters",
     "searchDetailedPlaceholder": "Search question content, options or explanation...",
@@ -421,6 +426,7 @@
     "selectBankPrompt": "Please select a bank from above to manage, or create a new one.",
     "noBanksPrompt": "You don't have any banks yet. Click \"Create New Bank\" above to start.",
     "loading": "Loading banks...",
+    "loadingInterface": "Loading management interface...",
     "alerts": {
       "bankNameRequired": "Bank name cannot be empty.",
       "bankUpdated": "Bank \"{{name}}\" has been updated.",
