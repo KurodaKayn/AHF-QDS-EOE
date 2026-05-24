@@ -1,6 +1,4 @@
 import { Question } from "@/types/quiz";
-import { findDuplicateQuestions } from "@/utils/duplicateDetection";
-import { normalizeText } from "@/utils/duplicateDetection";
 import { invoke } from "@tauri-apps/api/core";
 
 interface DuplicateQuestionGroup {
@@ -10,6 +8,32 @@ interface DuplicateQuestionGroup {
 
 const isTauriRuntime = () =>
   typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+
+const normalizeText = (text: string): string =>
+  text
+    .toLowerCase()
+    .replace(/[()（）。.]/g, "")
+    .trim();
+
+const findDuplicateQuestions = (questions: Question[]): Map<string, Question[]> => {
+  const grouped = new Map<string, Question[]>();
+  const duplicates = new Map<string, Question[]>();
+
+  questions.forEach((question) => {
+    const normalized = normalizeText(question.content);
+    const group = grouped.get(normalized) ?? [];
+    group.push(question);
+    grouped.set(normalized, group);
+  });
+
+  grouped.forEach((group, normalizedContent) => {
+    if (group.length > 1) {
+      duplicates.set(normalizedContent, group);
+    }
+  });
+
+  return duplicates;
+};
 
 export async function findDuplicateQuestionsInBank(
   bankId: string,
