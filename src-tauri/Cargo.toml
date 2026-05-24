@@ -1,6 +1,6 @@
 [package]
 name = "ahf-qds-eoe"
-version = "1.4.0"
+version = "1.4.1"
 description = "a quiz practice application"
 authors = ["KurodaKayn"]
 license = ""
