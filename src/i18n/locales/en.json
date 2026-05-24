@@ -64,7 +64,7 @@
     "title": "Import/Export",
     "import": {
       "title": "Import Bank",
-      "importToExistingBank": "Import to existing bank (enables deduplication)",
+      "importToExistingBank": "Import to existing bank",
       "selectTargetBank": "Select Target Bank",
       "bankName": "Bank Name",
       "bankNamePlaceholder": "Enter bank name",

@@ -64,7 +64,7 @@
     "title": "导入/导出题库",
     "import": {
       "title": "导入题库",
-      "importToExistingBank": "导入到已有题库（启用去重）",
+      "importToExistingBank": "导入到已有题库",
       "selectTargetBank": "选择目标题库",
       "bankName": "题库名称",
       "bankNamePlaceholder": "输入导入后的题库名称",
