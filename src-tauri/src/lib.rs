@@ -1,4 +1,5 @@
 mod ai;
+mod file_io;
 mod quiz;
 
 use axum::{
@@ -118,6 +119,8 @@ pub fn run() {
             ai::get_ai_config,
             ai::list_ai_configs,
             ai::ai_complete,
+            file_io::import_question_bank_from_bytes,
+            file_io::export_question_bank_to_bytes,
             quiz::replace_quiz_snapshot,
             quiz::load_quiz_snapshot
         ])

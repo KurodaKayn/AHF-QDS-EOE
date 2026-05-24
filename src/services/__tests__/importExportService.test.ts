@@ -3,6 +3,7 @@ import { QuestionBank, QuestionType } from "@/types/quiz";
 
 const mockSave = vi.fn();
 const mockWriteFile = vi.fn();
+const mockInvoke = vi.fn();
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({
   save: (...args: unknown[]) => mockSave(...args),
@@ -10,6 +11,10 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({
 
 vi.mock("@tauri-apps/plugin-fs", () => ({
   writeFile: (...args: unknown[]) => mockWriteFile(...args),
+}));
+
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: (...args: unknown[]) => mockInvoke(...args),
 }));
 
 const bank: QuestionBank = {
@@ -46,6 +51,7 @@ describe("importExportService", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     mockSave.mockReset();
     mockWriteFile.mockReset();
+    mockInvoke.mockReset();
   });
 
   afterEach(() => {
@@ -148,11 +154,19 @@ single-choice,Which package manager?,B,Repo uses pnpm,tooling,npm,pnpm
     beforeEach(() => {
       (window as any).__TAURI_INTERNALS__ = true;
       vi.spyOn(console, "error").mockImplementation(() => {});
+      mockInvoke.mockResolvedValue({
+        bytes: [0xef, 0xbb, 0xbf, 87, 104, 105, 99, 104],
+        fileName: "Service Bank.csv",
+      });
     });
 
     it("exports CSV via Tauri save dialog and writeFile", async () => {
       mockSave.mockResolvedValue("/tmp/export.csv");
       mockWriteFile.mockResolvedValue(undefined);
+      mockInvoke.mockResolvedValue({
+        bytes: Array.from(new TextEncoder().encode("\ufeffWhich package manager?")),
+        fileName: "Service Bank.csv",
+      });
 
       await exportQuestionBank({ bank, format: "csv" });
 
@@ -173,6 +187,10 @@ single-choice,Which package manager?,B,Repo uses pnpm,tooling,npm,pnpm
     it("exports Excel via Tauri save dialog and writeFile", async () => {
       mockSave.mockResolvedValue("/tmp/export.xlsx");
       mockWriteFile.mockResolvedValue(undefined);
+      mockInvoke.mockResolvedValue({
+        bytes: [1, 2, 3],
+        fileName: "Service Bank.xlsx",
+      });
 
       await exportQuestionBank({ bank, format: "excel" });
 
