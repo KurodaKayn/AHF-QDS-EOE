@@ -8,7 +8,7 @@ import { useQuizStore } from "@/store/quizStore";
 import { useTranslation } from "react-i18next";
 
 interface UseConversionLogicProps {
-  onSuccess?: (questions: Omit<Question, "id">[], bankId: string, bankName: string) => void;
+  onSuccess?: (questions: Question[], bankId: string, bankName: string) => void;
 }
 
 /**
@@ -23,7 +23,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingScript, setIsLoadingScript] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [convertedQuestions, setConvertedQuestions] = useState<Omit<Question, "id">[]>([]);
+  const [convertedQuestions, setConvertedQuestions] = useState<Question[]>([]);
 
   /**
    * AI Conversion
@@ -62,13 +62,13 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
         ];
 
         const content = await callAI(activeConfig.id, messages);
-        const parsed = parseQuestions(content);
+        const parsed = await parseQuestions(content);
         if (parsed.length === 0) {
           setError(t("convert.errors.aiParseFailed"));
         } else {
           setConvertedQuestions(parsed);
           setConversionState({
-            generatedQuestions: parsed as Question[],
+            generatedQuestions: parsed,
             isConverting: false,
           });
         }
@@ -92,7 +92,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
    * Script Conversion
    */
   const convertWithScript = useCallback(
-    (inputText: string, scriptTemplate: ScriptTemplate) => {
+    async (inputText: string, scriptTemplate: ScriptTemplate) => {
       if (!inputText.trim()) {
         setError(t("convert.errors.noText"));
         return;
@@ -103,7 +103,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
       setIsLoadingScript(true);
 
       try {
-        const parsed = parseTextByScript(inputText, scriptTemplate);
+        const parsed = await parseTextByScript(inputText, scriptTemplate);
         if (parsed.length === 0 && inputText.trim().length > 0) {
           setError(t("convert.errors.scriptFailed"));
         }

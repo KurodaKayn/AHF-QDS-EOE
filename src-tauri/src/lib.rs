@@ -1,5 +1,6 @@
 mod ai;
 mod file_io;
+mod question_parsing;
 mod quiz;
 
 use axum::{
@@ -121,6 +122,8 @@ pub fn run() {
             ai::ai_complete,
             file_io::import_question_bank_from_bytes,
             file_io::export_question_bank_to_bytes,
+            question_parsing::parse_questions,
+            question_parsing::parse_text_by_script,
             quiz::replace_quiz_snapshot,
             quiz::load_quiz_snapshot,
             quiz::find_duplicate_question_groups,
