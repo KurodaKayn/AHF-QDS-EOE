@@ -64,6 +64,7 @@ export interface QuizState {
   addRecord: (record: Omit<QuestionRecord, "id">) => void;
   clearRecords: (bankId?: string) => void;
   removeWrongRecordsByQuestionId: (questionIdToRemove: string) => void;
+  replaceQuizData: (data: { questionBanks: QuestionBank[]; records: QuestionRecord[] }) => void;
 
   // Common Settings Actions
   setQuizSetting: <K extends keyof QuizSettings>(key: K, value: QuizSettings[K]) => void;
@@ -348,6 +349,12 @@ export const useQuizStore = create<QuizState>()(
             (record) => !(record.questionId === questionIdToRemove && !record.isCorrect),
           ),
         }));
+      },
+      replaceQuizData: (data) => {
+        set({
+          questionBanks: data.questionBanks,
+          records: data.records,
+        });
       },
 
       // Settings actions

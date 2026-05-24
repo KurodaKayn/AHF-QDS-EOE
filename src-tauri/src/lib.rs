@@ -1,4 +1,5 @@
 mod ai;
+mod quiz;
 
 use axum::{
     http::StatusCode,
@@ -94,6 +95,7 @@ pub fn run() {
 
             let db_path = app_data_dir.join("quiz.db");
             ai::initialize_database(&db_path)?;
+            quiz::initialize_database(&db_path)?;
 
             let log_path = log_dir.join("app.log");
 
@@ -115,7 +117,9 @@ pub fn run() {
             ai::delete_ai_config,
             ai::get_ai_config,
             ai::list_ai_configs,
-            ai::ai_complete
+            ai::ai_complete,
+            quiz::replace_quiz_snapshot,
+            quiz::load_quiz_snapshot
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
