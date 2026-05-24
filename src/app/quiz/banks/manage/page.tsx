@@ -21,7 +21,7 @@ import { QuestionListSection } from "@/components/quiz/manage/QuestionListSectio
 import { DuplicateQuestionsModal } from "@/components/quiz/manage/DuplicateQuestionsModal";
 import { DeleteConfirmDialog, DeleteType } from "@/components/quiz/manage/DeleteConfirmDialog";
 import { NoDuplicatesDialog } from "@/components/quiz/manage/NoDuplicatesDialog";
-import { findDuplicateQuestions } from "@/utils/duplicateDetection";
+import { findDuplicateQuestionsInBank } from "@/lib/quizQueries";
 
 // Helper component for static export paths
 
@@ -172,13 +172,13 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
     setEditingQuestion(null);
   };
 
-  const handleFindDuplicates = () => {
+  const handleFindDuplicates = async () => {
     if (!selectedBank || !selectedBank.questions || selectedBank.questions.length < 2) {
       setIsNoDuplicatesModalOpen(true);
       return;
     }
 
-    const duplicates = findDuplicateQuestions(selectedBank.questions);
+    const duplicates = await findDuplicateQuestionsInBank(selectedBank.id, selectedBank.questions);
     if (duplicates.size === 0) {
       setIsNoDuplicatesModalOpen(true);
       return;

@@ -122,7 +122,9 @@ pub fn run() {
             file_io::import_question_bank_from_bytes,
             file_io::export_question_bank_to_bytes,
             quiz::replace_quiz_snapshot,
-            quiz::load_quiz_snapshot
+            quiz::load_quiz_snapshot,
+            quiz::find_duplicate_question_groups,
+            quiz::search_questions
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

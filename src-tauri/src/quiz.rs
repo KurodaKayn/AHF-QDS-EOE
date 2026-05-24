@@ -53,8 +53,77 @@ pub struct QuizSnapshot {
     pub records: Vec<QuestionRecord>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DuplicateQuestionGroup {
+    pub normalized_content: String,
+    pub question_ids: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QuestionSearchRequest {
+    pub query: String,
+}
+
 fn open_connection(db_path: &Path) -> Result<Connection, String> {
     Connection::open(db_path).map_err(|error| error.to_string())
+}
+
+fn normalize_content(text: &str) -> String {
+    text.to_lowercase()
+        .chars()
+        .filter(|ch| !matches!(ch, '(' | ')' | '（' | '）' | '。' | '.'))
+        .collect::<String>()
+        .trim()
+        .to_string()
+}
+
+fn migrate_normalized_content(conn: &Connection) -> Result<(), String> {
+    let mut stmt = conn
+        .prepare("PRAGMA table_info(questions)")
+        .map_err(|error| error.to_string())?;
+    let columns = stmt
+        .query_map([], |row| row.get::<_, String>(1))
+        .map_err(|error| error.to_string())?;
+
+    let mut has_normalized_content = false;
+    for column in columns {
+        if column.map_err(|error| error.to_string())? == "normalized_content" {
+            has_normalized_content = true;
+            break;
+        }
+    }
+
+    if !has_normalized_content {
+        conn.execute(
+            "ALTER TABLE questions ADD COLUMN normalized_content TEXT NOT NULL DEFAULT ''",
+            [],
+        )
+        .map_err(|error| error.to_string())?;
+    }
+
+    let mut stmt = conn
+        .prepare("SELECT id, content FROM questions")
+        .map_err(|error| error.to_string())?;
+    let rows = stmt
+        .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))
+        .map_err(|error| error.to_string())?;
+
+    let mut updates = Vec::new();
+    for row in rows {
+        updates.push(row.map_err(|error| error.to_string())?);
+    }
+
+    for (id, content) in updates {
+        conn.execute(
+            "UPDATE questions SET normalized_content = ?2 WHERE id = ?1",
+            params![id, normalize_content(&content)],
+        )
+        .map_err(|error| error.to_string())?;
+    }
+
+    Ok(())
 }
 
 pub fn initialize_database(db_path: &Path) -> Result<(), String> {
@@ -74,6 +143,7 @@ pub fn initialize_database(db_path: &Path) -> Result<(), String> {
             bank_id TEXT NOT NULL,
             question_type TEXT NOT NULL,
             content TEXT NOT NULL,
+            normalized_content TEXT NOT NULL DEFAULT '',
             answer_json TEXT NOT NULL,
             explanation TEXT,
             tags_json TEXT,
@@ -85,6 +155,7 @@ pub fn initialize_database(db_path: &Path) -> Result<(), String> {
         CREATE INDEX IF NOT EXISTS idx_questions_bank_id ON questions(bank_id);
         CREATE INDEX IF NOT EXISTS idx_questions_type ON questions(question_type);
         CREATE INDEX IF NOT EXISTS idx_questions_content ON questions(content);
+        CREATE INDEX IF NOT EXISTS idx_questions_normalized_content ON questions(normalized_content);
 
         CREATE TABLE IF NOT EXISTS question_options (
             id TEXT NOT NULL,
@@ -114,6 +185,7 @@ pub fn initialize_database(db_path: &Path) -> Result<(), String> {
         "#,
     )
     .map_err(|error| error.to_string())?;
+    migrate_normalized_content(&conn)?;
     Ok(())
 }
 
@@ -151,17 +223,18 @@ fn save_snapshot(conn: &mut Connection, snapshot: &QuizSnapshot) -> Result<(), S
 
             tx.execute(
                 r#"
-                INSERT INTO questions (
-                    id, bank_id, question_type, content, answer_json, explanation,
+            INSERT INTO questions (
+                    id, bank_id, question_type, content, normalized_content, answer_json, explanation,
                     tags_json, created_at, updated_at
                 )
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
                 "#,
                 params![
                     question.id,
                     bank.id,
                     question.question_type,
                     question.content,
+                    normalize_content(&question.content),
                     answer_json,
                     question.explanation,
                     tags_json,
@@ -395,4 +468,96 @@ pub async fn load_quiz_snapshot(
 ) -> Result<QuizSnapshot, String> {
     let conn = open_connection(&state.db_path)?;
     load_snapshot(&conn)
+}
+
+#[tauri::command]
+pub async fn find_duplicate_question_groups(
+    state: State<'_, crate::AppState>,
+    bank_id: String,
+) -> Result<Vec<DuplicateQuestionGroup>, String> {
+    let conn = open_connection(&state.db_path)?;
+    let mut stmt = conn
+        .prepare(
+            r#"
+            SELECT normalized_content
+            FROM questions
+            WHERE bank_id = ?1
+            GROUP BY normalized_content
+            HAVING COUNT(*) > 1
+            ORDER BY normalized_content ASC
+            "#,
+        )
+        .map_err(|error| error.to_string())?;
+
+    let rows = stmt
+        .query_map([bank_id.clone()], |row| row.get::<_, String>(0))
+        .map_err(|error| error.to_string())?;
+
+    let mut groups = Vec::new();
+    for row in rows {
+        let normalized_content = row.map_err(|error| error.to_string())?;
+        let mut question_stmt = conn
+            .prepare(
+                r#"
+                SELECT id
+                FROM questions
+                WHERE bank_id = ?1 AND normalized_content = ?2
+                ORDER BY created_at ASC
+                "#,
+            )
+            .map_err(|error| error.to_string())?;
+
+        let question_rows = question_stmt
+            .query_map(params![bank_id.clone(), normalized_content.clone()], |row| {
+                row.get::<_, String>(0)
+            })
+            .map_err(|error| error.to_string())?;
+
+        let mut question_ids = Vec::new();
+        for question_row in question_rows {
+            question_ids.push(question_row.map_err(|error| error.to_string())?);
+        }
+
+        groups.push(DuplicateQuestionGroup {
+            normalized_content,
+            question_ids,
+        });
+    }
+
+    Ok(groups)
+}
+
+#[tauri::command]
+pub async fn search_questions(
+    state: State<'_, crate::AppState>,
+    request: QuestionSearchRequest,
+) -> Result<Vec<String>, String> {
+    let query = normalize_content(&request.query);
+    if query.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let conn = open_connection(&state.db_path)?;
+    let like_query = format!("%{}%", query);
+    let mut stmt = conn
+        .prepare(
+            r#"
+            SELECT id
+            FROM questions
+            WHERE normalized_content LIKE ?1 OR content LIKE ?1
+            ORDER BY updated_at DESC
+            "#,
+        )
+        .map_err(|error| error.to_string())?;
+
+    let rows = stmt
+        .query_map([like_query], |row| row.get::<_, String>(0))
+        .map_err(|error| error.to_string())?;
+
+    let mut ids = Vec::new();
+    for row in rows {
+        ids.push(row.map_err(|error| error.to_string())?);
+    }
+
+    Ok(ids)
 }
