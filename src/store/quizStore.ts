@@ -8,6 +8,9 @@ import i18n from "@/i18n/config";
 import { callAI } from "@/lib/ai";
 import { deleteAiConfigOnBackend, saveAiConfigOnBackend } from "@/lib/aiConfigSync";
 
+const isTauriRuntime =
+  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+
 // AI Config Interface
 export interface AIConfig {
   id: string;
@@ -570,13 +573,20 @@ export const useQuizStore = create<QuizState>()(
     {
       name: "quiz-storage",
       storage: createJSONStorage(() => createStorage()),
-      partialize: (state) => ({
-        questionBanks: state.questionBanks,
-        records: state.records,
-        settings: state.settings,
-        conversionState: state.conversionState,
-        practiceSession: state.practiceSession,
-      }),
+      partialize: (state) =>
+        isTauriRuntime
+          ? {
+              settings: state.settings,
+              conversionState: state.conversionState,
+              practiceSession: state.practiceSession,
+            }
+          : {
+              questionBanks: state.questionBanks,
+              records: state.records,
+              settings: state.settings,
+              conversionState: state.conversionState,
+              practiceSession: state.practiceSession,
+            },
       merge: (persistedState, currentState) => {
         const merged = {
           ...currentState,
@@ -643,6 +653,11 @@ export const useQuizStore = create<QuizState>()(
             aiConfigs:
               (persistedState as QuizState).settings.aiConfigs || initialSettings.aiConfigs,
           };
+        }
+
+        if (isTauriRuntime) {
+          merged.questionBanks = currentState.questionBanks;
+          merged.records = currentState.records;
         }
 
         if (persisted.conversionState) {
