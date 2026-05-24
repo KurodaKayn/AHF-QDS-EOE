@@ -1,6 +1,7 @@
 // Service for managing Web Worker-based AI conversion
 
 import { nanoid } from "nanoid";
+import { invoke } from "@tauri-apps/api/core";
 
 export interface ConversionRequest {
   baseUrl: string;
@@ -76,6 +77,30 @@ class ConversionService {
   }
 
   async convert(request: ConversionRequest, callback?: ResultCallback): Promise<ConversionResult> {
+    if (
+      typeof window !== "undefined" &&
+      ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
+    ) {
+      try {
+        const response = await invoke<{ content: string }>("ai_complete", {
+          request,
+        });
+        const result: ConversionResult = {
+          success: true,
+          content: response.content,
+        };
+        callback?.(result);
+        return result;
+      } catch (error) {
+        const result: ConversionResult = {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+        callback?.(result);
+        return result;
+      }
+    }
+
     this.initialize();
 
     if (!this.worker) {

@@ -1,4 +1,5 @@
 import i18n from "@/i18n/config";
+import { invoke } from "@tauri-apps/api/core";
 
 // AI Config is now passed dynamically
 
@@ -11,6 +12,18 @@ export const callAI = async (
   model: string,
   messages: { role: string; content: string }[],
 ): Promise<string> => {
+  if (typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)) {
+    const response = await invoke<{ content: string }>("ai_complete", {
+      request: {
+        baseUrl,
+        apiKey,
+        model,
+        messages,
+      },
+    });
+    return response.content;
+  }
+
   let apiURL = baseUrl;
   if (!apiURL.endsWith("/chat/completions")) {
     apiURL = `${apiURL.replace(/\/+$/, "")}/chat/completions`;
@@ -63,6 +76,12 @@ export const callAIStream = async (
   messages: { role: string; content: string }[],
   onChunk: (chunk: string) => void,
 ): Promise<string> => {
+  if (typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)) {
+    const content = await callAI(baseUrl, apiKey, model, messages);
+    onChunk(content);
+    return content;
+  }
+
   let apiURL = baseUrl;
   if (!apiURL.endsWith("/chat/completions")) {
     apiURL = `${apiURL.replace(/\/+$/, "")}/chat/completions`;
