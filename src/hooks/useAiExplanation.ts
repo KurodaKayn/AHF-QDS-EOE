@@ -1,14 +1,13 @@
 import { useState, useCallback } from "react";
-import { getPrompts, callAIStream } from "@/constants/ai";
+import { getPrompts } from "@/constants/ai";
+import { callAIStream } from "@/lib/ai";
 import { getQuestionTypeName } from "@/constants/quiz";
 import { QuestionType } from "@/types/quiz";
 import { WrongQuestionDisplay } from "@/components/quiz/WrongQuestionItem";
 import { useTranslation } from "react-i18next";
 
 interface AiConfig {
-  baseUrl: string;
-  apiKey: string;
-  model: string;
+  id: string;
 }
 
 /**
@@ -94,7 +93,7 @@ export function useAiExplanation() {
         ];
 
         let fullExplanation = "";
-        await callAIStream(aiConfig.baseUrl, aiConfig.apiKey, aiConfig.model, messages, (chunk) => {
+        await callAIStream(aiConfig.id, messages, (chunk) => {
           setCurrentExplanations((prev) => {
             fullExplanation = (prev[questionId] || "") + chunk;
             return { ...prev, [questionId]: fullExplanation };

@@ -1,82 +1,34 @@
-let nanoidCounter = 0;
+const mockCallAI = vi.fn();
 
-vi.mock("nanoid", () => ({
-  nanoid: vi.fn(() => `conversion-id-${++nanoidCounter}`),
+vi.mock("@/lib/ai", () => ({
+  callAI: (...args: unknown[]) => mockCallAI(...args),
 }));
-
-interface WorkerListeners {
-  message?: (event: MessageEvent) => void;
-  error?: (event: ErrorEvent) => void;
-}
-
-class FakeWorker {
-  static instances: FakeWorker[] = [];
-  listeners: WorkerListeners = {};
-  postMessage = vi.fn();
-  terminate = vi.fn();
-
-  constructor() {
-    FakeWorker.instances.push(this);
-  }
-
-  addEventListener(type: "message" | "error", listener: WorkerListeners[typeof type]) {
-    this.listeners[type] = listener as never;
-  }
-
-  emitMessage(data: unknown) {
-    this.listeners.message?.({ data } as MessageEvent);
-  }
-
-  emitError() {
-    this.listeners.error?.({ message: "failed" } as ErrorEvent);
-  }
-}
 
 describe("conversionService", () => {
   beforeEach(() => {
-    nanoidCounter = 0;
-    FakeWorker.instances = [];
-    vi.stubGlobal("Worker", FakeWorker);
+    mockCallAI.mockReset();
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  afterEach(async () => {
-    const { conversionService } = await import("../conversionService");
-    conversionService.terminate();
-    vi.unstubAllGlobals();
+  afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("posts conversion requests to the worker and resolves successful responses", async () => {
+  it("delegates conversion to the shared AI client", async () => {
+    mockCallAI.mockResolvedValue("converted");
     const { conversionService } = await import("../conversionService");
     const callback = vi.fn();
-    const request = {
-      baseUrl: "https://example.com",
-      apiKey: "key",
-      model: "model",
-      messages: [{ role: "user", content: "convert" }],
-    };
 
-    const promise = conversionService.convert(request, callback);
-    const worker = FakeWorker.instances[0];
-
-    expect(worker.postMessage).toHaveBeenCalledWith({
-      type: "CONVERT_AI",
-      payload: {
-        ...request,
-        requestId: "conversion-id-1",
+    const result = await conversionService.convert(
+      {
+        providerConfigId: "config-1",
+        messages: [{ role: "user", content: "convert" }],
       },
-    });
+      callback,
+    );
 
-    worker.emitMessage({
-      type: "CONVERT_SUCCESS",
-      payload: {
-        requestId: "conversion-id-1",
-        content: "converted",
-      },
-    });
-
-    await expect(promise).resolves.toEqual({
+    expect(mockCallAI).toHaveBeenCalledWith("config-1", [{ role: "user", content: "convert" }]);
+    expect(result).toEqual({
       success: true,
       content: "converted",
     });
@@ -86,56 +38,18 @@ describe("conversionService", () => {
     });
   });
 
-  it("resolves failed worker responses as unsuccessful conversion results", async () => {
+  it("returns a failed result when the AI client throws", async () => {
+    mockCallAI.mockRejectedValue(new Error("boom"));
     const { conversionService } = await import("../conversionService");
-    const callback = vi.fn();
-    const promise = conversionService.convert(
-      {
-        baseUrl: "https://example.com",
-        apiKey: "key",
-        model: "model",
+
+    await expect(
+      conversionService.convert({
+        providerConfigId: "config-1",
         messages: [],
-      },
-      callback,
-    );
-
-    FakeWorker.instances[0].emitMessage({
-      type: "CONVERT_ERROR",
-      payload: {
-        requestId: "conversion-id-1",
-        error: "bad response",
-      },
-    });
-
-    await expect(promise).resolves.toEqual({
+      }),
+    ).resolves.toEqual({
       success: false,
-      error: "bad response",
-    });
-    expect(callback).toHaveBeenCalledWith({
-      success: false,
-      error: "bad response",
-    });
-  });
-
-  it("rejects all pending requests when the worker emits an error", async () => {
-    const { conversionService } = await import("../conversionService");
-    const callback = vi.fn();
-    const promise = conversionService.convert(
-      {
-        baseUrl: "https://example.com",
-        apiKey: "key",
-        model: "model",
-        messages: [],
-      },
-      callback,
-    );
-
-    FakeWorker.instances[0].emitError();
-
-    await expect(promise).rejects.toThrow("Worker encountered an error");
-    expect(callback).toHaveBeenCalledWith({
-      success: false,
-      error: "Worker encountered an error",
+      error: "boom",
     });
   });
 });

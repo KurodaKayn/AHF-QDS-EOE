@@ -154,11 +154,6 @@ export default function ReviewPage() {
       return;
     }
 
-    if (!activeConfig.apiKey) {
-      setAiError(t("review.ai.configKey", { name: activeConfig.name }));
-      return;
-    }
-
     setAiError(null);
     const selectedItems = getSelectedQuestions();
 
@@ -166,9 +161,7 @@ export default function ReviewPage() {
       await generateExplanation(
         questionInfo,
         {
-          baseUrl: activeConfig.baseUrl,
-          apiKey: activeConfig.apiKey,
-          model: activeConfig.model,
+          id: activeConfig.id,
         },
         (questionId, explanation) => {
           // Save to question bank

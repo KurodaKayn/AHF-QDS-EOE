@@ -2,9 +2,11 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { Question, QuestionBank, QuestionRecord, QuestionOption } from "@/types/quiz";
 import { nanoid } from "nanoid";
-import { getPrompts, callAI } from "@/constants/ai";
+import { getPrompts } from "@/constants/ai";
 import { createStorage } from "@/lib/storage";
 import i18n from "@/i18n/config";
+import { callAI } from "@/lib/ai";
+import { deleteAiConfigOnBackend, saveAiConfigOnBackend } from "@/lib/aiConfigSync";
 
 // AI Config Interface
 export interface AIConfig {
@@ -374,14 +376,19 @@ export const useQuizStore = create<QuizState>()(
             activeAiConfigId: state.settings.activeAiConfigId || newConfig.id,
           },
         }));
+        void saveAiConfigOnBackend(newConfig);
       },
       updateAiConfig: (id, config) => {
+        const nextConfig = get().settings.aiConfigs.find((item) => item.id === id);
         set((state) => ({
           settings: {
             ...state.settings,
             aiConfigs: state.settings.aiConfigs.map((c) => (c.id === id ? { ...c, ...config } : c)),
           },
         }));
+        if (nextConfig) {
+          void saveAiConfigOnBackend({ ...nextConfig, ...config });
+        }
       },
       deleteAiConfig: (id) => {
         set((state) => {
@@ -398,6 +405,7 @@ export const useQuizStore = create<QuizState>()(
             },
           };
         });
+        void deleteAiConfigOnBackend(id);
       },
       setActiveAiConfig: (id) => {
         set((state) => ({
@@ -436,12 +444,6 @@ export const useQuizStore = create<QuizState>()(
             throw new Error(i18n.t("review.similarModal.errorNoConfig"));
           }
 
-          if (!config.apiKey) {
-            throw new Error(i18n.t("review.similarModal.errorNoApiKey", { name: config.name }));
-          }
-
-          const { baseUrl, apiKey, model } = config;
-
           // Prepare input: convert original questions to appropriate format
           const originalQuestionsData = originalQuestions.map((q) => {
             return {
@@ -465,7 +467,7 @@ export const useQuizStore = create<QuizState>()(
             },
           ];
 
-          const response = await callAI(baseUrl, apiKey, model, messages);
+          const response = await callAI(config.id, messages);
 
           // Parse JSON from API response
           let generatedQuestionsData;

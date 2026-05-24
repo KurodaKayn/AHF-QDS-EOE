@@ -278,6 +278,3 @@ export const getPrompts = (lang: string = "zh") => {
 export const CONVERT_SYSTEM_PROMPT = CONVERT_SYSTEM_PROMPT_ZH;
 export const EXPLANATION_PROMPT = EXPLANATION_PROMPT_ZH;
 export const SIMILAR_QUESTIONS_PROMPT = SIMILAR_QUESTIONS_PROMPT_ZH;
-
-// Export AI call functions
-export { callAI, callAIStream } from "@/lib/ai";
