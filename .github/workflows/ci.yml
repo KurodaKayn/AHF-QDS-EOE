@@ -45,6 +45,9 @@ jobs:
       - name: Run Unit Tests
         run: pnpm test:unit
 
+      - name: Check i18n Translation Keys
+        run: pnpm vitest run src/i18n/__tests__
+
       - name: Type Check
         run: pnpm typecheck
 
