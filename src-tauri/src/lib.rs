@@ -1,6 +1,6 @@
 mod ai;
 mod file_io;
-mod question_parsing;
+pub mod question_parsing;
 mod quiz;
 
 use axum::{

@@ -107,7 +107,9 @@ fn migrate_normalized_content(conn: &Connection) -> Result<(), String> {
         .prepare("SELECT id, content FROM questions")
         .map_err(|error| error.to_string())?;
     let rows = stmt
-        .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))
+        .query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        })
         .map_err(|error| error.to_string())?;
 
     let mut updates = Vec::new();
@@ -207,7 +209,13 @@ fn save_snapshot(conn: &mut Connection, snapshot: &QuizSnapshot) -> Result<(), S
             INSERT INTO question_banks (id, name, description, created_at, updated_at)
             VALUES (?1, ?2, ?3, ?4, ?5)
             "#,
-            params![bank.id, bank.name, bank.description, bank.created_at, bank.updated_at],
+            params![
+                bank.id,
+                bank.name,
+                bank.description,
+                bank.created_at,
+                bank.updated_at
+            ],
         )
         .map_err(|error| error.to_string())?;
 
@@ -244,7 +252,13 @@ fn save_snapshot(conn: &mut Connection, snapshot: &QuizSnapshot) -> Result<(), S
             )
             .map_err(|error| error.to_string())?;
 
-            for (index, option) in question.options.as_deref().unwrap_or(&[]).iter().enumerate() {
+            for (index, option) in question
+                .options
+                .as_deref()
+                .unwrap_or(&[])
+                .iter()
+                .enumerate()
+            {
                 tx.execute(
                     r#"
                     INSERT INTO question_options (id, question_id, content, sort_order)
@@ -347,8 +361,16 @@ fn load_questions(conn: &Connection, bank_id: &str) -> Result<Vec<Question>, Str
 
     let mut questions = Vec::new();
     for row in rows {
-        let (id, question_type, content, answer_json, explanation, tags_json, created_at, updated_at) =
-            row.map_err(|error| error.to_string())?;
+        let (
+            id,
+            question_type,
+            content,
+            answer_json,
+            explanation,
+            tags_json,
+            created_at,
+            updated_at,
+        ) = row.map_err(|error| error.to_string())?;
         let answer = serde_json::from_str(&answer_json).map_err(|error| error.to_string())?;
         let tags = tags_json
             .map(|json| serde_json::from_str(&json))
@@ -360,7 +382,11 @@ fn load_questions(conn: &Connection, bank_id: &str) -> Result<Vec<Question>, Str
             id,
             question_type,
             content,
-            options: if options.is_empty() { None } else { Some(options) },
+            options: if options.is_empty() {
+                None
+            } else {
+                Some(options)
+            },
             answer,
             explanation,
             tags,
@@ -463,9 +489,7 @@ pub async fn replace_quiz_snapshot(
 }
 
 #[tauri::command]
-pub async fn load_quiz_snapshot(
-    state: State<'_, crate::AppState>,
-) -> Result<QuizSnapshot, String> {
+pub async fn load_quiz_snapshot(state: State<'_, crate::AppState>) -> Result<QuizSnapshot, String> {
     let conn = open_connection(&state.db_path)?;
     load_snapshot(&conn)
 }
@@ -508,9 +532,10 @@ pub async fn find_duplicate_question_groups(
             .map_err(|error| error.to_string())?;
 
         let question_rows = question_stmt
-            .query_map(params![bank_id.clone(), normalized_content.clone()], |row| {
-                row.get::<_, String>(0)
-            })
+            .query_map(
+                params![bank_id.clone(), normalized_content.clone()],
+                |row| row.get::<_, String>(0),
+            )
             .map_err(|error| error.to_string())?;
 
         let mut question_ids = Vec::new();

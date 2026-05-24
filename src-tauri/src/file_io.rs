@@ -84,7 +84,8 @@ fn normalize_true_false(answer: &str) -> String {
     let answer_text = answer.trim().to_lowercase();
     if ["true", "t", "1", "正确", "对", "yes", "y", "√"].contains(&answer_text.as_str()) {
         "true".to_string()
-    } else if ["false", "f", "0", "错误", "错", "no", "n", "×"].contains(&answer_text.as_str()) {
+    } else if ["false", "f", "0", "错误", "错", "no", "n", "×"].contains(&answer_text.as_str())
+    {
         "false".to_string()
     } else {
         answer_text
@@ -137,7 +138,11 @@ fn parse_question_row(headers: &[String], row: &[String], index: usize) -> Optio
         id: generate_id("question", index),
         question_type,
         content,
-        options: if options.is_empty() { None } else { Some(options) },
+        options: if options.is_empty() {
+            None
+        } else {
+            Some(options)
+        },
         answer,
         explanation,
         tags: tags.filter(|list| !list.is_empty()),
@@ -146,20 +151,24 @@ fn parse_question_row(headers: &[String], row: &[String], index: usize) -> Optio
     })
 }
 
-fn export_row(question: &Question, max_options: usize) -> serde_json::Map<String, serde_json::Value> {
+fn export_row(
+    question: &Question,
+    max_options: usize,
+) -> serde_json::Map<String, serde_json::Value> {
     let mut row = serde_json::Map::new();
-    row.insert("type".to_string(), serde_json::json!(question.question_type));
+    row.insert(
+        "type".to_string(),
+        serde_json::json!(question.question_type),
+    );
     row.insert("content".to_string(), serde_json::json!(question.content));
     row.insert(
         "answer".to_string(),
         match &question.answer {
-            serde_json::Value::Array(values) => serde_json::json!(
-                values
-                    .iter()
-                    .filter_map(|value| value.as_str())
-                    .collect::<Vec<_>>()
-                    .join(",")
-            ),
+            serde_json::Value::Array(values) => serde_json::json!(values
+                .iter()
+                .filter_map(|value| value.as_str())
+                .collect::<Vec<_>>()
+                .join(",")),
             serde_json::Value::String(value) => serde_json::json!(value),
             value => serde_json::json!(value.to_string()),
         },
@@ -170,13 +179,7 @@ fn export_row(question: &Question, max_options: usize) -> serde_json::Map<String
     );
     row.insert(
         "tags".to_string(),
-        serde_json::json!(
-            question
-                .tags
-                .clone()
-                .unwrap_or_default()
-                .join(",")
-        ),
+        serde_json::json!(question.tags.clone().unwrap_or_default().join(",")),
     );
 
     for index in 0..max_options {
@@ -211,7 +214,13 @@ fn csv_headers(max_options: usize) -> Vec<String> {
 
 fn infer_bank_name(file_name: Option<String>, bank_name: Option<String>) -> String {
     bank_name
-        .and_then(|value| if value.trim().is_empty() { None } else { Some(value) })
+        .and_then(|value| {
+            if value.trim().is_empty() {
+                None
+            } else {
+                Some(value)
+            }
+        })
         .or_else(|| {
             file_name.map(|value| {
                 value
@@ -310,7 +319,13 @@ pub async fn export_question_bank_to_bytes(
         .bank
         .questions
         .iter()
-        .map(|question| question.options.as_ref().map(|options| options.len()).unwrap_or(0))
+        .map(|question| {
+            question
+                .options
+                .as_ref()
+                .map(|options| options.len())
+                .unwrap_or(0)
+        })
         .max()
         .unwrap_or(0)
         .max(4);
@@ -331,20 +346,27 @@ pub async fn export_question_bank_to_bytes(
 
     if request.format.eq_ignore_ascii_case("csv") {
         let mut writer = WriterBuilder::new().from_writer(vec![]);
-        writer.write_record(&headers).map_err(|error| error.to_string())?;
+        writer
+            .write_record(&headers)
+            .map_err(|error| error.to_string())?;
 
         for question in &request.bank.questions {
             let row = export_row(question, max_options);
             let values = headers
                 .iter()
-                .map(|key| row.get(key).and_then(|value| value.as_str()).unwrap_or("").to_string())
+                .map(|key| {
+                    row.get(key)
+                        .and_then(|value| value.as_str())
+                        .unwrap_or("")
+                        .to_string()
+                })
                 .collect::<Vec<_>>();
-            writer.write_record(values).map_err(|error| error.to_string())?;
+            writer
+                .write_record(values)
+                .map_err(|error| error.to_string())?;
         }
 
-        let mut bytes = writer
-            .into_inner()
-            .map_err(|error| error.to_string())?;
+        let mut bytes = writer.into_inner().map_err(|error| error.to_string())?;
         let mut with_bom = vec![0xEF, 0xBB, 0xBF];
         with_bom.append(&mut bytes);
         return Ok(ExportResponse {
@@ -365,13 +387,18 @@ pub async fn export_question_bank_to_bytes(
     for (row_index, question) in request.bank.questions.iter().enumerate() {
         let row = export_row(question, max_options);
         for (col, header) in headers.iter().enumerate() {
-            let value = row.get(header).and_then(|value| value.as_str()).unwrap_or("");
+            let value = row
+                .get(header)
+                .and_then(|value| value.as_str())
+                .unwrap_or("");
             worksheet
                 .write_string((row_index + 1) as u32, col as u16, value)
                 .map_err(|error: XlsxError| error.to_string())?;
         }
     }
 
-    let bytes = workbook.save_to_buffer().map_err(|error| error.to_string())?;
+    let bytes = workbook
+        .save_to_buffer()
+        .map_err(|error| error.to_string())?;
     Ok(ExportResponse { bytes, file_name })
 }

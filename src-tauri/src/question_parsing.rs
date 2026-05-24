@@ -746,6 +746,3 @@ pub async fn parse_text_by_script(text: String, template: String) -> Result<Vec<
     };
     Ok(questions)
 }
-
-#[cfg(test)]
-mod tests;

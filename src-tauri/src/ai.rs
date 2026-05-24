@@ -218,7 +218,9 @@ async fn request_ai_completion(
     if !response.status().is_success() {
         let payload = fetch_response_text(response).await?;
         if let Ok(value) = serde_json::from_str::<serde_json::Value>(&payload) {
-            if let Some(message) = value.pointer("/error/message").and_then(|value| value.as_str())
+            if let Some(message) = value
+                .pointer("/error/message")
+                .and_then(|value| value.as_str())
             {
                 return Err(message.to_string());
             }
@@ -319,10 +321,7 @@ pub async fn save_ai_config(
 }
 
 #[tauri::command]
-pub async fn delete_ai_config(
-    state: State<'_, crate::AppState>,
-    id: String,
-) -> Result<(), String> {
+pub async fn delete_ai_config(state: State<'_, crate::AppState>, id: String) -> Result<(), String> {
     let conn = open_connection(&state.db_path)?;
     delete_config(&conn, &id)
 }
@@ -337,7 +336,9 @@ pub async fn get_ai_config(
 }
 
 #[tauri::command]
-pub async fn list_ai_configs(state: State<'_, crate::AppState>) -> Result<Vec<AiProviderConfig>, String> {
+pub async fn list_ai_configs(
+    state: State<'_, crate::AppState>,
+) -> Result<Vec<AiProviderConfig>, String> {
     let conn = open_connection(&state.db_path)?;
     let mut stmt = conn
         .prepare(
