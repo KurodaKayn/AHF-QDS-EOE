@@ -50,9 +50,9 @@ export default function BankDetailPage() {
     setEditingQuestion(null);
   };
 
-  const handleDeleteQuestion = (questionId: string) => {
+  const handleDeleteQuestion = async (questionId: string) => {
     if (confirm(t("bankManage.deleteConfirm.questionMessage", { content: "" }).replace('""', ""))) {
-      deleteQuestionFromBank(bankId, questionId);
+      await deleteQuestionFromBank(bankId, questionId);
     }
   };
 
@@ -138,11 +138,11 @@ export default function BankDetailPage() {
         bankId={bankId}
         questionToEdit={editingQuestion}
         onClose={handleCloseModal}
-        onSave={(_, questionData, questionId) => {
+        onSave={async (_, questionData, questionId) => {
           if (questionId) {
-            updateQuestionInBank(bankId, questionId, questionData);
+            await updateQuestionInBank(bankId, questionId, questionData);
           } else {
-            addQuestionToBank(bankId, questionData);
+            await addQuestionToBank(bankId, questionData);
           }
           handleCloseModal();
         }}

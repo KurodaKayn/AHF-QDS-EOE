@@ -31,7 +31,11 @@ interface QuestionFormModalProps {
   bankId: string;
   questionToEdit?: Question | null;
   onSubmitSuccess?: () => void;
-  onSave: (bankId: string, questionData: Omit<Question, "id">, questionId?: string) => void;
+  onSave: (
+    bankId: string,
+    questionData: Omit<Question, "id">,
+    questionId?: string,
+  ) => void | Promise<void>;
 }
 
 /**
@@ -66,7 +70,7 @@ export default function QuestionFormModal({
     buildQuestionData,
   } = useQuestionForm({ questionToEdit, isOpen });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const validation = validate();
     if (!validation.valid) {
       toast.error(validation.error);
@@ -74,7 +78,7 @@ export default function QuestionFormModal({
     }
 
     const questionData = buildQuestionData();
-    onSave(bankId, questionData, questionToEdit?.id);
+    await onSave(bankId, questionData, questionToEdit?.id);
 
     if (onSubmitSuccess) onSubmitSuccess();
     onClose();

@@ -21,10 +21,10 @@ describe("quiz store", () => {
     vi.restoreAllMocks();
   });
 
-  it("manages question banks and duplicate protection", () => {
-    const bank = useQuizStore.getState().addQuestionBank("Bank", "desc");
+  it("manages question banks and duplicate protection", async () => {
+    const bank = await useQuizStore.getState().addQuestionBank("Bank", "desc");
 
-    const firstInsert = useQuizStore.getState().addQuestionToBank(bank.id, {
+    const firstInsert = await useQuizStore.getState().addQuestionToBank(bank.id, {
       type: QuestionType.SingleChoice,
       content: "What is Tauri?",
       options: [
@@ -41,7 +41,7 @@ describe("quiz store", () => {
     expect(firstInsert.isDuplicate).toBe(false);
     expect(firstInsert.question?.id).toBe("store-id-2");
 
-    const duplicateInsert = useQuizStore.getState().addQuestionToBank(bank.id, {
+    const duplicateInsert = await useQuizStore.getState().addQuestionToBank(bank.id, {
       type: QuestionType.SingleChoice,
       content: "What is Tauri?",
       options: [],
@@ -56,7 +56,7 @@ describe("quiz store", () => {
     expect(duplicateInsert.isDuplicate).toBe(true);
 
     useQuizStore.getState().setQuizSetting("checkDuplicateQuestion", false);
-    const allowedDuplicate = useQuizStore.getState().addQuestionToBank(bank.id, {
+    const allowedDuplicate = await useQuizStore.getState().addQuestionToBank(bank.id, {
       type: QuestionType.SingleChoice,
       content: "What is Tauri?",
       options: [],
@@ -71,54 +71,56 @@ describe("quiz store", () => {
     expect(useQuizStore.getState().getQuestionBankById(bank.id)?.questions).toHaveLength(2);
   });
 
-  it("updates and deletes bank content while keeping records in sync", () => {
-    const bank = useQuizStore.getState().addQuestionBank("Bank");
-    const question = useQuizStore.getState().addQuestionToBank(bank.id, {
-      type: QuestionType.ShortAnswer,
-      content: "Name the framework",
-      options: [],
-      answer: "Next.js",
-      explanation: "",
-      tags: [],
-      createdAt: 1,
-      updatedAt: 1,
-    }).question!;
+  it("updates and deletes bank content while keeping records in sync", async () => {
+    const bank = await useQuizStore.getState().addQuestionBank("Bank");
+    const question = (
+      await useQuizStore.getState().addQuestionToBank(bank.id, {
+        type: QuestionType.ShortAnswer,
+        content: "Name the framework",
+        options: [],
+        answer: "Next.js",
+        explanation: "",
+        tags: [],
+        createdAt: 1,
+        updatedAt: 1,
+      })
+    ).question!;
 
-    useQuizStore.getState().updateQuestionBank(bank.id, "Updated Bank", "new desc");
+    await useQuizStore.getState().updateQuestionBank(bank.id, "Updated Bank", "new desc");
     expect(useQuizStore.getState().getQuestionBankById(bank.id)).toMatchObject({
       name: "Updated Bank",
       description: "new desc",
       updatedAt: 1700000000000,
     });
 
-    useQuizStore.getState().updateQuestionInBank(bank.id, question.id, {
+    await useQuizStore.getState().updateQuestionInBank(bank.id, question.id, {
       content: "Name the runtime",
     });
     expect(useQuizStore.getState().getQuestionById(question.id)?.question.content).toBe(
       "Name the runtime",
     );
 
-    useQuizStore.getState().addRecord({
+    await useQuizStore.getState().addRecord({
       questionId: question.id,
       userAnswer: "wrong",
       isCorrect: false,
       answeredAt: 1700000000000,
     });
-    useQuizStore.getState().removeWrongRecordsByQuestionId(question.id);
+    await useQuizStore.getState().removeWrongRecordsByQuestionId(question.id);
     expect(useQuizStore.getState().records).toHaveLength(0);
 
-    useQuizStore.getState().addRecord({
+    await useQuizStore.getState().addRecord({
       questionId: question.id,
       userAnswer: "correct",
       isCorrect: true,
       answeredAt: 1700000000000,
     });
-    useQuizStore.getState().deleteQuestionFromBank(bank.id, question.id);
+    await useQuizStore.getState().deleteQuestionFromBank(bank.id, question.id);
 
     expect(useQuizStore.getState().getQuestionById(question.id)).toBeUndefined();
     expect(useQuizStore.getState().records).toHaveLength(0);
 
-    useQuizStore.getState().deleteQuestionBank(bank.id);
+    await useQuizStore.getState().deleteQuestionBank(bank.id);
     expect(useQuizStore.getState().getQuestionBankById(bank.id)).toBeUndefined();
   });
 
@@ -170,7 +172,7 @@ describe("quiz store", () => {
       error: expect.any(String),
     });
 
-    const bank = useQuizStore.getState().addQuestionBank("Import Bank");
+    const bank = await useQuizStore.getState().addQuestionBank("Import Bank");
     const importResult = await useQuizStore.getState().importGeneratedQuestions(
       [
         {

@@ -121,7 +121,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
    * Save to question bank
    */
   const saveToBank = useCallback(
-    (config: {
+    async (config: {
       mode: "new" | "existing";
       bankId?: string;
       newBankName?: string;
@@ -131,7 +131,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
       let targetBankName = "";
 
       if (config.mode === "new" && config.newBankName?.trim()) {
-        const newBank = addQuestionBank(config.newBankName, config.newBankDescription || "");
+        const newBank = await addQuestionBank(config.newBankName, config.newBankDescription || "");
         targetBankId = newBank.id;
         targetBankName = newBank.name;
       } else if (config.mode === "existing" && config.bankId) {
@@ -144,7 +144,9 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
         return { success: false };
       }
 
-      convertedQuestions.forEach((q) => addQuestionToBank(targetBankId, q));
+      for (const question of convertedQuestions) {
+        await addQuestionToBank(targetBankId, question);
+      }
 
       if (onSuccess) {
         onSuccess(convertedQuestions, targetBankId, targetBankName);

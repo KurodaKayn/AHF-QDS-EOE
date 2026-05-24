@@ -12,7 +12,7 @@ interface SaveToBankFormProps {
     bankId?: string;
     newBankName?: string;
     newBankDescription?: string;
-  }) => void;
+  }) => void | Promise<void>;
   disabled?: boolean;
 }
 
@@ -23,12 +23,12 @@ export function SaveToBankForm({ questionBanks, onSave, disabled = false }: Save
   const [newBankName, setNewBankName] = useState("");
   const [newBankDescription, setNewBankDescription] = useState("");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (saveMode === "new") {
       if (!newBankName.trim()) {
         return;
       }
-      onSave({
+      await onSave({
         mode: "new",
         newBankName,
         newBankDescription,
@@ -40,7 +40,7 @@ export function SaveToBankForm({ questionBanks, onSave, disabled = false }: Save
       if (!selectedBankId) {
         return;
       }
-      onSave({
+      await onSave({
         mode: "existing",
         bankId: selectedBankId,
       });

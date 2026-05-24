@@ -103,12 +103,12 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
   }, [selectedBank]);
 
   // Handlers
-  const handleSaveBankDetails = () => {
+  const handleSaveBankDetails = async () => {
     if (!selectedBank || !editBankName.trim()) {
       toast.error(t("bankManage.alerts.bankNameRequired"));
       return;
     }
-    updateQuestionBank(selectedBank.id, editBankName.trim(), editBankDescription.trim());
+    await updateQuestionBank(selectedBank.id, editBankName.trim(), editBankDescription.trim());
     toast.success(t("bankManage.alerts.bankUpdated", { name: editBankName.trim() }));
     setIsEditingBankDetails(false);
   };
@@ -127,8 +127,8 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
     setIsCreateBankModalOpen(true);
   };
 
-  const handleCreateBankSubmit = (name: string, description: string) => {
-    const newBank = addQuestionBank(name, description);
+  const handleCreateBankSubmit = async (name: string, description: string) => {
+    const newBank = await addQuestionBank(name, description);
     if (newBank && typeof newBank === "object" && "id" in newBank) {
       setSelectedBankId(newBank.id);
       toast.success(t("bankManage.alerts.bankCreated", { name }));
@@ -188,12 +188,12 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
     setIsDuplicateModalOpen(true);
   };
 
-  const handleDeleteSelectedDuplicates = (selectedIds: Set<string>) => {
+  const handleDeleteSelectedDuplicates = async (selectedIds: Set<string>) => {
     if (!selectedBank || selectedIds.size === 0) return;
 
-    selectedIds.forEach((questionId) => {
-      deleteQuestionFromBank(selectedBank.id, questionId);
-    });
+    for (const questionId of selectedIds) {
+      await deleteQuestionFromBank(selectedBank.id, questionId);
+    }
 
     toast.success(
       t("bankManage.alerts.duplicatesDeleted", {
@@ -204,18 +204,18 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
     setIsDuplicateModalOpen(false);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!selectedBank) return;
 
     switch (deleteConfirmType) {
       case "bank":
-        deleteQuestionBank(selectedBank.id);
+        await deleteQuestionBank(selectedBank.id);
         toast.success(t("bankManage.alerts.bankDeleted", { name: selectedBank.name }));
         setSelectedBankId(null);
         break;
       case "question":
         if (questionToDelete) {
-          deleteQuestionFromBank(selectedBank.id, questionToDelete.id);
+          await deleteQuestionFromBank(selectedBank.id, questionToDelete.id);
           toast.success(t("bankManage.alerts.questionDeleted"));
         }
         break;
@@ -420,12 +420,12 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
           onSubmitSuccess={() => {
             handleQuestionModalClose();
           }}
-          onSave={(bankId, questionData, questionId) => {
+          onSave={async (bankId, questionData, questionId) => {
             if (questionId) {
-              updateQuestionInBank(bankId, questionId, questionData);
+              await updateQuestionInBank(bankId, questionId, questionData);
               toast.success(t("bankManage.alerts.questionUpdated"));
             } else {
-              const result = addQuestionToBank(bankId, questionData);
+              const result = await addQuestionToBank(bankId, questionData);
               if (result.isDuplicate) {
                 toast.error(t("bankManage.alerts.duplicateError"));
               } else if (result.question) {

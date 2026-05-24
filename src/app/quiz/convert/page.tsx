@@ -112,13 +112,13 @@ export default function ConvertPage() {
   /**
    * Handle save to bank
    */
-  const handleSave = (config: {
+  const handleSave = async (config: {
     mode: "new" | "existing";
     bankId?: string;
     newBankName?: string;
     newBankDescription?: string;
   }) => {
-    const result = saveToBank(config);
+    const result = await saveToBank(config);
     if (!result.success) {
       toast.error(error || t("convert.saveFailed"));
     }

@@ -1,6 +1,7 @@
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::State;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -66,8 +67,55 @@ pub struct QuestionSearchRequest {
     pub query: String,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QuestionInput {
+    #[serde(rename = "type")]
+    pub question_type: String,
+    pub content: String,
+    pub options: Option<Vec<QuestionOption>>,
+    pub answer: serde_json::Value,
+    pub explanation: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub created_at: Option<i64>,
+    pub updated_at: Option<i64>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BankMutationResult {
+    pub bank: Option<QuestionBank>,
+    pub snapshot: QuizSnapshot,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QuestionMutationResult {
+    pub question: Option<Question>,
+    pub is_duplicate: bool,
+    pub snapshot: QuizSnapshot,
+}
+
 fn open_connection(db_path: &Path) -> Result<Connection, String> {
-    Connection::open(db_path).map_err(|error| error.to_string())
+    let conn = Connection::open(db_path).map_err(|error| error.to_string())?;
+    conn.execute_batch("PRAGMA foreign_keys = ON;")
+        .map_err(|error| error.to_string())?;
+    Ok(conn)
+}
+
+fn now_millis() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64
+}
+
+fn generated_id(prefix: &str) -> String {
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    format!("{}-{}", prefix, nanos)
 }
 
 fn normalize_content(text: &str) -> String {
@@ -479,6 +527,77 @@ fn load_snapshot(conn: &Connection) -> Result<QuizSnapshot, String> {
     })
 }
 
+fn insert_question(
+    conn: &Connection,
+    bank_id: &str,
+    question: &Question,
+) -> Result<(), String> {
+    let answer_json = serde_json::to_string(&question.answer).map_err(|error| error.to_string())?;
+    let tags_json = question
+        .tags
+        .as_ref()
+        .map(serde_json::to_string)
+        .transpose()
+        .map_err(|error| error.to_string())?;
+
+    conn.execute(
+        r#"
+        INSERT INTO questions (
+            id, bank_id, question_type, content, normalized_content, answer_json, explanation,
+            tags_json, created_at, updated_at
+        )
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+        "#,
+        params![
+            question.id,
+            bank_id,
+            question.question_type,
+            question.content,
+            normalize_content(&question.content),
+            answer_json,
+            question.explanation,
+            tags_json,
+            question.created_at,
+            question.updated_at
+        ],
+    )
+    .map_err(|error| error.to_string())?;
+
+    for (index, option) in question
+        .options
+        .as_deref()
+        .unwrap_or(&[])
+        .iter()
+        .enumerate()
+    {
+        conn.execute(
+            r#"
+            INSERT INTO question_options (id, question_id, content, sort_order)
+            VALUES (?1, ?2, ?3, ?4)
+            "#,
+            params![option.id, question.id, option.content, index as i64],
+        )
+        .map_err(|error| error.to_string())?;
+    }
+
+    Ok(())
+}
+
+fn question_from_input(input: QuestionInput) -> Question {
+    let now = now_millis();
+    Question {
+        id: generated_id("question"),
+        question_type: input.question_type,
+        content: input.content,
+        options: input.options,
+        answer: input.answer,
+        explanation: input.explanation,
+        tags: input.tags,
+        created_at: input.created_at.unwrap_or(now),
+        updated_at: input.updated_at.unwrap_or(now),
+    }
+}
+
 #[tauri::command]
 pub async fn replace_quiz_snapshot(
     state: State<'_, crate::AppState>,
@@ -491,6 +610,288 @@ pub async fn replace_quiz_snapshot(
 #[tauri::command]
 pub async fn load_quiz_snapshot(state: State<'_, crate::AppState>) -> Result<QuizSnapshot, String> {
     let conn = open_connection(&state.db_path)?;
+    load_snapshot(&conn)
+}
+
+#[tauri::command]
+pub async fn create_question_bank(
+    state: State<'_, crate::AppState>,
+    name: String,
+    description: Option<String>,
+) -> Result<BankMutationResult, String> {
+    let conn = open_connection(&state.db_path)?;
+    let now = now_millis();
+    let bank = QuestionBank {
+        id: generated_id("bank"),
+        name,
+        description,
+        questions: Vec::new(),
+        created_at: now,
+        updated_at: now,
+    };
+
+    conn.execute(
+        r#"
+        INSERT INTO question_banks (id, name, description, created_at, updated_at)
+        VALUES (?1, ?2, ?3, ?4, ?5)
+        "#,
+        params![
+            bank.id,
+            bank.name,
+            bank.description,
+            bank.created_at,
+            bank.updated_at
+        ],
+    )
+    .map_err(|error| error.to_string())?;
+
+    Ok(BankMutationResult {
+        bank: Some(bank),
+        snapshot: load_snapshot(&conn)?,
+    })
+}
+
+#[tauri::command]
+pub async fn update_question_bank(
+    state: State<'_, crate::AppState>,
+    id: String,
+    name: String,
+    description: Option<String>,
+) -> Result<BankMutationResult, String> {
+    let conn = open_connection(&state.db_path)?;
+    conn.execute(
+        r#"
+        UPDATE question_banks
+        SET name = ?2, description = ?3, updated_at = ?4
+        WHERE id = ?1
+        "#,
+        params![id, name, description, now_millis()],
+    )
+    .map_err(|error| error.to_string())?;
+
+    let bank = load_snapshot(&conn)?
+        .question_banks
+        .into_iter()
+        .find(|bank| bank.id == id);
+    Ok(BankMutationResult {
+        bank,
+        snapshot: load_snapshot(&conn)?,
+    })
+}
+
+#[tauri::command]
+pub async fn delete_question_bank(
+    state: State<'_, crate::AppState>,
+    id: String,
+) -> Result<QuizSnapshot, String> {
+    let conn = open_connection(&state.db_path)?;
+    conn.execute("DELETE FROM question_banks WHERE id = ?1", [id])
+        .map_err(|error| error.to_string())?;
+    load_snapshot(&conn)
+}
+
+#[tauri::command]
+pub async fn add_question_to_bank(
+    state: State<'_, crate::AppState>,
+    bank_id: String,
+    question: QuestionInput,
+    check_duplicate: bool,
+) -> Result<QuestionMutationResult, String> {
+    let conn = open_connection(&state.db_path)?;
+    let normalized_content = normalize_content(&question.content);
+
+    if check_duplicate {
+        let duplicate_id: Option<String> = conn
+            .query_row(
+                r#"
+                SELECT id
+                FROM questions
+                WHERE bank_id = ?1 AND normalized_content = ?2
+                LIMIT 1
+                "#,
+                params![bank_id, normalized_content],
+                |row| row.get(0),
+            )
+            .optional()
+            .map_err(|error| error.to_string())?;
+
+        if duplicate_id.is_some() {
+            return Ok(QuestionMutationResult {
+                question: None,
+                is_duplicate: true,
+                snapshot: load_snapshot(&conn)?,
+            });
+        }
+    }
+
+    let mut question = question_from_input(question);
+    question.updated_at = now_millis();
+    insert_question(&conn, &bank_id, &question)?;
+    conn.execute(
+        "UPDATE question_banks SET updated_at = ?2 WHERE id = ?1",
+        params![bank_id, now_millis()],
+    )
+    .map_err(|error| error.to_string())?;
+
+    Ok(QuestionMutationResult {
+        question: Some(question),
+        is_duplicate: false,
+        snapshot: load_snapshot(&conn)?,
+    })
+}
+
+#[tauri::command]
+pub async fn update_question_in_bank(
+    state: State<'_, crate::AppState>,
+    bank_id: String,
+    question_id: String,
+    question: QuestionInput,
+) -> Result<QuestionMutationResult, String> {
+    let conn = open_connection(&state.db_path)?;
+    let now = now_millis();
+    let answer_json = serde_json::to_string(&question.answer).map_err(|error| error.to_string())?;
+    let tags_json = question
+        .tags
+        .as_ref()
+        .map(serde_json::to_string)
+        .transpose()
+        .map_err(|error| error.to_string())?;
+
+    conn.execute(
+        r#"
+        UPDATE questions
+        SET question_type = ?3, content = ?4, normalized_content = ?5, answer_json = ?6,
+            explanation = ?7, tags_json = ?8, updated_at = ?9
+        WHERE bank_id = ?1 AND id = ?2
+        "#,
+        params![
+            bank_id,
+            question_id,
+            question.question_type,
+            question.content,
+            normalize_content(&question.content),
+            answer_json,
+            question.explanation,
+            tags_json,
+            now
+        ],
+    )
+    .map_err(|error| error.to_string())?;
+
+    conn.execute(
+        "DELETE FROM question_options WHERE question_id = ?1",
+        [question_id.clone()],
+    )
+    .map_err(|error| error.to_string())?;
+
+    for (index, option) in question.options.unwrap_or_default().iter().enumerate() {
+        conn.execute(
+            r#"
+            INSERT INTO question_options (id, question_id, content, sort_order)
+            VALUES (?1, ?2, ?3, ?4)
+            "#,
+            params![option.id, question_id, option.content, index as i64],
+        )
+        .map_err(|error| error.to_string())?;
+    }
+
+    conn.execute(
+        "UPDATE question_banks SET updated_at = ?2 WHERE id = ?1",
+        params![bank_id, now],
+    )
+    .map_err(|error| error.to_string())?;
+
+    let updated_question = load_questions(&conn, &bank_id)?
+        .into_iter()
+        .find(|question| question.id == question_id);
+    Ok(QuestionMutationResult {
+        question: updated_question,
+        is_duplicate: false,
+        snapshot: load_snapshot(&conn)?,
+    })
+}
+
+#[tauri::command]
+pub async fn delete_question_from_bank(
+    state: State<'_, crate::AppState>,
+    bank_id: String,
+    question_id: String,
+) -> Result<QuizSnapshot, String> {
+    let conn = open_connection(&state.db_path)?;
+    conn.execute(
+        "DELETE FROM questions WHERE bank_id = ?1 AND id = ?2",
+        params![bank_id, question_id],
+    )
+    .map_err(|error| error.to_string())?;
+    conn.execute(
+        "UPDATE question_banks SET updated_at = ?2 WHERE id = ?1",
+        params![bank_id, now_millis()],
+    )
+    .map_err(|error| error.to_string())?;
+    load_snapshot(&conn)
+}
+
+#[tauri::command]
+pub async fn add_question_record(
+    state: State<'_, crate::AppState>,
+    record: QuestionRecord,
+) -> Result<QuizSnapshot, String> {
+    let conn = open_connection(&state.db_path)?;
+    let user_answer_json =
+        serde_json::to_string(&record.user_answer).map_err(|error| error.to_string())?;
+    let id = record.id.unwrap_or_else(|| generated_id("record"));
+    conn.execute(
+        r#"
+        INSERT INTO question_records (id, question_id, user_answer_json, is_correct, answered_at)
+        VALUES (?1, ?2, ?3, ?4, ?5)
+        "#,
+        params![
+            id,
+            record.question_id,
+            user_answer_json,
+            record.is_correct as i64,
+            record.answered_at
+        ],
+    )
+    .map_err(|error| error.to_string())?;
+    load_snapshot(&conn)
+}
+
+#[tauri::command]
+pub async fn clear_question_records(
+    state: State<'_, crate::AppState>,
+    bank_id: Option<String>,
+) -> Result<QuizSnapshot, String> {
+    let conn = open_connection(&state.db_path)?;
+
+    if let Some(bank_id) = bank_id {
+        conn.execute(
+            r#"
+            DELETE FROM question_records
+            WHERE question_id IN (SELECT id FROM questions WHERE bank_id = ?1)
+            "#,
+            [bank_id],
+        )
+        .map_err(|error| error.to_string())?;
+    } else {
+        conn.execute("DELETE FROM question_records", [])
+            .map_err(|error| error.to_string())?;
+    }
+
+    load_snapshot(&conn)
+}
+
+#[tauri::command]
+pub async fn remove_wrong_records_by_question_id(
+    state: State<'_, crate::AppState>,
+    question_id: String,
+) -> Result<QuizSnapshot, String> {
+    let conn = open_connection(&state.db_path)?;
+    conn.execute(
+        "DELETE FROM question_records WHERE question_id = ?1 AND is_correct = 0",
+        [question_id],
+    )
+    .map_err(|error| error.to_string())?;
     load_snapshot(&conn)
 }
 

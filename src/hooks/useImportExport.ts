@@ -64,7 +64,7 @@ export function useImportExport() {
 
       let targetBankId = "";
       if (importMode === "new") {
-        const newBank = addQuestionBank(result.bank.name, result.bank.description);
+        const newBank = await addQuestionBank(result.bank.name, result.bank.description);
         targetBankId = newBank?.id || "";
       } else {
         targetBankId = importTargetBankId;
@@ -80,15 +80,15 @@ export function useImportExport() {
       const totalCount = result.bank.questions?.length || 0;
 
       if (result.bank.questions && result.bank.questions.length > 0) {
-        result.bank.questions.forEach((question) => {
+        for (const question of result.bank.questions) {
           const { id: _id, ...questionData } = question; // Remove original ID
-          const addResult = addQuestionToBank(targetBankId, questionData);
+          const addResult = await addQuestionToBank(targetBankId, questionData);
           if (addResult.isDuplicate) {
             duplicateCount++;
           } else if (addResult.question) {
             addedCount++;
           }
-        });
+        }
       }
 
       // Update UI state with results

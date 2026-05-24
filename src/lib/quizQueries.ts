@@ -9,7 +9,7 @@ interface DuplicateQuestionGroup {
 const isTauriRuntime = () =>
   typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
 
-const normalizeText = (text: string): string =>
+export const normalizeQuestionContent = (text: string): string =>
   text
     .toLowerCase()
     .replace(/[()（）。.]/g, "")
@@ -20,7 +20,7 @@ const findDuplicateQuestions = (questions: Question[]): Map<string, Question[]> 
   const duplicates = new Map<string, Question[]>();
 
   questions.forEach((question) => {
-    const normalized = normalizeText(question.content);
+    const normalized = normalizeQuestionContent(question.content);
     const group = grouped.get(normalized) ?? [];
     group.push(question);
     grouped.set(normalized, group);
@@ -70,7 +70,7 @@ export async function searchQuestionIds(query: string): Promise<Set<string> | nu
   }
 
   const ids = await invoke<string[]>("search_questions", {
-    request: { query: normalizeText(trimmed) },
+    request: { query: normalizeQuestionContent(trimmed) },
   });
   return new Set(ids);
 }

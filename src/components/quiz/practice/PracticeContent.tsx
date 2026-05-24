@@ -118,16 +118,16 @@ export function PracticeContent() {
     }
   };
 
-  const handleCompleteQuiz = () => {
+  const handleCompleteQuiz = async () => {
     if (!startTime) return;
 
     const _totalTime = Math.floor((Date.now() - startTime) / 1000);
 
-    practiceQuestions.forEach((question) => {
+    for (const question of practiceQuestions) {
       const userAnswer = userAnswers[question.id];
       const isCorrect = PracticeHandlers.checkIsCorrect(question, userAnswer);
 
-      addRecord({
+      await addRecord({
         questionId: question.id,
         userAnswer: userAnswer || "",
         isCorrect,
@@ -135,9 +135,9 @@ export function PracticeContent() {
       });
 
       if (isReviewMode && isCorrect && settings.markMistakeAsCorrectedOnReviewSuccess) {
-        removeWrongRecordsByQuestionId(question.id);
+        await removeWrongRecordsByQuestionId(question.id);
       }
-    });
+    }
 
     updateSession({ quizCompleted: true });
   };

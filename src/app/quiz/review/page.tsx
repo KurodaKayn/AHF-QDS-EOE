@@ -123,9 +123,9 @@ export default function ReviewPage() {
   /**
    * Clear wrong questions records
    */
-  const handleClearRecords = () => {
+  const handleClearRecords = async () => {
     if (confirm(t("review.alerts.confirmClear"))) {
-      clearRecords();
+      await clearRecords();
       clearSelection();
     }
   };
@@ -163,10 +163,10 @@ export default function ReviewPage() {
         {
           id: activeConfig.id,
         },
-        (questionId, explanation) => {
+        async (questionId, explanation) => {
           // Save to question bank
           if (questionInfo.bankId) {
-            updateQuestionInBank(questionInfo.bankId, questionId, {
+            await updateQuestionInBank(questionInfo.bankId, questionId, {
               explanation,
             });
           }

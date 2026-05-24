@@ -73,7 +73,7 @@ export function useAiExplanation() {
     async (
       questionInfo: WrongQuestionDisplay,
       aiConfig: AiConfig,
-      onComplete?: (questionId: string, explanation: string) => void,
+      onComplete?: (questionId: string, explanation: string) => void | Promise<void>,
     ) => {
       const questionId = questionInfo.id;
 
@@ -107,7 +107,7 @@ export function useAiExplanation() {
         }));
 
         if (onComplete) {
-          onComplete(questionId, finalExplanation);
+          await onComplete(questionId, finalExplanation);
         }
       } catch {
         setAiError(
@@ -137,7 +137,7 @@ export function useAiExplanation() {
     async (
       questions: WrongQuestionDisplay[],
       aiConfig: AiConfig,
-      onComplete?: (questionId: string, explanation: string) => void,
+      onComplete?: (questionId: string, explanation: string) => void | Promise<void>,
     ) => {
       for (const question of questions) {
         await generateExplanation(question, aiConfig, onComplete);

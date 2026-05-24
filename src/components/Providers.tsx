@@ -55,35 +55,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isTauriRuntime) return;
 
-    let timeout: ReturnType<typeof setTimeout> | null = null;
-    const unsubscribe = useQuizStore.subscribe((state, prevState) => {
-      if (state.questionBanks === prevState.questionBanks && state.records === prevState.records) {
-        return;
-      }
-
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-
-      timeout = setTimeout(() => {
-        void replaceQuizSnapshotOnBackend({
-          questionBanks: useQuizStore.getState().questionBanks,
-          records: useQuizStore.getState().records,
-        });
-      }, 150);
-    });
-
-    return () => {
-      unsubscribe();
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isTauriRuntime) return;
-
     let cancelled = false;
 
     const syncQuizSnapshot = async () => {
