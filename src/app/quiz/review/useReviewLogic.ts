@@ -10,8 +10,8 @@ interface UseReviewLogicProps {
 }
 
 /**
- * Review Page Business Logic Hook
- * Handles question filtering, searching, and selection state management
+ * Review Page Business Logic Hook.
+ * Co-located with ReviewPage.
  */
 export function useReviewLogic({
   wrongQuestions,
@@ -22,9 +22,6 @@ export function useReviewLogic({
 }: UseReviewLogicProps) {
   const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set());
 
-  /**
-   * Search and filter questions
-   */
   const filteredQuestions = useMemo(() => {
     return wrongQuestions.filter((q) => {
       if (filterBankId !== "all" && q?.bankId !== filterBankId) return false;
@@ -43,9 +40,6 @@ export function useReviewLogic({
     });
   }, [wrongQuestions, filterBankId, searchTerm, currentExplanations, completedExplanations]);
 
-  /**
-   * Handle question selection/deselection
-   */
   const handleSelectQuestion = (question: WrongQuestionDisplay) => {
     setSelectedQuestions((prev) => {
       const newSet = new Set(prev);
@@ -58,9 +52,6 @@ export function useReviewLogic({
     });
   };
 
-  /**
-   * Select all / Deselect all
-   */
   const handleSelectAll = () => {
     if (selectedQuestions.size === filteredQuestions.length && filteredQuestions.length > 0) {
       setSelectedQuestions(new Set());
@@ -73,16 +64,10 @@ export function useReviewLogic({
     }
   };
 
-  /**
-   * Clear selection
-   */
   const clearSelection = () => {
     setSelectedQuestions(new Set());
   };
 
-  /**
-   * Get selected questions list
-   */
   const getSelectedQuestions = () => {
     return wrongQuestions.filter((q) => selectedQuestions.has(q.id));
   };

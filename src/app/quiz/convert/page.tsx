@@ -1,13 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { FaMagic, FaSpinner } from "react-icons/fa";
 import { MdCode } from "react-icons/md";
 import { FiXCircle } from "react-icons/fi";
-import { useQuizStore } from "@/store/quizStore";
-import { EXAMPLE_QUESTION_TEXT } from "@/constants/quiz";
-import { ScriptTemplate } from "@/model";
 import { getScriptExampleContent, getScriptExampleTitle } from "@/constants/scriptExamples";
 import { ConversionModeSelector } from "@/components/quiz/ConversionModeSelector";
 import { AIProviderInfo } from "@/components/quiz/AIProviderInfo";
@@ -16,131 +11,65 @@ import { QuestionList } from "@/components/quiz/QuestionList";
 import { SaveToBankForm } from "@/components/quiz/SaveToBankForm";
 import { ConversionSuccess } from "@/components/quiz/ConversionSuccess";
 import { ExampleModal } from "@/components/quiz/ExampleModal";
-import { useTranslation } from "react-i18next";
-import { useConversionLogic } from "@/hooks/useConversionLogic";
-import { toast } from "sonner";
+import { useConvertPage } from "./useConvertPage";
 
 /**
  * Question Conversion Page
- * Refactored version with separated UI and business logic
+ * Focuses purely on UI organization; state and handlers are extracted into useConvertPage.
  */
 export default function ConvertPage() {
-  const router = useRouter();
-  const { settings, questionBanks, conversionState, setConversionState } = useQuizStore();
-  const { t, i18n } = useTranslation();
-
-  // Local UI state
-  const [inputText, setInputText] = useState("");
-  const [conversionMode, setConversionMode] = useState<"ai" | "script">("ai");
-  const [scriptTemplate, setScriptTemplate] = useState<ScriptTemplate>(ScriptTemplate.ChaoXing);
-  const [isExampleModalOpen, setIsExampleModalOpen] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [savedBankId, setSavedBankId] = useState("");
-  const [savedBankName, setSavedBankName] = useState("");
-
-  // Ref to prevent circular updates
-  const isUpdatingFromStore = useRef(false);
-
-  // Conversion business logic
   const {
+    t,
+    i18nLanguage,
+    router,
+    questionBanks,
+    inputText,
+    setInputText,
+    conversionMode,
+    setConversionMode,
+    scriptTemplate,
+    setScriptTemplate,
+    isExampleModalOpen,
+    setIsExampleModalOpen,
+    isSuccess,
+    savedBankId,
+    savedBankName,
     isLoading,
     isLoadingScript,
     error,
-    convertedQuestions,
-    setConvertedQuestions,
     setError,
-    convertWithAI,
-    convertWithScript,
-    saveToBank,
-    clearResults,
-  } = useConversionLogic({
-    onSuccess: (questions, bankId, bankName) => {
-      setSavedBankId(bankId);
-      setSavedBankName(bankName);
-      setIsSuccess(true);
-      setInputText("");
-      clearResults();
-      setTimeout(() => setIsSuccess(false), 3000);
-    },
-  });
-
-  // Load state from store on mount
-  useEffect(() => {
-    if (conversionState) {
-      isUpdatingFromStore.current = true;
-      setInputText(conversionState.inputText || "");
-      setConversionMode(conversionState.mode || "ai");
-      setScriptTemplate(
-        (conversionState.scriptTemplate as ScriptTemplate) || ScriptTemplate.ChaoXing,
-      );
-      if (conversionState.generatedQuestions && conversionState.generatedQuestions.length > 0) {
-        setConvertedQuestions(conversionState.generatedQuestions);
-      }
-      setTimeout(() => {
-        isUpdatingFromStore.current = false;
-      }, 0);
-    }
-  }, [conversionState, setConvertedQuestions]);
-
-  // Sync local state to store when changed
-  useEffect(() => {
-    if (isUpdatingFromStore.current) return;
-
-    setConversionState({
-      inputText,
-      mode: conversionMode,
-      scriptTemplate,
-      generatedQuestions: convertedQuestions as any[],
-      isConverting: isLoading || isLoadingScript,
-    });
-  }, [
-    inputText,
-    conversionMode,
-    scriptTemplate,
     convertedQuestions,
-    isLoading,
-    isLoadingScript,
-    setConversionState,
-  ]);
+    activeConfig,
+    isConverting,
+    isConvertDisabled,
+    handleConvert,
+    handleSave,
+    handleContinue,
+    exampleQuestionText,
+  } = useConvertPage();
 
-  /**
-   * Handle conversion
-   */
-  const handleConvert = () => {
-    if (conversionMode === "script") {
-      convertWithScript(inputText, scriptTemplate);
-    } else {
-      convertWithAI(inputText);
+  const getConvertButtonClass = () => {
+    if (isConvertDisabled) {
+      return "bg-gray-400 dark:bg-gray-600 cursor-not-allowed";
     }
+    return conversionMode === "ai"
+      ? "bg-blue-600 hover:bg-blue-700"
+      : "bg-green-600 hover:bg-green-700";
   };
 
-  /**
-   * Handle save to bank
-   */
-  const handleSave = async (config: {
-    mode: "new" | "existing";
-    bankId?: string;
-    newBankName?: string;
-    newBankDescription?: string;
-  }) => {
-    const result = await saveToBank(config);
-    if (!result.success) {
-      toast.error(error || t("convert.saveFailed"));
+  const renderConvertIcon = () => {
+    if (isConverting) {
+      return <FaSpinner className="animate-spin mr-2" />;
     }
+    return conversionMode === "ai" ? <FaMagic className="mr-2" /> : <MdCode className="mr-2" />;
   };
 
-  /**
-   * Continue conversion
-   */
-  const handleContinue = () => {
-    setIsSuccess(false);
-    clearResults();
-    setInputText("");
-    setSavedBankId("");
-    setSavedBankName("");
+  const getConvertButtonText = () => {
+    if (conversionMode === "ai") {
+      return isLoading ? t("convert.actions.aiConverting") : t("convert.actions.startAI");
+    }
+    return isLoadingScript ? t("convert.actions.scriptParsing") : t("convert.actions.startScript");
   };
-
-  const activeConfig = settings.aiConfigs.find((c) => c.id === settings.activeAiConfigId);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 flex flex-col items-center">
@@ -160,60 +89,22 @@ export default function ConvertPage() {
         <TextInputArea
           value={inputText}
           onChange={setInputText}
-          onLoadExample={() => setInputText(EXAMPLE_QUESTION_TEXT)}
+          onLoadExample={() => setInputText(exampleQuestionText)}
           onOCRError={(err) => setError(t("convert.errors.ocrError", { error: err }))}
           showOCR
         />
 
         {conversionMode === "ai" && activeConfig && <AIProviderInfo config={activeConfig} />}
 
-        {(() => {
-          const isConverting =
-            (isLoading && conversionMode === "ai") ||
-            (isLoadingScript && conversionMode === "script");
-          const isConvertDisabled = isLoading || isLoadingScript || !inputText.trim();
-
-          const getConvertButtonClass = () => {
-            if (isConvertDisabled) {
-              return "bg-gray-400 dark:bg-gray-600 cursor-not-allowed";
-            }
-            return conversionMode === "ai"
-              ? "bg-blue-600 hover:bg-blue-700"
-              : "bg-green-600 hover:bg-green-700";
-          };
-
-          const renderConvertIcon = () => {
-            if (isConverting) {
-              return <FaSpinner className="animate-spin mr-2" />;
-            }
-            return conversionMode === "ai" ? (
-              <FaMagic className="mr-2" />
-            ) : (
-              <MdCode className="mr-2" />
-            );
-          };
-
-          const getConvertButtonText = () => {
-            if (conversionMode === "ai") {
-              return isLoading ? t("convert.actions.aiConverting") : t("convert.actions.startAI");
-            }
-            return isLoadingScript
-              ? t("convert.actions.scriptParsing")
-              : t("convert.actions.startScript");
-          };
-
-          return (
-            <button
-              type="button"
-              onClick={handleConvert}
-              disabled={isConvertDisabled}
-              className={`w-full px-6 py-3 mt-4 rounded-md text-white font-semibold transition-colors flex items-center justify-center ${getConvertButtonClass()}`}
-            >
-              {renderConvertIcon()}
-              {getConvertButtonText()}
-            </button>
-          );
-        })()}
+        <button
+          type="button"
+          onClick={handleConvert}
+          disabled={isConvertDisabled}
+          className={`w-full px-6 py-3 mt-4 rounded-md text-white font-semibold transition-colors flex items-center justify-center ${getConvertButtonClass()}`}
+        >
+          {renderConvertIcon()}
+          {getConvertButtonText()}
+        </button>
 
         {error && (
           <div className="mt-6 mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md flex items-start">
@@ -246,7 +137,7 @@ export default function ConvertPage() {
       <ExampleModal
         isOpen={isExampleModalOpen}
         title={getScriptExampleTitle(scriptTemplate, t)}
-        content={getScriptExampleContent(scriptTemplate, i18n.language)}
+        content={getScriptExampleContent(scriptTemplate, i18nLanguage)}
         onClose={() => setIsExampleModalOpen(false)}
       />
     </div>

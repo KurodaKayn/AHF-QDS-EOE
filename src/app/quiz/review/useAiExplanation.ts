@@ -10,8 +10,8 @@ import { useTranslation } from "react-i18next";
 export type AiConfig = AiProviderConfig | string;
 
 /**
- * AI Explanation Generation Hook
- * Manages the generation, state tracking, and error handling of question explanations
+ * AI Explanation Generation Hook.
+ * Co-located with ReviewPage.
  */
 export function useAiExplanation() {
   const { t, i18n } = useTranslation();

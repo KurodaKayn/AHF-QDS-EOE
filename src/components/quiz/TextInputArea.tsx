@@ -1,11 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { IoDocumentText } from "react-icons/io5";
 import { FaKeyboard, FaSpinner } from "react-icons/fa";
 import { ImageOCRUpload } from "./ImageOCRUpload";
-import Tesseract from "tesseract.js";
 import { useTranslation } from "react-i18next";
+import { useTextInputArea } from "./useTextInputArea";
 
 interface TextInputAreaProps {
   value: string;
@@ -28,55 +27,12 @@ export function TextInputArea({
   showOCR = true,
 }: TextInputAreaProps) {
   const { t } = useTranslation();
-  const [isProcessingPaste, setIsProcessingPaste] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const handleOCRText = (text: string) => {
-    // If there is existing content, append; otherwise set directly
-    if (value.trim()) {
-      onChange(value + "\n\n" + text);
-    } else {
-      onChange(text);
-    }
-  };
-
-  const processImageFromClipboard = async (file: File) => {
-    setIsProcessingPaste(true);
-    try {
-      // Support simplified Chinese and English OCR
-      const result = await Tesseract.recognize(file, "chi_sim+eng");
-      const extractedText = result.data.text.trim();
-      if (extractedText) {
-        handleOCRText(extractedText);
-      } else {
-        onOCRError?.(t("convert.input.ocrFailed"));
-      }
-    } catch (error: any) {
-      onOCRError?.(error.message || t("convert.input.ocrErrorGeneric"));
-    } finally {
-      setIsProcessingPaste(false);
-    }
-  };
-
-  const handleTextareaPaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    if (!showOCR) return;
-
-    const items = e.clipboardData?.items;
-    if (!items) return;
-
-    // Check for images in clipboard
-    for (const item of items) {
-      if (item.type.startsWith("image/")) {
-        e.preventDefault(); // Prevent default paste behavior
-        const file = item.getAsFile();
-        if (file) {
-          await processImageFromClipboard(file);
-        }
-        return;
-      }
-    }
-    // If not an image, let the browser handle default text paste
-  };
+  const { isProcessingPaste, textareaRef, handleOCRText, handleTextareaPaste } = useTextInputArea({
+    value,
+    onChange,
+    onOCRError,
+    showOCR,
+  });
 
   return (
     <div className="mb-6">

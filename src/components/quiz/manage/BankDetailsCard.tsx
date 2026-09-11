@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import type { QuestionBank } from "@/types/quiz";
 import { FaEdit, FaRegTrashAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { QuestionListSection } from "./QuestionListSection";
+import { useBankDetailsCard } from "./useBankDetailsCard";
 
 interface BankDetailsCardProps {
   bank: QuestionBank;
@@ -28,23 +28,15 @@ export function BankDetailsCard({
   onFindDuplicates,
 }: BankDetailsCardProps) {
   const { t } = useTranslation();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState(bank.name);
-  const [editDescription, setEditDescription] = useState(bank.description || "");
-
-  useEffect(() => {
-    setEditName(bank.name);
-    setEditDescription(bank.description || "");
-    setIsEditing(false);
-  }, [bank]);
-
-  const handleSave = () => {
-    if (!editName.trim()) {
-      return;
-    }
-    onUpdate(editName.trim(), editDescription.trim());
-    setIsEditing(false);
-  };
+  const {
+    isEditing,
+    setIsEditing,
+    editName,
+    setEditName,
+    editDescription,
+    setEditDescription,
+    handleSave,
+  } = useBankDetailsCard({ bank, onUpdate });
 
   return (
     <Card className="animate-fade-in shadow-lg">

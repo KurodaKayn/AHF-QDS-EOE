@@ -1,12 +1,6 @@
-// Custom hook for import/export functionality
-
 import { useState, useRef } from "react";
 import { useQuizStore } from "@/store/quizStore";
-import {
-  exportQuestionBank,
-  importQuestionBank,
-  type ImportResult,
-} from "@/services/importExportService";
+import { exportQuestionBank, importQuestionBank, type ImportResult } from "@/model";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -17,7 +11,8 @@ export interface ImportStats {
 }
 
 /**
- * Hook to handle import and export business logic
+ * Hook to handle import and export business logic.
+ * Co-located with ImportExportPage.
  */
 export function useImportExport() {
   const { t } = useTranslation();
@@ -55,7 +50,6 @@ export function useImportExport() {
     try {
       const format = file.name.toLowerCase().endsWith(".csv") ? "csv" : "excel";
 
-      // Import the file using service
       const result: ImportResult = await importQuestionBank({
         file,
         format,
@@ -74,15 +68,13 @@ export function useImportExport() {
         throw new Error("Target bank not found");
       }
 
-      // Add questions to the target bank
       const questionsData = (result.bank.questions || []).map((question) => {
-        const { id: _id, ...questionData } = question; // Remove original ID
+        const { id: _id, ...questionData } = question;
         return questionData;
       });
 
       const addResult = await addQuestionsToBank(targetBankId, questionsData);
 
-      // Update UI state with results
       setImportResult({
         total: result.bank.questions?.length || 0,
         added: addResult.addedCount,
@@ -124,7 +116,6 @@ export function useImportExport() {
       setExportSuccess(true);
       setTimeout(() => setExportSuccess(false), 3000);
     } catch (error: any) {
-      // User cancelled is not an error (from save dialog)
       if (error.message === "User cancelled save dialog") {
         return;
       }
@@ -134,7 +125,6 @@ export function useImportExport() {
   };
 
   return {
-    // State
     selectedBankId,
     exportFormat,
     importMode,
@@ -146,7 +136,6 @@ export function useImportExport() {
     fileInputRef,
     questionBanks,
 
-    // Actions
     setSelectedBankId,
     setExportFormat,
     setImportMode,

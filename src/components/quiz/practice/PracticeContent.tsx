@@ -1,6 +1,6 @@
 "use client";
 
-import { usePracticeSession } from "@/hooks/usePracticeSession";
+import { usePracticeSession } from "./usePracticeSession";
 import { useThemeStore } from "@/store/themeStore";
 import { QuizCompletionSummary } from "@/components/quiz/practice/QuizCompletionSummary";
 import { QuestionDisplay } from "@/components/quiz/practice/QuestionDisplay";

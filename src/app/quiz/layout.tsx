@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   FaExchangeAlt,
   FaCog,
@@ -15,18 +14,22 @@ import {
 } from "react-icons/fa";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
+import { useQuizLayout } from "./useQuizLayout";
 
 /**
  * Layout component for the quiz system
- * Supports responsive design, collapsible sidebar, and mobile bottom navigation
+ * Focuses purely on UI presentation; layout responsiveness and state are in useQuizLayout.
  */
 export default function QuizLayout({ children }: { children: React.ReactNode }) {
-  const { t } = useTranslation();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const pathname = usePathname();
+  const {
+    t,
+    pathname,
+    sidebarCollapsed,
+    mobileMenuOpen,
+    isMobile,
+    toggleSidebar,
+    toggleMobileMenu,
+  } = useQuizLayout();
 
   const navItems = [
     { href: "/quiz", icon: <FaListUl />, label: t("nav.home") },
@@ -44,35 +47,13 @@ export default function QuizLayout({ children }: { children: React.ReactNode }) 
     { href: "/quiz/settings", icon: <FaCog />, label: t("nav.settings") },
   ];
 
-  // Screen size detection
-  useEffect(() => {
-    const checkIsMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setSidebarCollapsed(true);
-      }
-    };
-
-    checkIsMobile();
-    window.addEventListener("resize", checkIsMobile);
-    return () => window.removeEventListener("resize", checkIsMobile);
-  }, []);
-
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
       {/* Mobile Top Navigation */}
       <div className="md:hidden flex-none flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md z-20">
         <div className="flex items-center">
           <button
+            type="button"
             onClick={toggleMobileMenu}
             className="mr-3 text-gray-700 dark:text-gray-200"
             aria-label={t("nav.openMenu")}
@@ -103,6 +84,7 @@ export default function QuizLayout({ children }: { children: React.ReactNode }) 
           )}
           <div className="flex items-center">
             <button
+              type="button"
               onClick={toggleSidebar}
               className={cn(
                 "ml-2 p-1 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700",
@@ -149,6 +131,7 @@ export default function QuizLayout({ children }: { children: React.ReactNode }) 
             <div className="flex-none p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <h1 className="text-xl font-bold text-gray-800 dark:text-white">{t("nav.title")}</h1>
               <button
+                type="button"
                 onClick={toggleMobileMenu}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 aria-label={t("nav.closeMenu")}
@@ -186,9 +169,7 @@ export default function QuizLayout({ children }: { children: React.ReactNode }) 
       <main
         className={cn(
           "flex-1 h-full overflow-y-auto overflow-x-hidden dark:text-gray-100 transition-all duration-300 relative custom-scrollbar",
-          // Practice page doesn't need padding, others do
           pathname?.startsWith("/quiz/practice") ? "" : "p-4 md:p-8",
-          // Mobile bottom padding to avoid nav overlap
           isMobile && !pathname?.startsWith("/quiz/practice") && "pb-24",
         )}
       >

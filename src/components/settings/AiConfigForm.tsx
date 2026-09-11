@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import type { AIConfig } from "@/store/quizStore";
 import { Box, Key, Globe, Server } from "lucide-react";
+import { useAiConfigForm } from "./useAiConfigForm";
 
 interface AiConfigFormProps {
   initialConfig?: AIConfig;
@@ -13,52 +14,21 @@ interface AiConfigFormProps {
 
 export const AiConfigForm: React.FC<AiConfigFormProps> = ({ initialConfig, onSave, onCancel }) => {
   const { t } = useTranslation();
-  const [name, setName] = useState(initialConfig?.name || "");
-  const [type, setType] = useState<"preset" | "custom">(initialConfig?.type || "preset");
-  const [provider, setProvider] = useState<"deepseek" | "alibaba" | undefined>(
-    initialConfig?.provider,
-  );
-  const [baseUrl, setBaseUrl] = useState(initialConfig?.baseUrl || "");
-  const [apiKey, setApiKey] = useState(initialConfig?.apiKey || "");
-  const [model, setModel] = useState(initialConfig?.model || "");
-
-  // Presets definition
-  const presets = {
-    deepseek: {
-      name: "DeepSeek",
-      baseUrl: "https://api.deepseek.com/v1",
-      model: "deepseek-chat",
-    },
-    alibaba: {
-      name: "Qwen (Alibaba)",
-      baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
-      model: "qwen-turbo",
-    },
-  };
-
-  // Handle Preset Change
-  const handleProviderChange = (newProvider: "deepseek" | "alibaba") => {
-    setProvider(newProvider);
-    const preset = presets[newProvider];
-    setName(preset.name);
-    setBaseUrl(preset.baseUrl);
-    setModel(preset.model);
-  };
-
-  const handleSave = () => {
-    if (!name || !baseUrl || !apiKey || !model) {
-      alert(t("settings.ai.fillAll"));
-      return;
-    }
-    onSave({
-      name,
-      type,
-      provider: type === "preset" ? provider : undefined,
-      baseUrl,
-      apiKey,
-      model,
-    });
-  };
+  const {
+    name,
+    setName,
+    type,
+    setType,
+    provider,
+    baseUrl,
+    setBaseUrl,
+    apiKey,
+    setApiKey,
+    model,
+    setModel,
+    handleProviderChange,
+    handleSave,
+  } = useAiConfigForm({ initialConfig, onSave, onCancel });
 
   return (
     <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg border border-gray-200 dark:border-gray-600 space-y-4">

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { MdSave } from "react-icons/md";
 import type { QuestionBank } from "@/types/quiz";
 import { useTranslation } from "react-i18next";
+import { useSaveToBankForm } from "./useSaveToBankForm";
 
 interface SaveToBankFormProps {
   questionBanks: QuestionBank[];
@@ -18,39 +18,18 @@ interface SaveToBankFormProps {
 
 export function SaveToBankForm({ questionBanks, onSave, disabled = false }: SaveToBankFormProps) {
   const { t } = useTranslation();
-  const [saveMode, setSaveMode] = useState<"new" | "existing">("new");
-  const [selectedBankId, setSelectedBankId] = useState<string>("");
-  const [newBankName, setNewBankName] = useState("");
-  const [newBankDescription, setNewBankDescription] = useState("");
-
-  const handleSave = async () => {
-    if (saveMode === "new") {
-      if (!newBankName.trim()) {
-        return;
-      }
-      await onSave({
-        mode: "new",
-        newBankName,
-        newBankDescription,
-      });
-      // Reset form
-      setNewBankName("");
-      setNewBankDescription("");
-    } else {
-      if (!selectedBankId) {
-        return;
-      }
-      await onSave({
-        mode: "existing",
-        bankId: selectedBankId,
-      });
-    }
-  };
-
-  const isDisabled =
-    disabled ||
-    (saveMode === "new" && !newBankName.trim()) ||
-    (saveMode === "existing" && !selectedBankId);
+  const {
+    saveMode,
+    setSaveMode,
+    selectedBankId,
+    setSelectedBankId,
+    newBankName,
+    setNewBankName,
+    newBankDescription,
+    setNewBankDescription,
+    handleSave,
+    isDisabled,
+  } = useSaveToBankForm({ disabled, onSave });
 
   return (
     <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">

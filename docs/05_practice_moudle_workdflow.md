@@ -9,9 +9,9 @@
 ## 关键入口
 
 - `src/app/quiz/practice/page.tsx`：练习页面入口。
-- `src/components/quiz/practice/PracticeContent.tsx`：练习主交互。
-- `src/hooks/usePracticeSession.ts`：会话恢复、普通/错题模式初始化。
-- `src/utils/practiceHandlers.ts`：判分、洗牌和统计。
+- `src/components/quiz/practice/PracticeContent.tsx`：练习主交互组件（纯 UI 组织）。
+- `src/components/quiz/practice/usePracticeSession.ts`：同级业务 Hook，负责会话恢复、普通/错题模式初始化、答案记录与提交。
+- `src/model/quiz/quiz.grader.ts`：判分算法 (`PracticeHandlers`) 与统计。
 - `src/components/quiz/practice/*`：题目展示、选项、导航、完成总结、题量弹窗。
 
 ## 数据流说明

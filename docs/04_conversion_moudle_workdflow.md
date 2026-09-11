@@ -8,11 +8,11 @@
 
 ## 关键入口
 
-- `src/app/quiz/convert/page.tsx`：转换页面和 UI 状态。
-- `src/hooks/useConversionLogic.ts`：AI 转换、脚本转换和保存到题库。
-- `src/components/quiz/ImageOCRUpload.tsx`：Tesseract OCR。
-- `src/utils/questionParser.ts`：AI 输出格式解析。
-- `src/utils/scriptParser.ts`：脚本模板解析。
+- `src/app/quiz/convert/page.tsx` 与 `useConvertPage.ts`：转换页面 UI 组织及页面伴生 Hook。
+- `src/app/quiz/convert/useConversionLogic.ts`：同级业务 Hook，负责 AI 转换、脚本转换和保存到题库。
+- `src/components/quiz/ImageOCRUpload.tsx` 与 `useImageOCRUpload.ts`：Tesseract OCR 组件与处理 Hook。
+- `src/model/quiz/quiz.parser.ts`：AI 输出格式解析。
+- `src/model/quiz/quiz.scriptParser.ts`：脚本模板解析。
 - `src/constants/ai.ts` 和 `src/constants/scriptExamples.ts`：提示词和示例模板。
 
 ## 数据流说明

@@ -10,8 +10,8 @@
 
 - `src/app/page.tsx`：根路径重定向到 `/quiz`。
 - `src/app/layout.tsx`：加载字体、全局 CSS，并挂载 `Providers`。
-- `src/components/Providers.tsx`：初始化 i18n、主题、Toaster，并在 Tauri 中同步 AI 配置和题库 snapshot。
-- `src/app/quiz/layout.tsx`：提供桌面侧边栏、移动端抽屉和底部导航。
+- `src/components/Providers.tsx` 与 `useStartupSync.ts`：初始化 i18n、主题、Toaster，并在 Tauri 中同步 AI 配置和题库 snapshot。
+- `src/app/quiz/layout.tsx` 与 `useQuizLayout.ts`：提供桌面侧边栏、移动端抽屉和响应式导航。
 
 ## 数据流说明
 

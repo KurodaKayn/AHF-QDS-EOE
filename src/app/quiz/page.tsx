@@ -1,49 +1,28 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
 import { FaPlay, FaBook, FaPlus } from "react-icons/fa";
-import { useQuizStore } from "@/store/quizStore";
 import type { QuestionBank } from "@/types/quiz";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN, enUS } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "react-i18next";
+import { useQuizDashboard } from "./useQuizDashboard";
 
+/**
+ * Quiz Dashboard Page
+ * Focuses purely on UI organization; state, timer, and navigation are in useQuizDashboard.
+ */
 export default function QuizPage() {
-  const router = useRouter();
-  const { questionBanks, practiceSession, getQuestionBankById } = useQuizStore();
-  const { t, i18n } = useTranslation();
+  const {
+    t,
+    questionBanks,
+    hasUnfinishedSession,
+    unfinishedBank,
+    practiceSession,
+    handleContinuePractice,
+    handleStartPractice,
+    handleManageBank,
+    formatUpdatedAt,
+  } = useQuizDashboard();
 
-  // state to force refresh the list to keep date-fns time updated
-  const [_, setForceUpdate] = useState(0);
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setForceUpdate((prev) => prev + 1);
-    }, 60000); // Update every minute
-    return () => clearInterval(timer);
-  }, []);
-
-  const getDateLocale = () => {
-    return i18n.language === "en" ? enUS : zhCN;
-  };
-
-  // Check for unfinished practice session
-  const hasUnfinishedSession =
-    practiceSession.bankId &&
-    practiceSession.practiceQuestions.length > 0 &&
-    !practiceSession.quizCompleted;
-
-  const unfinishedBank = hasUnfinishedSession ? getQuestionBankById(practiceSession.bankId!) : null;
-
-  const handleContinuePractice = () => {
-    if (practiceSession.bankId) {
-      const mode = practiceSession.mode === "review" ? "&mode=review" : "";
-      router.push(`/quiz/practice?bankId=${practiceSession.bankId}${mode}`);
-    }
-  };
-
-  const quizListItem = (bank: QuestionBank) => (
+  const renderQuizListItem = (bank: QuestionBank) => (
     <div
       key={bank.id}
       className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 hover:shadow-xl transition-shadow duration-300 ease-in-out transform hover:-translate-y-1"
@@ -67,17 +46,15 @@ export default function QuizPage() {
           <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
             {t("home.questionCount", { count: bank.questions.length })} ·{" "}
             {t("home.updatedAt", {
-              time: formatDistanceToNow(bank.updatedAt, {
-                addSuffix: true,
-                locale: getDateLocale(),
-              }),
+              time: formatUpdatedAt(bank.updatedAt),
             })}
           </p>
         </div>
 
         <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-2 gap-3">
           <button
-            onClick={() => router.push(`/quiz/practice?bankId=${bank.id}`)}
+            type="button"
+            onClick={() => handleStartPractice(bank.id)}
             disabled={bank.questions.length === 0}
             className={`flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium transition-colors
                         ${
@@ -89,27 +66,8 @@ export default function QuizPage() {
             <FaPlay className="mr-2" /> {t("home.startPractice")}
           </button>
           <button
-            onClick={() => {
-              // Check environment
-              if (process.env.NODE_ENV === "development") {
-                // Dev environment uses Next.js router
-                router.push(`/quiz/banks/manage?bankId=${bank.id}`);
-              } else {
-                // Prod environment uses form navigation (for Tauri static export)
-                const form = document.createElement("form");
-                form.method = "GET";
-                form.action = "/quiz/banks/manage/index.html";
-                // Add bankId as param
-                const input = document.createElement("input");
-                input.type = "hidden";
-                input.name = "bankId";
-                input.value = bank.id;
-                form.appendChild(input);
-                form.style.display = "none";
-                document.body.appendChild(form);
-                form.submit();
-              }
-            }}
+            type="button"
+            onClick={() => handleManageBank(bank.id)}
             className="flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
           >
             <FaBook className="mr-2" /> {t("home.manageBank")}
@@ -155,27 +113,13 @@ export default function QuizPage() {
       {questionBanks.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-xl text-gray-500 dark:text-gray-400 mb-6">{t("home.noBanks")}</p>
-          <Button
-            onClick={() => {
-              if (process.env.NODE_ENV === "development") {
-                router.push("/quiz/banks/manage");
-              } else {
-                const form = document.createElement("form");
-                form.method = "GET";
-                form.action = "/quiz/banks/manage/index.html";
-                form.style.display = "none";
-                document.body.appendChild(form);
-                form.submit();
-              }
-            }}
-            className="bg-green-600 hover:bg-green-700"
-          >
+          <Button onClick={() => handleManageBank()} className="bg-green-600 hover:bg-green-700">
             <FaPlus className="mr-2" /> {t("home.createNewBank")}
           </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {questionBanks.map(quizListItem)}
+          {questionBanks.map(renderQuizListItem)}
         </div>
       )}
     </div>

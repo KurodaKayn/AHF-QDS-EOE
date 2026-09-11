@@ -1,7 +1,7 @@
 "use client";
 
 import { FaFileImport, FaFileExport, FaCheck, FaExclamationTriangle } from "react-icons/fa";
-import { useImportExport } from "@/hooks/useImportExport";
+import { useImportExport } from "./useImportExport";
 import { useTranslation } from "react-i18next";
 import { Switch } from "@/components/ui/switch";
 

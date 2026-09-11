@@ -8,12 +8,12 @@
 
 ## 关键入口
 
-- `src/app/quiz/review/page.tsx`：错题页主流程。
-- `src/hooks/useReviewLogic.ts`：筛选、搜索和选择状态。
-- `src/hooks/useAiExplanation.ts`：AI 流式解析。
+- `src/app/quiz/review/page.tsx` 与 `useReviewPage.ts`：错题页主流程 UI 及伴生 Hook。
+- `src/app/quiz/review/useReviewLogic.ts`：同级业务 Hook，负责筛选、搜索和选择状态。
+- `src/app/quiz/review/useAiExplanation.ts`：同级业务 Hook，负责 AI 流式解析生成。
 - `src/components/quiz/WrongQuestionItem.tsx`：错题展示。
 - `src/components/quiz/SimilarQuestionsModal.tsx`：相似题导入。
-- `src/app/quiz/review/practice/page.tsx`：错题练习重定向页。
+- `src/app/quiz/review/practice/page.tsx` 与 `useReviewPracticeRedirect.ts`：错题练习重定向页及伴生 Hook。
 
 ## 数据流说明
 

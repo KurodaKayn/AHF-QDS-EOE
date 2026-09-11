@@ -9,9 +9,9 @@
 ## 关键入口
 
 - `src/app/quiz/import-export/page.tsx`：导入导出 UI。
-- `src/hooks/useImportExport.ts`：导入导出页面状态和业务编排。
-- `src/services/importExportService.ts`：运行时适配和文件读写。
-- `src/utils/quiz.ts`：浏览器态 CSV/XLSX 转换。
+- `src/app/quiz/import-export/useImportExport.ts`：同级业务 Hook，负责页面状态和导入导出业务编排。
+- `src/services/importExportService.ts`：运行时适配和文件读写（透明导出自 `@/model/import-export`）。
+- `src/model/import-export/import-export.serializer.ts`：浏览器态 CSV/XLSX 转换与反序列化。
 - `src-tauri/src/file_io.rs`：Tauri 桌面态 CSV/XLSX bytes 转换。
 
 ## 数据流说明

@@ -10,8 +10,8 @@ interface UseConversionLogicProps {
 }
 
 /**
- * Question Conversion Business Logic Hook
- * Handles core logic for AI and script conversion
+ * Question Conversion Business Logic Hook.
+ * Co-located with ConvertPage.
  */
 export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) {
   const { t, i18n } = useTranslation();

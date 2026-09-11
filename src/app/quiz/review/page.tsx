@@ -1,205 +1,49 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { FaExclamationTriangle, FaTimes, FaListUl } from "react-icons/fa";
 import { toast } from "sonner";
-import { useQuizStore } from "@/store/quizStore";
-import type { Question } from "@/types/quiz";
-import type { WrongQuestionDisplay } from "@/components/quiz/WrongQuestionItem";
 import WrongQuestionItem from "@/components/quiz/WrongQuestionItem";
 import SimilarQuestionsModal from "@/components/quiz/SimilarQuestionsModal";
-import { useTranslation } from "react-i18next";
-import { useAiExplanation } from "@/hooks/useAiExplanation";
-import { useReviewLogic } from "@/hooks/useReviewLogic";
 import { ReviewToolbar } from "@/components/quiz/review/ReviewToolbar";
 import { ReviewSearchBar } from "@/components/quiz/review/ReviewSearchBar";
+import { useReviewPage } from "./useReviewPage";
 
 /**
  * Review Page (Wrong Questions Book)
- * Refactored version with separated UI and business logic
+ * Focuses purely on UI organization; state and handlers are extracted into useReviewPage.
  */
 export default function ReviewPage() {
-  const router = useRouter();
   const {
+    t,
+    router,
     questionBanks,
-    records,
-    clearRecords,
-    updateQuestionInBank,
-    settings,
+    searchTerm,
+    setSearchTerm,
+    filterBankId,
+    setFilterBankId,
+    viewMode,
+    setViewMode,
+    wrongQuestions,
+    filteredQuestions,
+    selectedQuestions,
+    generatingExplanations,
+    aiError,
+    setAiError,
+    handleSelectQuestion,
+    handleSelectAll,
+    handleStartPractice,
+    handleClearRecords,
+    formatDate,
+    generateExplanationsForSelected,
+    handleGenerateSimilarQuestions,
+    totalRecordsCount,
     isSimilarQuestionsModalOpen,
     generatingSimilarQuestions,
     similarQuestionsList,
     selectedOriginalQuestionsForSimilarity,
     toggleSimilarQuestionsModal,
-    setSelectedOriginalQuestionsForSimilarity,
-    generateSimilarQuestions,
     importGeneratedQuestions,
-  } = useQuizStore();
-  const { t } = useTranslation();
-
-  // Local UI state
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterBankId, setFilterBankId] = useState<string | "all">("all");
-  const [viewMode, setViewMode] = useState<"options" | "list">("options");
-
-  // AI explanation logic
-  const {
-    generatingExplanations,
-    aiError,
-    currentExplanations,
-    completedExplanations,
-    setAiError,
-    generateExplanation,
-    cleanupExplanations,
-  } = useAiExplanation();
-
-  /**
-   * Aggregate wrong questions information
-   */
-  const wrongQuestions = useMemo(() => {
-    const wrongRecords = records.filter((record) => !record.isCorrect);
-    const questions = wrongRecords
-      .map((record) => {
-        for (const bank of questionBanks) {
-          const question = bank.questions.find((q) => q.id === record.questionId);
-          if (question) {
-            const wrongQuestionDisplayItem: WrongQuestionDisplay = {
-              ...question,
-              bankId: bank.id,
-              bankName: bank.name,
-              userAnswer: record.userAnswer,
-              answeredAt: record.answeredAt,
-            };
-            return wrongQuestionDisplayItem;
-          }
-        }
-        return null;
-      })
-      .filter((q): q is WrongQuestionDisplay => q !== null);
-    return questions.sort((a, b) => b.answeredAt - a.answeredAt);
-  }, [questionBanks, records]);
-
-  // Review page business logic
-  const {
-    filteredQuestions,
-    selectedQuestions,
-    handleSelectQuestion,
-    handleSelectAll,
-    clearSelection,
-    getSelectedQuestions,
-  } = useReviewLogic({
-    wrongQuestions,
-    filterBankId,
-    searchTerm,
-    currentExplanations,
-    completedExplanations,
-  });
-
-  // Clean up explanation cache when filtered questions change
-  useEffect(() => {
-    const validIds = new Set(filteredQuestions.map((q) => q.id));
-    cleanupExplanations(validIds);
-  }, [filteredQuestions, cleanupExplanations]);
-
-  /**
-   * Handle start practice with wrong questions
-   */
-  const handleStartPractice = () => {
-    const wrongRecs = records.filter((record) => !record.isCorrect);
-    if (wrongRecs.length === 0) {
-      toast.info(t("review.alerts.noWrongQuestions"));
-      return;
-    }
-    const bankWithWrong = questionBanks.find((bank) =>
-      bank.questions.some((q) => wrongRecs.some((r) => r.questionId === q.id)),
-    );
-    if (bankWithWrong) {
-      router.push(`/quiz/practice?bankId=${bankWithWrong.id}&mode=review`);
-    } else {
-      toast.warning(t("review.alerts.noBankWithWrong"));
-    }
-  };
-
-  /**
-   * Clear wrong questions records
-   */
-  const handleClearRecords = async () => {
-    if (confirm(t("review.alerts.confirmClear"))) {
-      await clearRecords();
-      clearSelection();
-    }
-  };
-
-  /**
-   * Format timestamp to date string
-   */
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString("zh-CN");
-  };
-
-  /**
-   * Generate AI explanations for selected questions
-   */
-  const generateExplanationsForSelected = async () => {
-    if (selectedQuestions.size === 0) {
-      toast.warning(t("review.alerts.selectToExplain"));
-      return;
-    }
-
-    const { aiConfigs, activeAiConfigId } = settings;
-    const activeConfig = aiConfigs.find((c) => c.id === activeAiConfigId);
-
-    if (!activeConfig) {
-      setAiError(t("review.ai.noModel"));
-      return;
-    }
-
-    setAiError(null);
-    const selectedItems = getSelectedQuestions();
-
-    for (const questionInfo of selectedItems) {
-      await generateExplanation(questionInfo, activeConfig, async (questionId, explanation) => {
-        // Save to question bank
-        if (questionInfo.bankId) {
-          await updateQuestionInBank(questionInfo.bankId, questionId, {
-            explanation,
-          });
-        }
-      });
-    }
-  };
-
-  /**
-   * Generate similar questions using AI
-   */
-  const handleGenerateSimilarQuestions = async () => {
-    if (selectedQuestions.size === 0) {
-      toast.warning(t("review.alerts.selectToSimilar"));
-      return;
-    }
-    const selectedItems = getSelectedQuestions();
-    if (selectedItems.length === 0) {
-      toast.warning(t("review.alerts.noDetailsFound"));
-      return;
-    }
-
-    // Map WrongQuestionDisplay[] to Question[]
-    const questionsForAI: Question[] = selectedItems.map((q) => ({
-      id: q.id,
-      type: q.type,
-      content: q.content,
-      options: q.options,
-      answer: q.answer,
-      explanation: q.explanation,
-      tags: q.tags,
-      createdAt: q.createdAt,
-      updatedAt: q.updatedAt,
-    }));
-
-    setSelectedOriginalQuestionsForSimilarity(questionsForAI);
-    await generateSimilarQuestions(questionsForAI);
-  };
+  } = useReviewPage();
 
   // Empty state
   if (wrongQuestions.length === 0 && viewMode === "options") {
@@ -213,6 +57,7 @@ export default function ReviewPage() {
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
           <p className="text-gray-500 dark:text-gray-400 mb-4">{t("review.emptyState")}</p>
           <button
+            type="button"
             onClick={() => router.push("/quiz")}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-md"
           >
@@ -239,6 +84,7 @@ export default function ReviewPage() {
             {aiError}
           </span>
           <button
+            type="button"
             onClick={() => setAiError(null)}
             className="text-red-500 hover:text-red-700 dark:text-red-300 dark:hover:text-red-100"
           >
@@ -265,7 +111,7 @@ export default function ReviewPage() {
         onClearRecords={handleClearRecords}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        totalRecordsCount={records.length}
+        totalRecordsCount={totalRecordsCount}
       />
 
       {/* Search and filter bar */}

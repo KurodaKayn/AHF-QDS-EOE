@@ -1,63 +1,30 @@
 "use client";
 
-import type { QuizSettings, AIConfig } from "@/store/quizStore";
-import { useQuizStore } from "@/store/quizStore";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { Edit2, Plus, Trash2, Check, Server, Globe, Moon, Sun, Monitor } from "lucide-react";
-import { useThemeStore } from "@/store/themeStore";
-
 import { SettingItem } from "@/components/settings/SettingItem";
 import { BooleanSettingItem } from "@/components/settings/BooleanSettingItem";
 import { AiConfigForm } from "@/components/settings/AiConfigForm";
+import { useSettingsPage } from "./useSettingsPage";
 
 export default function SettingsPage() {
   const {
+    t,
+    i18n,
     settings,
-    setQuizSetting,
-    resetQuizSettings,
-    addAiConfig,
-    updateAiConfig,
+    theme,
+    setTheme,
+    editingConfigId,
+    setEditingConfigId,
+    isAddingMode,
+    setIsAddingMode,
     deleteAiConfig,
     setActiveAiConfig,
-  } = useQuizStore();
-  const { theme, setTheme } = useThemeStore();
-
-  const [editingConfigId, setEditingConfigId] = useState<string | null>(null);
-  const [isAddingMode, setIsAddingMode] = useState(false);
-
-  // Explicitly type the key for boolean settings
-  type BooleanSettingKey = Extract<
-    keyof QuizSettings,
-    | "shufflePracticeOptions"
-    | "shuffleReviewOptions"
-    | "shufflePracticeQuestionOrder"
-    | "shuffleReviewQuestionOrder"
-    | "markMistakeAsCorrectedOnReviewSuccess"
-    | "checkDuplicateQuestion"
-  >;
-
-  const handleBooleanSettingToggle = (key: BooleanSettingKey, value: boolean) => {
-    setQuizSetting(key as any, value);
-  };
-
-  const handleCreateConfig = (config: Omit<AIConfig, "id">) => {
-    addAiConfig(config);
-    setIsAddingMode(false);
-  };
-
-  const handleUpdateConfig = (config: Omit<AIConfig, "id">) => {
-    if (editingConfigId) {
-      updateAiConfig(editingConfigId, config);
-      setEditingConfigId(null);
-    }
-  };
-
-  const { t, i18n } = useTranslation();
-
-  const handleLanguageChange = (lang: string) => {
-    i18n.changeLanguage(lang);
-  };
+    resetQuizSettings,
+    handleBooleanSettingToggle,
+    handleCreateConfig,
+    handleUpdateConfig,
+    handleLanguageChange,
+  } = useSettingsPage();
 
   return (
     <>

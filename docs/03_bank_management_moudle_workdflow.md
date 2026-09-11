@@ -8,11 +8,10 @@
 
 ## 关键入口
 
-- `src/app/quiz/banks/manage/page.tsx`：主管理页，包含静态导出兼容逻辑。
-- `src/app/quiz/banks/[bankId]/page.tsx`：按动态路由查看和编辑单个题库。
-- `src/components/QuestionFormModal.tsx`：统一新增/编辑题目弹窗。
-- `src/hooks/useQuestionForm.ts`：题目表单状态和校验。
-- `src/components/quiz/manage/*`：题库选择、题目列表、重复题弹窗、删除确认弹窗。
+- `src/app/quiz/banks/manage/page.tsx` 与 `useManageBanksPage.ts`：主管理页及同级伴生 Hook，包含静态导出兼容逻辑。
+- `src/app/quiz/banks/[bankId]/page.tsx` 与 `useBankDetailPage.ts`：单个题库查看编辑及同级伴生 Hook。
+- `src/components/QuestionFormModal.tsx` 与 `src/components/useQuestionForm.ts`：统一新增/编辑题目弹窗及同级题目表单 Hook。
+- `src/components/quiz/manage/*`：题库选择、题目列表及伴生 Hook (`useBankDetailsCard.ts`, `useQuestionListSection.ts`)、重复题弹窗、删除确认弹窗。
 
 ## 数据流说明
 

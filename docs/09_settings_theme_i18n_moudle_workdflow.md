@@ -8,7 +8,8 @@
 
 ## 关键入口
 
-- `src/app/quiz/settings/page.tsx`：设置页面。
+- `src/app/quiz/settings/page.tsx` 与 `useSettingsPage.ts`：设置页面及同级伴生 Hook。
+- `src/components/settings/AiConfigForm.tsx` 与 `useAiConfigForm.ts`：AI 配置表单及同级伴生 Hook。
 - `src/store/quizStore.ts`：练习、复习、导入和 AI 设置。
 - `src/store/themeStore.ts`：主题偏好。
 - `src/components/ThemeRegistry.tsx`：把主题状态应用到 DOM。

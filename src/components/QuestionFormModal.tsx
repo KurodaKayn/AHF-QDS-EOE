@@ -21,7 +21,7 @@ import {
 import type { Question } from "@/types/quiz";
 import { QuestionType } from "@/types/quiz";
 import { getQuestionTypeName, QUESTION_TYPE_I18N_KEYS } from "@/constants/quiz";
-import { useQuestionForm } from "@/hooks/useQuestionForm";
+import { useQuestionForm } from "./useQuestionForm";
 import { toast } from "sonner";
 import { FaTrash, FaPlus } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
