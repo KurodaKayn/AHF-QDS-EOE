@@ -35,6 +35,38 @@ describe("quiz schemas", () => {
 
     expect(
       questionSchema.safeParse({
+        type: QuestionType.SingleChoice,
+        content: "Choose",
+        options: [
+          { id: "A", content: "" },
+          { id: "B", content: "Beta" },
+        ],
+        answer: "B",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      questionSchema.safeParse({
+        type: QuestionType.SingleChoice,
+        content: "Choose",
+        options: [
+          { id: "A", content: "Alpha" },
+          { id: "B", content: "Beta" },
+        ],
+        answer: "",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      questionSchema.safeParse({
+        type: QuestionType.ShortAnswer,
+        content: "Question?",
+        answer: "   ",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      questionSchema.safeParse({
         type: QuestionType.TrueFalse,
         content: "Is this true?",
         answer: "maybe",

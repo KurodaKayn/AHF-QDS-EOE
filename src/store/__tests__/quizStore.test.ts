@@ -200,5 +200,33 @@ describe("quiz store", () => {
       importedCount: 1,
       skippedCount: 1,
     });
+
+    const batchResult = await useQuizStore.getState().addQuestionsToBank(bank.id, [
+      {
+        type: QuestionType.ShortAnswer,
+        content: "Beta",
+        answer: "B",
+        createdAt: 1,
+        updatedAt: 1,
+      },
+      {
+        type: QuestionType.ShortAnswer,
+        content: "Beta",
+        answer: "B2",
+        createdAt: 1,
+        updatedAt: 1,
+      },
+      {
+        type: QuestionType.ShortAnswer,
+        content: "Gamma",
+        answer: "G",
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    ]);
+
+    expect(batchResult.addedCount).toBe(2);
+    expect(batchResult.duplicateCount).toBe(1);
+    expect(useQuizStore.getState().getQuestionBankById(bank.id)?.questions).toHaveLength(3);
   });
 });

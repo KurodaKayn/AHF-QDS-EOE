@@ -2,6 +2,7 @@ import { QuestionBank } from "@/types/quiz";
 import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from "@/utils/quiz";
 import { DEFAULT_EXPORT_FILENAME } from "@/constants/quiz";
 import { invoke } from "@tauri-apps/api/core";
+import { isTauriRuntime } from "@/lib/runtime";
 
 export interface ExportOptions {
   bank: QuestionBank;
@@ -18,9 +19,6 @@ export interface ImportResult {
   bank: QuestionBank;
   fileName: string;
 }
-
-const isTauriRuntime = () =>
-  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
 
 export async function exportQuestionBank(options: ExportOptions): Promise<void> {
   const { bank, format } = options;

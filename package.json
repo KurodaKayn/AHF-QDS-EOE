@@ -11,7 +11,7 @@
     "lint": "oxlint",
     "format": "oxfmt --write .",
     "test": "vitest run",
-    "test:unit": "vitest run src/utils/__tests__",
+    "test:unit": "vitest run --exclude \"src/regression/**\"",
     "test:regression": "vitest run src/regression/__tests__",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit --pretty false",
@@ -20,7 +20,8 @@
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "build:tauri": "pnpm build && tauri build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "\"test:unit\"": "vitest run \"src/**/__tests__\" --exclude \"src/regression/**\""
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",

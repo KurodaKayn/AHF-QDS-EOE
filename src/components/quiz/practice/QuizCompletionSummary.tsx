@@ -6,6 +6,7 @@ import { FaArrowLeft, FaRedo } from "react-icons/fa";
 import { Question, QuestionType } from "@/types/quiz";
 import { QuestionOption } from "@/types/quiz";
 import { useTranslation } from "react-i18next";
+import { PracticeHandlers } from "@/utils/practiceHandlers";
 
 interface QuizCompletionSummaryProps {
   practiceQuestions: (Question & { originalUserAnswer?: string | string[] })[];
@@ -26,39 +27,6 @@ export function QuizCompletionSummary({
 }: QuizCompletionSummaryProps) {
   const { t } = useTranslation();
 
-  const checkIsCorrect = (
-    question: Question,
-    userAnswer: string | string[] | undefined,
-  ): boolean => {
-    if (userAnswer === undefined || userAnswer === null) return false;
-    if (question.type === QuestionType.MultipleChoice) {
-      if (!Array.isArray(question.answer) || !Array.isArray(userAnswer)) return false;
-      const correctAnswers = new Set(question.answer as string[]);
-      const userAnswersSet = new Set(userAnswer as string[]);
-      if (correctAnswers.size === 0 && userAnswersSet.size === 0) return true;
-      return (
-        correctAnswers.size === userAnswersSet.size &&
-        [...correctAnswers].every((ans) => userAnswersSet.has(ans))
-      );
-    } else if (question.type === QuestionType.TrueFalse) {
-      return (userAnswer as string).toLowerCase() === (question.answer as string).toLowerCase();
-    } else if (question.type === QuestionType.FillInBlank) {
-      const userAns = (userAnswer as string).trim();
-      if (!userAns) return false;
-      const correctAns = question.answer as string;
-      if (correctAns.includes(";")) {
-        const acceptableAnswers = correctAns.split(/;(?!;)/).map((ans) => {
-          return ans.replace(/;;/g, ";").trim();
-        });
-        return acceptableAnswers.some(
-          (acceptableAns) => userAns.toLowerCase() === acceptableAns.toLowerCase(),
-        );
-      }
-      return userAns.toLowerCase() === correctAns.toLowerCase();
-    }
-    return (userAnswer as string).toLowerCase() === (question.answer as string).toLowerCase();
-  };
-
   const getCompletionTitle = () => {
     if (isReviewMode) {
       return t("practice.completion.reviewTitle");
@@ -66,7 +34,9 @@ export function QuizCompletionSummary({
     return t("practice.completion.title");
   };
 
-  const correctCount = practiceQuestions.filter((q) => checkIsCorrect(q, userAnswers[q.id])).length;
+  const correctCount = practiceQuestions.filter((q) =>
+    PracticeHandlers.checkIsCorrect(q, userAnswers[q.id]),
+  ).length;
   const totalPracticed = practiceQuestions.length;
   const accuracy = totalPracticed > 0 ? ((correctCount / totalPracticed) * 100).toFixed(1) : 0;
   const practiceTime = startTime ? ((Date.now() - startTime) / 1000).toFixed(0) : 0;
@@ -231,7 +201,7 @@ export function QuizCompletionSummary({
               <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 border dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
                 {practiceQuestions.map((question, index) => {
                   const userAnswer = userAnswers[question.id];
-                  const isCorrect = checkIsCorrect(question, userAnswer);
+                  const isCorrect = PracticeHandlers.checkIsCorrect(question, userAnswer);
                   const userAnswerDisplay = renderUserAnswerDisplay(question, userAnswer);
                   const correctAnswerDisplay = renderCorrectAnswerDisplay(question);
 

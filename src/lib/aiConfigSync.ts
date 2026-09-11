@@ -10,16 +10,15 @@ export interface AiProviderConfigPayload {
   model: string;
 }
 
-const isTauriRuntime =
-  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+import { isTauriRuntime } from "@/lib/runtime";
 
 export async function saveAiConfigOnBackend(config: AiProviderConfigPayload): Promise<void> {
-  if (!isTauriRuntime) return;
+  if (!isTauriRuntime()) return;
   await invoke("save_ai_config", { config });
 }
 
 export async function deleteAiConfigOnBackend(id: string): Promise<void> {
-  if (!isTauriRuntime) return;
+  if (!isTauriRuntime()) return;
   await invoke("delete_ai_config", { id });
 }
 

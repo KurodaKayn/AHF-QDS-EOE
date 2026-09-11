@@ -35,7 +35,7 @@ interface QuestionFormModalProps {
     bankId: string,
     questionData: Omit<Question, "id">,
     questionId?: string,
-  ) => void | Promise<void>;
+  ) => boolean | void | Promise<boolean | void>;
 }
 
 /**
@@ -78,7 +78,10 @@ export default function QuestionFormModal({
     }
 
     const questionData = buildQuestionData();
-    await onSave(bankId, questionData, questionToEdit?.id);
+    const result = await onSave(bankId, questionData, questionToEdit?.id);
+    if (result === false) {
+      return;
+    }
 
     if (onSubmitSuccess) onSubmitSuccess();
     onClose();

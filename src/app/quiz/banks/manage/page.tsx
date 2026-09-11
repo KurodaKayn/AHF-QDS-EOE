@@ -7,9 +7,7 @@ import { useQuizStore } from "@/store/quizStore";
 import { Question } from "@/types/quiz";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { FaArrowLeft, FaEdit, FaRegTrashAlt } from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 import { toast } from "sonner";
 import QuestionFormModal from "@/components/QuestionFormModal";
 import CreateBankModal from "@/components/CreateBankModal";
@@ -17,7 +15,7 @@ import { BeatLoader } from "react-spinners";
 import { useThemeStore } from "@/store/themeStore";
 import { useTranslation } from "react-i18next";
 import { BankSelector } from "@/components/quiz/manage/BankSelector";
-import { QuestionListSection } from "@/components/quiz/manage/QuestionListSection";
+import { BankDetailsCard } from "@/components/quiz/manage/BankDetailsCard";
 import { DuplicateQuestionsModal } from "@/components/quiz/manage/DuplicateQuestionsModal";
 import { DeleteConfirmDialog, DeleteType } from "@/components/quiz/manage/DeleteConfirmDialog";
 import { NoDuplicatesDialog } from "@/components/quiz/manage/NoDuplicatesDialog";
@@ -42,9 +40,6 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
 
   // State
   const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
-  const [isEditingBankDetails, setIsEditingBankDetails] = useState(false);
-  const [editBankName, setEditBankName] = useState("");
-  const [editBankDescription, setEditBankDescription] = useState("");
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   const [isCreateBankModalOpen, setIsCreateBankModalOpen] = useState(false);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
@@ -89,28 +84,14 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
     }
   }, [selectedBankId, questionBanks]);
 
-  // Sync edit state when selected bank changes
-  useEffect(() => {
-    if (selectedBank) {
-      setEditBankName(selectedBank.name);
-      setEditBankDescription(selectedBank.description || "");
-      setIsEditingBankDetails(false);
-    } else {
-      setEditBankName("");
-      setEditBankDescription("");
-      setIsEditingBankDetails(false);
-    }
-  }, [selectedBank]);
-
   // Handlers
-  const handleSaveBankDetails = async () => {
-    if (!selectedBank || !editBankName.trim()) {
+  const handleSaveBankDetails = async (name: string, description: string) => {
+    if (!selectedBank || !name.trim()) {
       toast.error(t("bankManage.alerts.bankNameRequired"));
       return;
     }
-    await updateQuestionBank(selectedBank.id, editBankName.trim(), editBankDescription.trim());
-    toast.success(t("bankManage.alerts.bankUpdated", { name: editBankName.trim() }));
-    setIsEditingBankDetails(false);
+    await updateQuestionBank(selectedBank.id, name.trim(), description.trim());
+    toast.success(t("bankManage.alerts.bankUpdated", { name: name.trim() }));
   };
 
   const handleSelectBank = (bankId: string) => {
@@ -258,105 +239,15 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
           />
 
           {selectedBank && (
-            <div className="space-y-4">
-              {isEditingBankDetails ? (
-                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
-                  <div>
-                    <label
-                      htmlFor="bankName"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      {t("bankManage.bankName")}
-                    </label>
-                    <Input
-                      id="bankName"
-                      value={editBankName}
-                      onChange={(e) => setEditBankName(e.target.value)}
-                      placeholder={t("bankManage.bankNamePlaceholder")}
-                      className="text-base"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="bankDescription"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      {t("bankManage.bankDescription")}
-                    </label>
-                    <Textarea
-                      id="bankDescription"
-                      value={editBankDescription}
-                      onChange={(e) => setEditBankDescription(e.target.value)}
-                      placeholder={t("bankManage.bankDescPlaceholder")}
-                      rows={3}
-                      className="text-base"
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsEditingBankDetails(false)}
-                      size="sm"
-                    >
-                      {t("bankManage.cancel")}
-                    </Button>
-                    <Button onClick={handleSaveBankDetails} size="sm">
-                      {t("bankManage.saveChanges")}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="space-y-1 flex-1">
-                      <p className="text-gray-600 dark:text-gray-300">
-                        <span className="font-semibold text-gray-700 dark:text-gray-200">
-                          {t("bankManage.description")}:
-                        </span>{" "}
-                        {selectedBank.description || t("bankManage.noDescription")}
-                      </p>
-                      <p className="text-gray-600 dark:text-gray-300">
-                        <span className="font-semibold text-gray-700 dark:text-gray-200">
-                          {t("bankManage.questionCount")}:
-                        </span>{" "}
-                        {selectedBank.questions ? selectedBank.questions.length : 0}{" "}
-                        {t("bankManage.questionUnit")}
-                      </p>
-                      <p className="text-gray-600 dark:text-gray-300">
-                        <span className="font-semibold text-gray-700 dark:text-gray-200">
-                          {t("bankManage.createdAt")}
-                        </span>{" "}
-                        {selectedBank.createdAt
-                          ? new Date(selectedBank.createdAt).toLocaleString()
-                          : t("bankManage.unknown")}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 ml-4">
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsEditingBankDetails(true)}
-                        size="sm"
-                      >
-                        <FaEdit className="mr-2" /> {t("bankManage.editInfo")}
-                      </Button>
-                      <Button variant="destructive" onClick={handleDeleteCurrentBank} size="sm">
-                        <FaRegTrashAlt className="mr-2" /> {t("bankManage.deleteBank")}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="border-t dark:border-gray-700 pt-6">
-                <QuestionListSection
-                  questions={selectedBank.questions || []}
-                  onAddQuestion={handleOpenAddQuestionModal}
-                  onEditQuestion={handleOpenEditQuestionModal}
-                  onDeleteQuestion={handleDeleteQuestion}
-                  onFindDuplicates={handleFindDuplicates}
-                />
-              </div>
-            </div>
+            <BankDetailsCard
+              bank={selectedBank}
+              onUpdate={handleSaveBankDetails}
+              onDelete={handleDeleteCurrentBank}
+              onAddQuestion={handleOpenAddQuestionModal}
+              onEditQuestion={handleOpenEditQuestionModal}
+              onDeleteQuestion={handleDeleteQuestion}
+              onFindDuplicates={handleFindDuplicates}
+            />
           )}
 
           {!selectedBank && questionBanks && questionBanks.length > 0 && (
@@ -422,16 +313,25 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
           }}
           onSave={async (bankId, questionData, questionId) => {
             if (questionId) {
-              await updateQuestionInBank(bankId, questionId, questionData);
-              toast.success(t("bankManage.alerts.questionUpdated"));
+              const updated = await updateQuestionInBank(bankId, questionId, questionData);
+              if (updated) {
+                toast.success(t("bankManage.alerts.questionUpdated"));
+                return true;
+              } else {
+                toast.error(t("bankManage.alerts.addQuestionFailed"));
+                return false;
+              }
             } else {
               const result = await addQuestionToBank(bankId, questionData);
               if (result.isDuplicate) {
                 toast.error(t("bankManage.alerts.duplicateError"));
+                return false;
               } else if (result.question) {
                 toast.success(t("bankManage.alerts.questionAdded"));
+                return true;
               } else {
                 toast.error(t("bankManage.alerts.addQuestionFailed"));
+                return false;
               }
             }
           }}

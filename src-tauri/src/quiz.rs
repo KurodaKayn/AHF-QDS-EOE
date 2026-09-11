@@ -740,6 +740,74 @@ pub async fn add_question_to_bank(
     })
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchQuestionMutationResult {
+    pub added_count: usize,
+    pub duplicate_count: usize,
+    pub snapshot: QuizSnapshot,
+}
+
+#[tauri::command]
+pub async fn batch_add_questions_to_bank(
+    state: State<'_, crate::AppState>,
+    bank_id: String,
+    questions: Vec<QuestionInput>,
+    check_duplicate: bool,
+) -> Result<BatchQuestionMutationResult, String> {
+    let mut conn = open_connection(&state.db_path)?;
+    let tx = conn.transaction().map_err(|error| error.to_string())?;
+
+    let mut added_count = 0;
+    let mut duplicate_count = 0;
+    let now = now_millis();
+
+    for input in questions {
+        if check_duplicate {
+            let normalized = normalize_content(&input.content);
+            let duplicate_id: Option<String> = tx
+                .query_row(
+                    r#"
+                    SELECT id
+                    FROM questions
+                    WHERE bank_id = ?1 AND normalized_content = ?2
+                    LIMIT 1
+                    "#,
+                    params![bank_id, normalized],
+                    |row| row.get(0),
+                )
+                .optional()
+                .map_err(|error| error.to_string())?;
+
+            if duplicate_id.is_some() {
+                duplicate_count += 1;
+                continue;
+            }
+        }
+
+        let mut question = question_from_input(input);
+        question.updated_at = now;
+        insert_question(&tx, &bank_id, &question)?;
+        added_count += 1;
+    }
+
+    if added_count > 0 {
+        tx.execute(
+            "UPDATE question_banks SET updated_at = ?2 WHERE id = ?1",
+            params![bank_id, now],
+        )
+        .map_err(|error| error.to_string())?;
+    }
+
+    tx.commit().map_err(|error| error.to_string())?;
+
+    Ok(BatchQuestionMutationResult {
+        added_count,
+        duplicate_count,
+        snapshot: load_snapshot(&conn)?,
+    })
+}
+
 #[tauri::command]
 pub async fn update_question_in_bank(
     state: State<'_, crate::AppState>,
@@ -747,7 +815,7 @@ pub async fn update_question_in_bank(
     question_id: String,
     question: QuestionInput,
 ) -> Result<QuestionMutationResult, String> {
-    let conn = open_connection(&state.db_path)?;
+    let mut conn = open_connection(&state.db_path)?;
     let now = now_millis();
     let answer_json = serde_json::to_string(&question.answer).map_err(|error| error.to_string())?;
     let tags_json = question
@@ -757,7 +825,9 @@ pub async fn update_question_in_bank(
         .transpose()
         .map_err(|error| error.to_string())?;
 
-    conn.execute(
+    let tx = conn.transaction().map_err(|error| error.to_string())?;
+
+    tx.execute(
         r#"
         UPDATE questions
         SET question_type = ?3, content = ?4, normalized_content = ?5, answer_json = ?6,
@@ -778,14 +848,14 @@ pub async fn update_question_in_bank(
     )
     .map_err(|error| error.to_string())?;
 
-    conn.execute(
+    tx.execute(
         "DELETE FROM question_options WHERE question_id = ?1",
-        [question_id.clone()],
+        [&question_id],
     )
     .map_err(|error| error.to_string())?;
 
     for (index, option) in question.options.unwrap_or_default().iter().enumerate() {
-        conn.execute(
+        tx.execute(
             r#"
             INSERT INTO question_options (id, question_id, content, sort_order)
             VALUES (?1, ?2, ?3, ?4)
@@ -795,11 +865,13 @@ pub async fn update_question_in_bank(
         .map_err(|error| error.to_string())?;
     }
 
-    conn.execute(
+    tx.execute(
         "UPDATE question_banks SET updated_at = ?2 WHERE id = ?1",
         params![bank_id, now],
     )
     .map_err(|error| error.to_string())?;
+
+    tx.commit().map_err(|error| error.to_string())?;
 
     let updated_question = load_questions(&conn, &bank_id)?
         .into_iter()

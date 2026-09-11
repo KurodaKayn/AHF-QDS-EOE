@@ -21,7 +21,7 @@ export interface ImportStats {
  */
 export function useImportExport() {
   const { t } = useTranslation();
-  const { questionBanks, addQuestionBank, addQuestionToBank } = useQuizStore();
+  const { questionBanks, addQuestionBank, addQuestionsToBank } = useQuizStore();
 
   const [selectedBankId, setSelectedBankId] = useState<string>("");
   const [exportFormat, setExportFormat] = useState<"csv" | "excel">("csv");
@@ -75,27 +75,18 @@ export function useImportExport() {
       }
 
       // Add questions to the target bank
-      let addedCount = 0;
-      let duplicateCount = 0;
-      const totalCount = result.bank.questions?.length || 0;
+      const questionsData = (result.bank.questions || []).map((question) => {
+        const { id: _id, ...questionData } = question; // Remove original ID
+        return questionData;
+      });
 
-      if (result.bank.questions && result.bank.questions.length > 0) {
-        for (const question of result.bank.questions) {
-          const { id: _id, ...questionData } = question; // Remove original ID
-          const addResult = await addQuestionToBank(targetBankId, questionData);
-          if (addResult.isDuplicate) {
-            duplicateCount++;
-          } else if (addResult.question) {
-            addedCount++;
-          }
-        }
-      }
+      const addResult = await addQuestionsToBank(targetBankId, questionsData);
 
       // Update UI state with results
       setImportResult({
-        total: totalCount,
-        added: addedCount,
-        duplicates: duplicateCount,
+        total: result.bank.questions?.length || 0,
+        added: addResult.addedCount,
+        duplicates: addResult.duplicateCount,
       });
 
       setImportName("");

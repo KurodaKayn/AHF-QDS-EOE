@@ -103,3 +103,6 @@ jobs:
 
       - name: Check Tauri Backend
         run: cargo check --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Test Tauri Backend
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked

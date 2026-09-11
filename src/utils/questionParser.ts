@@ -1,8 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Question, QuestionOption, QuestionType } from "@/types/quiz";
-
-const isTauriRuntime = () =>
-  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+import { isTauriRuntime } from "@/lib/runtime";
 
 /**
  * Parses text into an array of question objects.
@@ -232,10 +230,9 @@ function findAnswer(
       return option ? option.id : letter;
     }
   } else if (questionType === QuestionType.MultipleChoice) {
-    const letters = answerText
-      .split(/[\s,，、]+/)
-      .map((a) => a.trim().toUpperCase())
-      .filter(Boolean);
+    // Support separated letters ("A, B", "A、B", "A B") and contiguous letters ("AB", "ABC")
+    // Consistent with Rust answer_letters
+    const letters = answerText.normalize("NFKC").toUpperCase().match(/[A-Z]/g) || [];
     return letters
       .map((letter) => {
         const option = options.find((opt) => opt.id === letter);

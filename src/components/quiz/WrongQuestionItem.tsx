@@ -1,7 +1,7 @@
 "use client";
 
 import { FaCheck, FaTimes } from "react-icons/fa";
-import { Question, QuestionType, QuestionOption } from "@/types/quiz";
+import { QuestionType, QuestionOption, WrongQuestionDisplay } from "@/types/quiz";
 import { getTagColor } from "@/constants/quiz";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -10,13 +10,7 @@ import rehypeSanitize from "rehype-sanitize";
 import type { Components } from "react-markdown";
 import { useTranslation } from "react-i18next";
 
-// Define extended type for wrong question display
-export interface WrongQuestionDisplay extends Question {
-  bankId: string;
-  bankName: string;
-  userAnswer: string | string[];
-  answeredAt: number;
-}
+export type { WrongQuestionDisplay };
 
 interface WrongQuestionItemProps {
   question: WrongQuestionDisplay | null;

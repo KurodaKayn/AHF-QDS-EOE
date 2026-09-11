@@ -47,6 +47,7 @@ export default function ConvertPage() {
     isLoadingScript,
     error,
     convertedQuestions,
+    setConvertedQuestions,
     setError,
     convertWithAI,
     convertWithScript,
@@ -58,6 +59,7 @@ export default function ConvertPage() {
       setSavedBankName(bankName);
       setIsSuccess(true);
       setInputText("");
+      clearResults();
       setTimeout(() => setIsSuccess(false), 3000);
     },
   });
@@ -71,11 +73,14 @@ export default function ConvertPage() {
       setScriptTemplate(
         (conversionState.scriptTemplate as ScriptTemplate) || ScriptTemplate.ChaoXing,
       );
+      if (conversionState.generatedQuestions && conversionState.generatedQuestions.length > 0) {
+        setConvertedQuestions(conversionState.generatedQuestions);
+      }
       setTimeout(() => {
         isUpdatingFromStore.current = false;
       }, 0);
     }
-  }, []);
+  }, [conversionState, setConvertedQuestions]);
 
   // Sync local state to store when changed
   useEffect(() => {

@@ -9,38 +9,64 @@ export class PracticeHandlers {
    * Checks if the user answer is correct
    */
   static checkIsCorrect(question: Question, userAnswer: string | string[] | undefined): boolean {
-    if (!userAnswer) return false;
+    if (userAnswer === undefined || userAnswer === null) return false;
 
     const correctAnswer = question.answer;
 
     switch (question.type) {
       case QuestionType.SingleChoice:
       case QuestionType.TrueFalse:
-        return (userAnswer as string).toLowerCase() === (correctAnswer as string).toLowerCase();
+        if (typeof userAnswer !== "string" || typeof correctAnswer !== "string") return false;
+        return userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
 
-      case QuestionType.MultipleChoice:
+      case QuestionType.MultipleChoice: {
         if (!Array.isArray(userAnswer) || !Array.isArray(correctAnswer)) {
           return false;
         }
         if (userAnswer.length !== correctAnswer.length) {
           return false;
         }
-        const sortedUserAnswer = [...userAnswer].sort();
-        const sortedCorrectAnswer = [...correctAnswer].sort();
-        return sortedUserAnswer.every((ans, index) => ans === sortedCorrectAnswer[index]);
+        const userSet = new Set(userAnswer.map((a) => String(a).trim().toLowerCase()));
+        const correctSet = new Set(correctAnswer.map((a) => String(a).trim().toLowerCase()));
+        if (userSet.size !== correctSet.size) return false;
+        for (const item of correctSet) {
+          if (!userSet.has(item)) return false;
+        }
+        return true;
+      }
 
-      case QuestionType.FillInBlank:
+      case QuestionType.FillInBlank: {
         if (typeof correctAnswer !== "string") return false;
-        const correctAnswers = correctAnswer.split(";").map((a) => a.trim().toLowerCase());
-        const userAnswerStr = typeof userAnswer === "string" ? userAnswer : userAnswer.join(";");
-        const userAnswerLower = userAnswerStr.trim().toLowerCase();
-        return correctAnswers.some((ans) => ans === userAnswerLower);
+        const userAns = (
+          typeof userAnswer === "string"
+            ? userAnswer
+            : Array.isArray(userAnswer)
+              ? userAnswer.join(";")
+              : ""
+        )
+          .trim()
+          .toLowerCase();
+        if (!userAns) return false;
+
+        let acceptableAnswers: string[];
+        if (correctAnswer.includes(";")) {
+          acceptableAnswers = correctAnswer
+            .split(/(?<!;);(?!;)/)
+            .map((ans) => ans.replace(/;;/g, ";").trim().toLowerCase());
+        } else {
+          acceptableAnswers = [correctAnswer.trim().toLowerCase()];
+        }
+        return acceptableAnswers.some((ans) => ans === userAns);
+      }
 
       case QuestionType.ShortAnswer:
         if (typeof correctAnswer !== "string" || typeof userAnswer !== "string") return false;
         return userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
 
       default:
+        if (typeof correctAnswer === "string" && typeof userAnswer === "string") {
+          return userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
+        }
         return false;
     }
   }

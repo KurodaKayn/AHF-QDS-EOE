@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { WrongQuestionDisplay } from "@/components/quiz/WrongQuestionItem";
+import { WrongQuestionDisplay } from "@/types/quiz";
 
 interface UseReviewLogicProps {
   wrongQuestions: WrongQuestionDisplay[];

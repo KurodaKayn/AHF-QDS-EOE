@@ -61,3 +61,13 @@ export interface QuestionRecord {
 export interface ApiKeyConfig {
   deepseek: string;
 }
+
+/**
+ * Wrong question display data structure
+ */
+export interface WrongQuestionDisplay extends Question {
+  bankId: string;
+  bankName: string;
+  userAnswer: string | string[];
+  answeredAt: number;
+}

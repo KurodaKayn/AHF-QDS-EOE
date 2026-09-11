@@ -1,13 +1,11 @@
 import { Question } from "@/types/quiz";
 import { invoke } from "@tauri-apps/api/core";
+import { isTauriRuntime } from "@/lib/runtime";
 
 interface DuplicateQuestionGroup {
   normalizedContent: string;
   questionIds: string[];
 }
-
-const isTauriRuntime = () =>
-  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
 
 export const normalizeQuestionContent = (text: string): string =>
   text

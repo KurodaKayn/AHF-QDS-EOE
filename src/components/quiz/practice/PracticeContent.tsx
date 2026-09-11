@@ -1,10 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { usePracticeSession } from "@/hooks/usePracticeSession";
-import { PracticeHandlers } from "@/utils/practiceHandlers";
 import { useThemeStore } from "@/store/themeStore";
-import { QuestionType } from "@/types/quiz";
 import { QuizCompletionSummary } from "@/components/quiz/practice/QuizCompletionSummary";
 import { QuestionDisplay } from "@/components/quiz/practice/QuestionDisplay";
 import { QuestionNavigation } from "@/components/quiz/practice/QuestionNavigation";
@@ -18,7 +15,6 @@ import { useTranslation } from "react-i18next";
  * Uses persistent state, supports session recovery
  */
 export function PracticeContent() {
-  const router = useRouter();
   const { theme } = useThemeStore();
   const { t } = useTranslation();
 
@@ -38,166 +34,20 @@ export function PracticeContent() {
     isLastQuestion,
     canPressNext,
     setIsNumQuestionsModalOpen,
-    updateSession,
-    clearPracticeSession,
-    addRecord,
-    removeWrongRecordsByQuestionId,
-    settings,
+    handleNumQuestionsSubmit,
+    handleAnswerSelect,
+    handleAnswerChange,
+    handlePreviousQuestion,
+    handleShowAnswer,
+    handleNextQuestion,
+    handleJumpToQuestion,
+    handleCompleteQuiz,
+    handleReturnToQuizList,
+    handleReturnToBank,
+    handleManageBankClick,
+    handleRetryQuiz,
+    handleReload,
   } = usePracticeSession();
-
-  // ==================== Event Handlers ====================
-
-  const handleNumQuestionsSubmit = (numToPractice: number) => {
-    setIsNumQuestionsModalOpen(false);
-
-    const questionsToSet = PracticeHandlers.preparePracticeQuestions(
-      allBankQuestions.slice(0, numToPractice),
-      {
-        shuffleQuestionOrder: settings.shufflePracticeQuestionOrder,
-        shuffleOptions: settings.shufflePracticeOptions,
-      },
-    );
-
-    updateSession({
-      practiceQuestions: questionsToSet,
-      currentQuestionIndex: 0,
-      userAnswers: {},
-      showAnswer: false,
-      quizCompleted: false,
-      startTime: Date.now(),
-    });
-  };
-
-  const handleAnswerSelect = (optionId: string) => {
-    if (!currentQuestion) return;
-
-    const newAnswers = { ...userAnswers };
-
-    if (currentQuestion.type === QuestionType.MultipleChoice) {
-      const currentAnswer = (newAnswers[currentQuestion.id] as string[]) || [];
-      const index = currentAnswer.indexOf(optionId);
-      if (index > -1) {
-        currentAnswer.splice(index, 1);
-      } else {
-        currentAnswer.push(optionId);
-      }
-      newAnswers[currentQuestion.id] = currentAnswer;
-    } else {
-      newAnswers[currentQuestion.id] = optionId;
-    }
-
-    updateSession({ userAnswers: newAnswers });
-  };
-
-  const handleAnswerChange = (answer: string) => {
-    if (!currentQuestion) return;
-    updateSession({
-      userAnswers: { ...userAnswers, [currentQuestion.id]: answer },
-    });
-  };
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      updateSession({
-        currentQuestionIndex: currentQuestionIndex - 1,
-        showAnswer: false,
-      });
-    }
-  };
-
-  const handleShowAnswer = () => {
-    updateSession({ showAnswer: true });
-  };
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < practiceQuestions.length - 1) {
-      updateSession({
-        currentQuestionIndex: currentQuestionIndex + 1,
-        showAnswer: false,
-      });
-    }
-  };
-
-  const handleCompleteQuiz = async () => {
-    if (!startTime) return;
-
-    const _totalTime = Math.floor((Date.now() - startTime) / 1000);
-
-    for (const question of practiceQuestions) {
-      const userAnswer = userAnswers[question.id];
-      const isCorrect = PracticeHandlers.checkIsCorrect(question, userAnswer);
-
-      await addRecord({
-        questionId: question.id,
-        userAnswer: userAnswer || "",
-        isCorrect,
-        answeredAt: Date.now(),
-      });
-
-      if (isReviewMode && isCorrect && settings.markMistakeAsCorrectedOnReviewSuccess) {
-        await removeWrongRecordsByQuestionId(question.id);
-      }
-    }
-
-    updateSession({ quizCompleted: true });
-  };
-
-  const handleReturnToQuizList = () => {
-    clearPracticeSession();
-    router.push("/quiz");
-  };
-
-  const handleRetryQuiz = () => {
-    if (isReviewMode) {
-      clearPracticeSession();
-      router.push(`/quiz/practice?bankId=${currentBank?.id}&mode=review`);
-    } else {
-      const questionsToSet = PracticeHandlers.preparePracticeQuestions(allBankQuestions, {
-        shuffleQuestionOrder: settings.shufflePracticeQuestionOrder,
-        shuffleOptions: settings.shufflePracticeOptions,
-      });
-
-      updateSession({
-        practiceQuestions: questionsToSet,
-        currentQuestionIndex: 0,
-        userAnswers: {},
-        showAnswer: false,
-        quizCompleted: false,
-        startTime: Date.now(),
-      });
-    }
-  };
-
-  const handleManageBankClick = () => {
-    router.push(`/quiz/banks/manage?bankId=${currentBank?.id}`);
-  };
-
-  const handleJumpToQuestion = (index: number) => {
-    if (index >= 0 && index < practiceQuestions.length) {
-      updateSession({
-        currentQuestionIndex: index,
-        showAnswer: false,
-      });
-    }
-  };
-
-  const handleReturnToBank = () => {
-    // Don't clear session, user can return from sidebar to continue
-    router.push("/quiz");
-  };
-
-  const handleReload = () => {
-    // Clear current session, re-select question count
-    updateSession({
-      practiceQuestions: [],
-      currentQuestionIndex: 0,
-      userAnswers: {},
-      showAnswer: false,
-      quizCompleted: false,
-      startTime: null,
-    });
-    setIsNumQuestionsModalOpen(true);
-  };
 
   // ==================== Render ====================
 
@@ -220,8 +70,6 @@ export function PracticeContent() {
   }
 
   if (quizCompleted) {
-    PracticeHandlers.calculateStats(practiceQuestions, userAnswers);
-
     return (
       <QuizCompletionSummary
         practiceQuestions={practiceQuestions}

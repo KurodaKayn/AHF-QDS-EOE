@@ -1,14 +1,12 @@
 import { useState, useCallback } from "react";
 import { getPrompts } from "@/constants/ai";
-import { callAIStream } from "@/lib/ai";
+import { callAIStream, AiProviderConfig } from "@/lib/ai";
 import { getQuestionTypeName } from "@/constants/quiz";
 import { QuestionType } from "@/types/quiz";
 import { WrongQuestionDisplay } from "@/components/quiz/WrongQuestionItem";
 import { useTranslation } from "react-i18next";
 
-interface AiConfig {
-  id: string;
-}
+export type AiConfig = AiProviderConfig | string;
 
 /**
  * AI Explanation Generation Hook
@@ -93,7 +91,7 @@ export function useAiExplanation() {
         ];
 
         let fullExplanation = "";
-        await callAIStream(aiConfig.id, messages, (chunk) => {
+        await callAIStream(aiConfig, messages, (chunk) => {
           setCurrentExplanations((prev) => {
             fullExplanation = (prev[questionId] || "") + chunk;
             return { ...prev, [questionId]: fullExplanation };

@@ -128,6 +128,7 @@ pub fn run() {
             quiz::update_question_bank,
             quiz::delete_question_bank,
             quiz::add_question_to_bank,
+            quiz::batch_add_questions_to_bank,
             quiz::update_question_in_bank,
             quiz::delete_question_from_bank,
             quiz::add_question_record,

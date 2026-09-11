@@ -9,9 +9,7 @@ import { callAI } from "@/lib/ai";
 import { deleteAiConfigOnBackend, saveAiConfigOnBackend } from "@/lib/aiConfigSync";
 import { invoke } from "@tauri-apps/api/core";
 import { normalizeQuestionContent } from "@/lib/quizQueries";
-
-const isTauriRuntime =
-  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+import { isTauriRuntime } from "@/lib/runtime";
 
 // AI Config Interface
 export interface AIConfig {
@@ -59,6 +57,10 @@ export interface QuizState {
     bankId: string,
     question: Omit<Question, "id">,
   ) => Promise<{ question: Question | null; isDuplicate: boolean }>;
+  addQuestionsToBank: (
+    bankId: string,
+    questions: Omit<Question, "id">[],
+  ) => Promise<{ addedCount: number; duplicateCount: number; addedQuestions: Question[] }>;
   updateQuestionInBank: (
     bankId: string,
     questionId: string,
@@ -229,7 +231,7 @@ export const useQuizStore = create<QuizState>()(
       },
 
       addQuestionBank: async (name, description = "") => {
-        if (isTauriRuntime) {
+        if (isTauriRuntime()) {
           const result = await invoke<BankMutationResult>("create_question_bank", {
             name,
             description,
@@ -257,7 +259,7 @@ export const useQuizStore = create<QuizState>()(
       },
       getQuestionBankById: (id) => get().questionBanks.find((bank) => bank.id === id),
       updateQuestionBank: async (id, name, description) => {
-        if (isTauriRuntime) {
+        if (isTauriRuntime()) {
           const result = await invoke<BankMutationResult>("update_question_bank", {
             id,
             name,
@@ -284,7 +286,7 @@ export const useQuizStore = create<QuizState>()(
         }));
       },
       deleteQuestionBank: async (id) => {
-        if (isTauriRuntime) {
+        if (isTauriRuntime()) {
           const snapshot = await invoke<QuizSnapshot>("delete_question_bank", { id });
           set({
             questionBanks: snapshot.questionBanks,
@@ -304,7 +306,7 @@ export const useQuizStore = create<QuizState>()(
         }));
       },
       addQuestionToBank: async (bankId, questionData) => {
-        if (isTauriRuntime) {
+        if (isTauriRuntime()) {
           const result = await invoke<QuestionMutationResult>("add_question_to_bank", {
             bankId,
             question: questionData,
@@ -358,8 +360,83 @@ export const useQuizStore = create<QuizState>()(
           isDuplicate: false,
         };
       },
+      addQuestionsToBank: async (bankId, questions) => {
+        if (questions.length === 0) {
+          return { addedCount: 0, duplicateCount: 0, addedQuestions: [] };
+        }
+
+        if (isTauriRuntime()) {
+          const result = await invoke<{
+            addedCount: number;
+            duplicateCount: number;
+            snapshot: { questionBanks: QuestionBank[]; records: QuestionRecord[] };
+          }>("batch_add_questions_to_bank", {
+            bankId,
+            questions,
+            checkDuplicate: get().settings.checkDuplicateQuestion,
+          });
+          set({
+            questionBanks: result.snapshot.questionBanks,
+            records: result.snapshot.records,
+          });
+          const updatedBank = result.snapshot.questionBanks.find((b) => b.id === bankId);
+          return {
+            addedCount: result.addedCount,
+            duplicateCount: result.duplicateCount,
+            addedQuestions: updatedBank ? updatedBank.questions.slice(-result.addedCount) : [],
+          };
+        }
+
+        const bank = get().getQuestionBankById(bankId);
+        if (!bank) {
+          return { addedCount: 0, duplicateCount: 0, addedQuestions: [] };
+        }
+
+        const checkDuplicate = get().settings.checkDuplicateQuestion;
+        const existingNormalized = new Set(
+          bank.questions.map((q) => normalizeQuestionContent(q.content)),
+        );
+
+        let addedCount = 0;
+        let duplicateCount = 0;
+        const newQuestions: Question[] = [];
+
+        for (const qData of questions) {
+          const normalized = normalizeQuestionContent(qData.content);
+          if (checkDuplicate && existingNormalized.has(normalized)) {
+            duplicateCount++;
+            continue;
+          }
+
+          const newQ: Question = { ...qData, id: nanoid() };
+          newQuestions.push(newQ);
+          existingNormalized.add(normalized);
+          addedCount++;
+        }
+
+        if (addedCount > 0) {
+          set((state) => ({
+            questionBanks: state.questionBanks.map((b) => {
+              if (b.id === bankId) {
+                return {
+                  ...b,
+                  questions: [...b.questions, ...newQuestions],
+                  updatedAt: Date.now(),
+                };
+              }
+              return b;
+            }),
+          }));
+        }
+
+        return {
+          addedCount,
+          duplicateCount,
+          addedQuestions: newQuestions,
+        };
+      },
       updateQuestionInBank: async (bankId, questionId, questionData) => {
-        if (isTauriRuntime) {
+        if (isTauriRuntime()) {
           const currentQuestion = get()
             .getQuestionBankById(bankId)
             ?.questions.find((question) => question.id === questionId);
@@ -403,7 +480,7 @@ export const useQuizStore = create<QuizState>()(
         return updatedQuestion;
       },
       deleteQuestionFromBank: async (bankId, questionId) => {
-        if (isTauriRuntime) {
+        if (isTauriRuntime()) {
           const snapshot = await invoke<QuizSnapshot>("delete_question_from_bank", {
             bankId,
             questionId,
@@ -438,7 +515,7 @@ export const useQuizStore = create<QuizState>()(
         return undefined;
       },
       addRecord: async (record) => {
-        if (isTauriRuntime) {
+        if (isTauriRuntime()) {
           const snapshot = await invoke<QuizSnapshot>("add_question_record", {
             record,
           });
@@ -453,7 +530,7 @@ export const useQuizStore = create<QuizState>()(
         set((state) => ({ records: [...state.records, newRecord] }));
       },
       clearRecords: async (bankId) => {
-        if (isTauriRuntime) {
+        if (isTauriRuntime()) {
           const snapshot = await invoke<QuizSnapshot>("clear_question_records", {
             bankId,
           });
@@ -476,7 +553,7 @@ export const useQuizStore = create<QuizState>()(
         }
       },
       removeWrongRecordsByQuestionId: async (questionIdToRemove) => {
-        if (isTauriRuntime) {
+        if (isTauriRuntime()) {
           const snapshot = await invoke<QuizSnapshot>("remove_wrong_records_by_question_id", {
             questionId: questionIdToRemove,
           });
@@ -617,7 +694,7 @@ export const useQuizStore = create<QuizState>()(
             },
           ];
 
-          const response = await callAI(config.id, messages);
+          const response = await callAI(config, messages);
 
           // Parse JSON from API response
           let generatedQuestionsData;
@@ -685,36 +762,36 @@ export const useQuizStore = create<QuizState>()(
         }
       },
       importGeneratedQuestions: async (selectedQuestions, targetBankId) => {
-        const { addQuestionToBank, getQuestionBankById } = get();
-        let importedCount = 0;
-        let skippedCount = 0;
+        const { addQuestionsToBank, getQuestionBankById } = get();
 
         if (!getQuestionBankById(targetBankId)) {
           return {
             success: false,
-            importedCount,
-            skippedCount,
+            importedCount: 0,
+            skippedCount: 0,
             error: i18n.t("review.similarModal.importingBank"),
           };
         }
 
-        for (const question of selectedQuestions) {
-          const { id: _id, ...questionData } = question;
-          const result = await addQuestionToBank(targetBankId, questionData);
-          if (result.question) {
-            importedCount++;
-          } else if (result.isDuplicate) {
-            skippedCount++;
-          }
-        }
-        return { success: true, importedCount, skippedCount };
+        const questionsData = selectedQuestions.map((q) => {
+          const { id: _id, ...questionData } = q;
+          return questionData;
+        });
+
+        const result = await addQuestionsToBank(targetBankId, questionsData);
+
+        return {
+          success: true,
+          importedCount: result.addedCount,
+          skippedCount: result.duplicateCount,
+        };
       },
     }),
     {
       name: "quiz-storage",
       storage: createJSONStorage(() => createStorage()),
       partialize: (state) =>
-        isTauriRuntime
+        isTauriRuntime()
           ? {
               settings: state.settings,
               conversionState: state.conversionState,
@@ -796,7 +873,7 @@ export const useQuizStore = create<QuizState>()(
         }
 
         if (
-          isTauriRuntime &&
+          isTauriRuntime() &&
           (currentState.questionBanks.length > 0 || currentState.records.length > 0)
         ) {
           merged.questionBanks = currentState.questionBanks;

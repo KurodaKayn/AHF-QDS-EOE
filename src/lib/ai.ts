@@ -40,13 +40,18 @@ interface AiStreamDoneEvent {
   content: string;
 }
 
-const isTauriRuntime =
-  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+import { isTauriRuntime } from "@/lib/runtime";
 
-async function resolveProviderConfig(providerConfigId: string): Promise<AiProviderConfig> {
-  if (isTauriRuntime) {
+async function resolveProviderConfig(
+  configOrId: AiProviderConfig | string,
+): Promise<{ configId: string; config?: AiProviderConfig }> {
+  if (typeof configOrId === "object") {
+    return { configId: configOrId.id, config: configOrId };
+  }
+
+  if (isTauriRuntime()) {
     const config = await invoke<AiProviderConfig | null>("get_ai_config", {
-      id: providerConfigId,
+      id: configOrId,
     });
     if (!config) {
       throw new Error(
@@ -55,21 +60,14 @@ async function resolveProviderConfig(providerConfigId: string): Promise<AiProvid
         }),
       );
     }
-    return config;
+    return { configId: config.id, config };
   }
 
-  const { useQuizStore } = await import("@/store/quizStore");
-  const config = useQuizStore
-    .getState()
-    .settings.aiConfigs.find((item) => item.id === providerConfigId);
-  if (!config) {
-    throw new Error(
-      i18n.t("common.aiCallFailed", {
-        defaultValue: "AI configuration not found",
-      }),
-    );
-  }
-  return config;
+  throw new Error(
+    i18n.t("common.aiCallFailed", {
+      defaultValue: "AI configuration object must be provided in browser environment",
+    }),
+  );
 }
 
 function buildChatCompletionsUrl(baseUrl: string): string {
@@ -163,38 +161,50 @@ async function callDirectAI(
   return fullText;
 }
 
-export async function callAI(providerConfigId: string, messages: AiMessage[]): Promise<string> {
+export async function callAI(
+  configOrId: AiProviderConfig | string,
+  messages: AiMessage[],
+): Promise<string> {
+  const { configId, config } = await resolveProviderConfig(configOrId);
   const request: AiCompleteRequest = {
-    providerConfigId,
+    providerConfigId: configId,
     messages,
     stream: false,
   };
 
-  if (isTauriRuntime) {
+  if (isTauriRuntime()) {
     const response = await invoke<AiCompleteResponse>("ai_complete", {
       request,
     });
     return response.content;
   }
 
-  const config = await resolveProviderConfig(providerConfigId);
+  if (!config) {
+    throw new Error(
+      i18n.t("common.aiCallFailed", {
+        defaultValue: "AI configuration not found",
+      }),
+    );
+  }
+
   return callDirectAI(config, request);
 }
 
 export async function callAIStream(
-  providerConfigId: string,
+  configOrId: AiProviderConfig | string,
   messages: AiMessage[],
   onChunk: (chunk: string) => void,
 ): Promise<string> {
+  const { configId, config } = await resolveProviderConfig(configOrId);
   const requestId = nanoid();
   const request: AiCompleteRequest = {
-    providerConfigId,
+    providerConfigId: configId,
     messages,
     stream: true,
     requestId,
   };
 
-  if (isTauriRuntime) {
+  if (isTauriRuntime()) {
     let fullText = "";
 
     const unlistenChunk = await listen<AiStreamChunkEvent>("ai-stream:chunk", (event) => {
@@ -219,6 +229,13 @@ export async function callAIStream(
     }
   }
 
-  const config = await resolveProviderConfig(providerConfigId);
+  if (!config) {
+    throw new Error(
+      i18n.t("common.aiCallFailed", {
+        defaultValue: "AI configuration not found",
+      }),
+    );
+  }
+
   return callDirectAI(config, request, onChunk);
 }

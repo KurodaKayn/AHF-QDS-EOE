@@ -42,6 +42,21 @@ describe("PracticeHandlers", () => {
         " next.js ",
       ),
     ).toBe(true);
+    expect(
+      PracticeHandlers.checkIsCorrect(makeQuestion(QuestionType.FillInBlank, "a;;b;c"), "a;b"),
+    ).toBe(true);
+    expect(
+      PracticeHandlers.checkIsCorrect(
+        makeQuestion(QuestionType.FillInBlank, "answer1; answer2"),
+        "  answer2  ",
+      ),
+    ).toBe(true);
+    expect(
+      PracticeHandlers.checkIsCorrect(makeQuestion(QuestionType.MultipleChoice, ["a", "B"]), [
+        "B",
+        "A",
+      ]),
+    ).toBe(true);
   });
 
   it("prepares practice questions without mutating the originals", () => {

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Question, QuestionType, QuestionOption } from "@/types/quiz";
 import { v4 as uuidv4 } from "uuid";
 import { useTranslation } from "react-i18next";
+import { questionSchema } from "@/schemas/quiz";
 
 const defaultQuestionOptions: QuestionOption[] = [
   { id: uuidv4(), content: "" },
@@ -156,54 +157,6 @@ export function useQuestionForm({ questionToEdit, isOpen }: UseQuestionFormProps
   );
 
   /**
-   * Validate form
-   */
-  const validate = useCallback((): { valid: boolean; error?: string } => {
-    if (!content.trim()) {
-      return {
-        valid: false,
-        error: t("questionForm.validation.contentRequired"),
-      };
-    }
-
-    if (
-      (type === QuestionType.SingleChoice || type === QuestionType.MultipleChoice) &&
-      options.some((opt) => !opt.content.trim())
-    ) {
-      return {
-        valid: false,
-        error: t("questionForm.validation.optionsRequired"),
-      };
-    }
-
-    if ((type === QuestionType.SingleChoice || type === QuestionType.TrueFalse) && !answer) {
-      return {
-        valid: false,
-        error: t("questionForm.validation.singleAnswerRequired"),
-      };
-    }
-
-    if (type === QuestionType.MultipleChoice && (!Array.isArray(answer) || answer.length === 0)) {
-      return {
-        valid: false,
-        error: t("questionForm.validation.multipleAnswerRequired"),
-      };
-    }
-
-    if (
-      (type === QuestionType.ShortAnswer || type === QuestionType.FillInBlank) &&
-      !(answer as string).trim()
-    ) {
-      return {
-        valid: false,
-        error: t("questionForm.validation.textAnswerRequired"),
-      };
-    }
-
-    return { valid: true };
-  }, [content, type, options, answer, t]);
-
-  /**
    * Build question data
    */
   const buildQuestionData = useCallback((): Omit<Question, "id"> => {
@@ -221,6 +174,23 @@ export function useQuestionForm({ questionToEdit, isOpen }: UseQuestionFormProps
       tags: questionToEdit?.tags || [],
     };
   }, [content, type, options, answer, explanation, questionToEdit]);
+
+  /**
+   * Validate form using schema
+   */
+  const validate = useCallback((): { valid: boolean; error?: string } => {
+    const candidateData = buildQuestionData();
+    const result = questionSchema.safeParse(candidateData);
+    if (!result.success) {
+      const firstError = result.error.issues?.[0];
+      return {
+        valid: false,
+        error: firstError?.message || t("questionForm.validation.contentRequired"),
+      };
+    }
+
+    return { valid: true };
+  }, [buildQuestionData, t]);
 
   return {
     // State

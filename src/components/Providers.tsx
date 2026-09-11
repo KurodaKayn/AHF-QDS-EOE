@@ -12,8 +12,7 @@ import {
   replaceQuizSnapshotOnBackend,
 } from "@/lib/quizSnapshotSync";
 
-const isTauriRuntime =
-  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+import { isTauriRuntime } from "@/lib/runtime";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // Avoid hydration mismatch between server-side and client-side rendering
@@ -24,11 +23,33 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!isTauriRuntime) return;
+    if (!isTauriRuntime()) return;
 
-    const syncConfigs = async () => {
-      const configs = useQuizStore.getState().settings.aiConfigs;
+    let cancelled = false;
+
+    const runStartupSync = async () => {
+      const store = useQuizStore.getState();
+
+      // 1. Sync AI configs to backend
+      const configs = store.settings.aiConfigs;
       await Promise.all(configs.map((config) => saveAiConfigOnBackend(config)));
+      if (cancelled) return;
+
+      // 2. Sync Quiz snapshot between backend and local state
+      const backendSnapshot = await loadQuizSnapshotFromBackend();
+      if (cancelled) return;
+
+      const currentStore = useQuizStore.getState();
+      const localSnapshot = {
+        questionBanks: currentStore.questionBanks,
+        records: currentStore.records,
+      };
+
+      if (backendSnapshot && hasQuizSnapshotData(backendSnapshot)) {
+        currentStore.replaceQuizData(backendSnapshot);
+      } else if (localSnapshot.questionBanks.length > 0 || localSnapshot.records.length > 0) {
+        await replaceQuizSnapshotOnBackend(localSnapshot);
+      }
     };
 
     const persistApi = useQuizStore.persist as
@@ -39,48 +60,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
       | undefined;
 
     if (persistApi?.hasHydrated?.()) {
-      void syncConfigs();
+      void runStartupSync();
       return;
     }
 
     const unsubscribe = persistApi?.onFinishHydration?.(() => {
-      void syncConfigs();
+      void runStartupSync();
     });
 
     return () => {
-      unsubscribe?.();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isTauriRuntime) return;
-
-    let cancelled = false;
-
-    const syncQuizSnapshot = async () => {
-      const backendSnapshot = await loadQuizSnapshotFromBackend();
-      if (cancelled) return;
-
-      const store = useQuizStore.getState();
-      const localSnapshot = {
-        questionBanks: store.questionBanks,
-        records: store.records,
-      };
-
-      if (backendSnapshot && hasQuizSnapshotData(backendSnapshot)) {
-        store.replaceQuizData(backendSnapshot);
-        return;
-      }
-
-      if (localSnapshot.questionBanks.length > 0 || localSnapshot.records.length > 0) {
-        await replaceQuizSnapshotOnBackend(localSnapshot);
-      }
-    };
-
-    void syncQuizSnapshot();
-
-    return () => {
       cancelled = true;
+      unsubscribe?.();
     };
   }, []);
 

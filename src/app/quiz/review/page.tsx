@@ -158,20 +158,14 @@ export default function ReviewPage() {
     const selectedItems = getSelectedQuestions();
 
     for (const questionInfo of selectedItems) {
-      await generateExplanation(
-        questionInfo,
-        {
-          id: activeConfig.id,
-        },
-        async (questionId, explanation) => {
-          // Save to question bank
-          if (questionInfo.bankId) {
-            await updateQuestionInBank(questionInfo.bankId, questionId, {
-              explanation,
-            });
-          }
-        },
-      );
+      await generateExplanation(questionInfo, activeConfig, async (questionId, explanation) => {
+        // Save to question bank
+        if (questionInfo.bankId) {
+          await updateQuestionInBank(questionInfo.bankId, questionId, {
+            explanation,
+          });
+        }
+      });
     }
   };
 

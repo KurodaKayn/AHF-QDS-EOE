@@ -1,9 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Question, QuestionOption, QuestionType } from "@/types/quiz";
 import { generateId } from "@/utils/quiz";
-
-const isTauriRuntime = () =>
-  typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+import { isTauriRuntime } from "@/lib/runtime";
 
 interface ParsedOption extends QuestionOption {
   letter?: string;

@@ -31,7 +31,7 @@ export const questionSchema = z
         defaultValue: "Invalid question type",
       }),
     }),
-    content: z.string().min(1, i18n.t("questionForm.validation.contentRequired")),
+    content: z.string().trim().min(1, i18n.t("questionForm.validation.contentRequired")),
     options: z.array(questionOptionSchema).optional(),
     answer: z.union([z.string(), z.array(z.string())], {
       message: i18n.t("questionForm.validation.invalidAnswerFormat", {
@@ -45,9 +45,9 @@ export const questionSchema = z
   })
   .refine(
     (data) => {
-      // Multiple choice and single choice must have options
+      // Multiple choice and single choice must have at least 2 options
       if (data.type === QuestionType.SingleChoice || data.type === QuestionType.MultipleChoice) {
-        return data.options && data.options.length >= 2;
+        return Boolean(data.options && data.options.length >= 2);
       }
       return true;
     },
@@ -56,6 +56,36 @@ export const questionSchema = z
         defaultValue: "At least 2 options are required",
       }),
       path: ["options"],
+    },
+  )
+  .refine(
+    (data) => {
+      // All options for SingleChoice and MultipleChoice must have non-empty content
+      if (data.type === QuestionType.SingleChoice || data.type === QuestionType.MultipleChoice) {
+        return Boolean(data.options && data.options.every((opt) => opt.content.trim().length > 0));
+      }
+      return true;
+    },
+    {
+      message: i18n.t("questionForm.validation.optionsRequired", {
+        defaultValue: "Option content cannot be empty",
+      }),
+      path: ["options"],
+    },
+  )
+  .refine(
+    (data) => {
+      // Single choice answer must be non-empty string
+      if (data.type === QuestionType.SingleChoice) {
+        return typeof data.answer === "string" && data.answer.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: i18n.t("questionForm.validation.singleAnswerRequired", {
+        defaultValue: "Please select an answer for single choice",
+      }),
+      path: ["answer"],
     },
   )
   .refine(
@@ -82,6 +112,21 @@ export const questionSchema = z
     {
       message: i18n.t("questionForm.validation.trueFalseRequired", {
         defaultValue: 'True/False answer must be "true" or "false"',
+      }),
+      path: ["answer"],
+    },
+  )
+  .refine(
+    (data) => {
+      // Short answer and fill-in-blank must have non-empty answer
+      if (data.type === QuestionType.ShortAnswer || data.type === QuestionType.FillInBlank) {
+        return typeof data.answer === "string" && data.answer.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: i18n.t("questionForm.validation.textAnswerRequired", {
+        defaultValue: "Answer cannot be empty",
       }),
       path: ["answer"],
     },

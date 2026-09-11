@@ -17,13 +17,15 @@ interface UseConversionLogicProps {
  */
 export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) {
   const { t, i18n } = useTranslation();
-  const { settings, addQuestionBank, addQuestionToBank, getQuestionBankById, setConversionState } =
+  const { settings, addQuestionBank, addQuestionsToBank, getQuestionBankById, setConversionState } =
     useQuizStore();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingScript, setIsLoadingScript] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [convertedQuestions, setConvertedQuestions] = useState<Question[]>([]);
+  const [convertedQuestions, setConvertedQuestions] = useState<Question[]>(() => {
+    return (useQuizStore.getState().conversionState.generatedQuestions as Question[]) || [];
+  });
 
   /**
    * AI Conversion
@@ -40,6 +42,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
       setIsLoading(true);
       setConversionState({
         isConverting: true,
+        generatedQuestions: [],
       });
 
       const { aiConfigs, activeAiConfigId } = settings;
@@ -61,7 +64,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
           { role: "user" as const, content: inputText },
         ];
 
-        const content = await callAI(activeConfig.id, messages);
+        const content = await callAI(activeConfig, messages);
         const parsed = await parseQuestions(content);
         if (parsed.length === 0) {
           setError(t("convert.errors.aiParseFailed"));
@@ -108,13 +111,14 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
           setError(t("convert.errors.scriptFailed"));
         }
         setConvertedQuestions(parsed);
+        setConversionState({ generatedQuestions: parsed });
       } catch (e: any) {
         setError(t("convert.errors.scriptError", { error: e.message }));
       } finally {
         setIsLoadingScript(false);
       }
     },
-    [t],
+    [setConversionState, t],
   );
 
   /**
@@ -144,9 +148,12 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
         return { success: false };
       }
 
-      for (const question of convertedQuestions) {
-        await addQuestionToBank(targetBankId, question);
-      }
+      const questionsData = convertedQuestions.map((q) => {
+        const { id: _id, ...questionData } = q;
+        return questionData;
+      });
+
+      await addQuestionsToBank(targetBankId, questionsData);
 
       if (onSuccess) {
         onSuccess(convertedQuestions, targetBankId, targetBankName);
@@ -154,7 +161,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
 
       return { success: true, bankId: targetBankId, bankName: targetBankName };
     },
-    [convertedQuestions, addQuestionBank, addQuestionToBank, getQuestionBankById, onSuccess, t],
+    [convertedQuestions, addQuestionBank, addQuestionsToBank, getQuestionBankById, onSuccess, t],
   );
 
   /**
@@ -162,14 +169,16 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
    */
   const clearResults = useCallback(() => {
     setConvertedQuestions([]);
+    setConversionState({ generatedQuestions: [] });
     setError(null);
-  }, []);
+  }, [setConversionState]);
 
   return {
     isLoading,
     isLoadingScript,
     error,
     convertedQuestions,
+    setConvertedQuestions,
     setError,
     convertWithAI,
     convertWithScript,

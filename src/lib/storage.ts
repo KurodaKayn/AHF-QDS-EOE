@@ -1,8 +1,8 @@
 // Storage adapter that uses SQLite in production (Tauri) and localStorage in development
 
 import { StateStorage } from "zustand/middleware";
+import { isTauriRuntime } from "@/lib/runtime";
 
-const isTauri = typeof window !== "undefined" && "__TAURI__" in window;
 const isDev = process.env.NODE_ENV === "development";
 
 // SQLite storage implementation
@@ -15,7 +15,7 @@ class SqliteStorage implements StateStorage {
   }
 
   private async initDatabase() {
-    if (!isTauri) return;
+    if (!isTauriRuntime()) return;
 
     try {
       const Database = (await import("@tauri-apps/plugin-sql")).default;
@@ -89,8 +89,8 @@ class SqliteStorage implements StateStorage {
 
 // Export the appropriate storage based on environment
 export const createStorage = (): StateStorage => {
-  // Use localStorage in development, SQLite in production
-  if (isDev || !isTauri) {
+  // Use localStorage in development or web, SQLite in production Tauri
+  if (isDev || !isTauriRuntime()) {
     return {
       getItem: (name) => localStorage.getItem(name),
       setItem: (name, value) => localStorage.setItem(name, value),
