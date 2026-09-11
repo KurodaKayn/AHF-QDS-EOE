@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useTranslation } from "react-i18next";
-import type { AIConfig } from "@/store/quizStore";
+import type { AIConfig } from "@/model/ai";
 import { Box, Key, Globe, Server } from "lucide-react";
 import { useAiConfigForm } from "./useAiConfigForm";
 

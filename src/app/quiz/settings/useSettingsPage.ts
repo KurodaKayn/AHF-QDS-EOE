@@ -1,8 +1,8 @@
 import { useState } from "react";
-import type { QuizSettings, AIConfig } from "@/store/quizStore";
-import { useQuizStore } from "@/store/quizStore";
+import type { AIConfig } from "@/model/ai";
+import { useQuizStore, type QuizSettings } from "@/model/quiz";
+import { useThemeStore } from "@/model/theme";
 import { useTranslation } from "react-i18next";
-import { useThemeStore } from "@/store/themeStore";
 
 type BooleanSettingKey = Extract<
   keyof QuizSettings,

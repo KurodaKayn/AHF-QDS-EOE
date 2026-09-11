@@ -10,7 +10,7 @@ AI 模块统一管理 OpenAI-compatible provider 配置，并为题目转换、�
 
 - `src/lib/ai.ts`：`callAI()` 和 `callAIStream()`。
 - `src/lib/aiConfigSync.ts`：AI 配置与 Rust 后端同步。
-- `src/store/quizStore.ts`：AI 配置状态、默认 provider 和相似题生成。
+- `src/model/quiz/quiz.store.ts`：AI 配置状态、默认 provider 和相似题生成。
 - `src/app/quiz/settings/page.tsx`：AI 配置管理 UI。
 - `src-tauri/src/ai.rs`：AI 配置 SQLite 存储和代理请求。
 - `src/constants/ai.ts`：转换、解析、相似题提示词。

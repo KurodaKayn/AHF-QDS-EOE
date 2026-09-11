@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useQuizStore } from "@/store/quizStore";
+import { useQuizStore } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 
 /**

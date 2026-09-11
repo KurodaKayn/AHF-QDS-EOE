@@ -72,6 +72,10 @@
           {
             "group": ["@/schemas", "@/schemas/*"],
             "message": "Do not import from @/schemas. Validation schemas belong to their respective model modules (e.g. @/model/quiz)."
+          },
+          {
+            "group": ["@/store", "@/store/*"],
+            "message": "Do not import from @/store. Store hooks and state types belong to their respective model modules (e.g. @/model/quiz, @/model/theme)."
           }
         ]
       }

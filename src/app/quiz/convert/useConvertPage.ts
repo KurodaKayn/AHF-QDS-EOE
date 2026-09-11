@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useQuizStore } from "@/store/quizStore";
 import { EXAMPLE_QUESTION_TEXT } from "@/constants/quiz";
-import { ScriptTemplate } from "@/model/quiz";
+import { ScriptTemplate, useQuizStore } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 import { useConversionLogic } from "./useConversionLogic";
 import { toast } from "sonner";

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuizStore } from "@/store/quizStore";
-import type { Question, QuestionType } from "@/model/quiz";
+import { useQuizStore, type Question, type QuestionType } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 
 export function useBankDetailPage() {

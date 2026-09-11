@@ -1,8 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useQuizStore } from "@/store/quizStore";
-import type { Question } from "@/model/quiz";
+import { useQuizStore, type Question } from "@/model/quiz";
 import type { WrongQuestionDisplay } from "@/components/quiz/WrongQuestionItem";
 import { useTranslation } from "react-i18next";
 import { useAiExplanation } from "./useAiExplanation";

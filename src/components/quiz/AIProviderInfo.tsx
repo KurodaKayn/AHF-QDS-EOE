@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { AIConfig } from "@/store/quizStore";
+import type { AIConfig } from "@/model/ai";
 import { useTranslation } from "react-i18next";
 
 interface AIProviderInfoProps {

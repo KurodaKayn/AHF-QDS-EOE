@@ -8,7 +8,7 @@
 
 ## 关键入口
 
-- `src/store/quizStore.ts`：题库、记录、设置、转换状态、练习会话和 AI 配置。
+- `src/model/quiz/quiz.store.ts`：题库、记录、设置、转换状态、练习会话（通过 `@/model/quiz` 统一导出）。
 - `src/lib/storage.ts`：Zustand persist 的存储适配器。
 - `src/lib/quizSnapshotSync.ts`：Tauri snapshot 加载和替换。
 - `src/lib/quizQueries.ts`：重复题和搜索查询。

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePracticeSession } from "./usePracticeSession";
-import { useThemeStore } from "@/store/themeStore";
+import { useThemeStore } from "@/model/theme";
 import { QuizCompletionSummary } from "@/components/quiz/practice/QuizCompletionSummary";
 import { QuestionDisplay } from "@/components/quiz/practice/QuestionDisplay";
 import { QuestionNavigation } from "@/components/quiz/practice/QuestionNavigation";

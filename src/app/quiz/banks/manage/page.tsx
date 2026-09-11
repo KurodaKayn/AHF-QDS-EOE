@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaArrowLeft } from "react-icons/fa";
 import { BeatLoader } from "react-spinners";
-import { useThemeStore } from "@/store/themeStore";
+import { useThemeStore } from "@/model/theme";
 import { useTranslation } from "react-i18next";
 import { BankSelector } from "@/components/quiz/manage/BankSelector";
 import { BankDetailsCard } from "@/components/quiz/manage/BankDetailsCard";

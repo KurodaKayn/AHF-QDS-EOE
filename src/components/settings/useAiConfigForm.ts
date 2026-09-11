@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { AIConfig } from "@/store/quizStore";
+import type { AIConfig } from "@/model/ai";
 
 const PRESETS = {
   deepseek: {
