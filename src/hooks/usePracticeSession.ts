@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuizStore } from "@/store/quizStore";
-import { Question, QuestionType } from "@/types/quiz";
+import type { Question } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 import { PracticeHandlers } from "@/utils/practiceHandlers";
 
 /**

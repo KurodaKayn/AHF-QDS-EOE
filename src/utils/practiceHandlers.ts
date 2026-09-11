@@ -1,4 +1,5 @@
-import { Question, QuestionType } from "@/types/quiz";
+import type { Question } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 
 /**
  * Practice business logic handler
@@ -37,15 +38,13 @@ export class PracticeHandlers {
 
       case QuestionType.FillInBlank: {
         if (typeof correctAnswer !== "string") return false;
-        const userAns = (
-          typeof userAnswer === "string"
-            ? userAnswer
-            : Array.isArray(userAnswer)
-              ? userAnswer.join(";")
-              : ""
-        )
-          .trim()
-          .toLowerCase();
+        let rawUserAns = "";
+        if (typeof userAnswer === "string") {
+          rawUserAns = userAnswer;
+        } else if (Array.isArray(userAnswer)) {
+          rawUserAns = userAnswer.join(";");
+        }
+        const userAns = rawUserAns.trim().toLowerCase();
         if (!userAns) return false;
 
         let acceptableAnswers: string[];

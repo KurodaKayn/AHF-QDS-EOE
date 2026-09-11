@@ -1,6 +1,7 @@
 "use client";
 
-import { Question, QuestionType } from "@/types/quiz";
+import type { Question } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 import { useTranslation } from "react-i18next";
 
 interface QuestionPreviewProps {

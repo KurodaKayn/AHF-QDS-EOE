@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuizStore } from "@/store/quizStore";
-import { Question } from "@/types/quiz";
+import type { Question } from "@/types/quiz";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaArrowLeft } from "react-icons/fa";
@@ -17,7 +17,8 @@ import { useTranslation } from "react-i18next";
 import { BankSelector } from "@/components/quiz/manage/BankSelector";
 import { BankDetailsCard } from "@/components/quiz/manage/BankDetailsCard";
 import { DuplicateQuestionsModal } from "@/components/quiz/manage/DuplicateQuestionsModal";
-import { DeleteConfirmDialog, DeleteType } from "@/components/quiz/manage/DeleteConfirmDialog";
+import type { DeleteType } from "@/components/quiz/manage/DeleteConfirmDialog";
+import { DeleteConfirmDialog } from "@/components/quiz/manage/DeleteConfirmDialog";
 import { NoDuplicatesDialog } from "@/components/quiz/manage/NoDuplicatesDialog";
 import { findDuplicateQuestionsInBank } from "@/lib/quizQueries";
 

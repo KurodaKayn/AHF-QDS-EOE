@@ -65,10 +65,10 @@ export function TextInputArea({
     if (!items) return;
 
     // Check for images in clipboard
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith("image/")) {
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
         e.preventDefault(); // Prevent default paste behavior
-        const file = items[i].getAsFile();
+        const file = item.getAsFile();
         if (file) {
           await processImageFromClipboard(file);
         }
@@ -118,6 +118,7 @@ export function TextInputArea({
       <div className="mt-2 flex justify-between items-center">
         {onLoadExample && (
           <button
+            type="button"
             onClick={onLoadExample}
             className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm flex items-center"
           >

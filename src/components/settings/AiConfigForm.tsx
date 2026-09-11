@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AIConfig } from "@/store/quizStore";
+import type { AIConfig } from "@/store/quizStore";
 import { Box, Key, Globe, Server } from "lucide-react";
 
 interface AiConfigFormProps {

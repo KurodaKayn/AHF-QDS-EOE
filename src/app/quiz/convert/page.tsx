@@ -162,40 +162,58 @@ export default function ConvertPage() {
           onChange={setInputText}
           onLoadExample={() => setInputText(EXAMPLE_QUESTION_TEXT)}
           onOCRError={(err) => setError(t("convert.errors.ocrError", { error: err }))}
-          showOCR={true}
+          showOCR
         />
 
         {conversionMode === "ai" && activeConfig && <AIProviderInfo config={activeConfig} />}
 
-        <button
-          onClick={handleConvert}
-          disabled={isLoading || isLoadingScript || !inputText.trim()}
-          className={`w-full px-6 py-3 mt-4 rounded-md text-white font-semibold transition-colors flex items-center justify-center 
-            ${
-              isLoading || isLoadingScript || !inputText.trim()
-                ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
-                : conversionMode === "ai"
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : "bg-green-600 hover:bg-green-700"
+        {(() => {
+          const isConverting =
+            (isLoading && conversionMode === "ai") ||
+            (isLoadingScript && conversionMode === "script");
+          const isConvertDisabled = isLoading || isLoadingScript || !inputText.trim();
+
+          const getConvertButtonClass = () => {
+            if (isConvertDisabled) {
+              return "bg-gray-400 dark:bg-gray-600 cursor-not-allowed";
             }
-          `}
-        >
-          {(isLoading && conversionMode === "ai") ||
-          (isLoadingScript && conversionMode === "script") ? (
-            <FaSpinner className="animate-spin mr-2" />
-          ) : conversionMode === "ai" ? (
-            <FaMagic className="mr-2" />
-          ) : (
-            <MdCode className="mr-2" />
-          )}
-          {conversionMode === "ai"
-            ? isLoading
-              ? t("convert.actions.aiConverting")
-              : t("convert.actions.startAI")
-            : isLoadingScript
+            return conversionMode === "ai"
+              ? "bg-blue-600 hover:bg-blue-700"
+              : "bg-green-600 hover:bg-green-700";
+          };
+
+          const renderConvertIcon = () => {
+            if (isConverting) {
+              return <FaSpinner className="animate-spin mr-2" />;
+            }
+            return conversionMode === "ai" ? (
+              <FaMagic className="mr-2" />
+            ) : (
+              <MdCode className="mr-2" />
+            );
+          };
+
+          const getConvertButtonText = () => {
+            if (conversionMode === "ai") {
+              return isLoading ? t("convert.actions.aiConverting") : t("convert.actions.startAI");
+            }
+            return isLoadingScript
               ? t("convert.actions.scriptParsing")
-              : t("convert.actions.startScript")}
-        </button>
+              : t("convert.actions.startScript");
+          };
+
+          return (
+            <button
+              type="button"
+              onClick={handleConvert}
+              disabled={isConvertDisabled}
+              className={`w-full px-6 py-3 mt-4 rounded-md text-white font-semibold transition-colors flex items-center justify-center ${getConvertButtonClass()}`}
+            >
+              {renderConvertIcon()}
+              {getConvertButtonText()}
+            </button>
+          );
+        })()}
 
         {error && (
           <div className="mt-6 mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md flex items-start">

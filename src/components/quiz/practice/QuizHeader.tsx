@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { FaArrowLeft, FaCog } from "react-icons/fa";
-import { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/types/quiz";
 import { useTranslation } from "react-i18next";
 
 interface QuizHeaderProps {
@@ -30,6 +30,13 @@ export function QuizHeader({
   const progressPercentage =
     totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0;
 
+  const getHeaderTitle = () => {
+    if (currentBank?.name) {
+      return isReviewMode ? `${currentBank.name}${t("practice.reviewSuffix")}` : currentBank.name;
+    }
+    return isReviewMode ? t("review.pageTitle") : t("practice.normalPractice");
+  };
+
   return (
     <div className="pb-4">
       <div className="flex justify-between items-center mb-3">
@@ -53,13 +60,7 @@ export function QuizHeader({
             className="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate max-w-50 sm:max-w-xs md:max-w-sm"
             title={currentBank?.name}
           >
-            {currentBank?.name
-              ? isReviewMode
-                ? `${currentBank.name}${t("practice.reviewSuffix")}`
-                : currentBank.name
-              : isReviewMode
-                ? t("review.pageTitle")
-                : t("practice.normalPractice")}
+            {getHeaderTitle()}
           </h2>
         </div>
       </div>

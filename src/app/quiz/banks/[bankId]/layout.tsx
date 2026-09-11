@@ -7,5 +7,5 @@ export function generateStaticParams() {
 }
 
 export default function BankLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return children;
 }

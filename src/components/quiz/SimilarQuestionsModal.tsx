@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Question, QuestionBank, QuestionType } from "@/types/quiz";
+import type { Question, QuestionBank } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -85,6 +86,12 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
     return null;
   }
 
+  const formatTrueFalseAnswer = (ans: unknown) => {
+    if (ans === "true") return t("aiExplanation.correct");
+    if (ans === "false") return t("aiExplanation.incorrect");
+    return String(ans);
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-3xl max-h-[90vh] flex flex-col">
@@ -93,6 +100,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
             {t("review.similarModal.title")}
           </h2>
           <button
+            type="button"
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
             aria-label={t("common.close")}
@@ -103,7 +111,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
 
         {isLoading && (
           <div className="flex flex-col items-center justify-center h-64">
-            <div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent mb-4"></div>
+            <div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent mb-4" />
             <p className="text-gray-600 dark:text-gray-300">{t("review.similarModal.loading")}</p>
           </div>
         )}
@@ -121,6 +129,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
               </p>
             )}
             <button
+              type="button"
               onClick={onClose}
               className="mt-6 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
@@ -197,11 +206,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                             <p className="font-semibold text-gray-700 dark:text-gray-300">
                               {t("review.similarModal.referenceAnswer")}：
                               <span className="text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-700 dark:bg-opacity-40 px-2 py-0.5 rounded-sm ml-1">
-                                {q.answer === "true"
-                                  ? t("aiExplanation.correct")
-                                  : q.answer === "false"
-                                    ? t("aiExplanation.incorrect")
-                                    : String(q.answer)}
+                                {formatTrueFalseAnswer(q.answer)}
                               </span>
                             </p>
                           </div>
@@ -283,6 +288,7 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                   </select>
                 </div>
                 <button
+                  type="button"
                   onClick={handleImportClick}
                   disabled={selectedCount === 0 || !targetBankId || isImporting || isLoading}
                   className="w-full sm:w-auto px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
@@ -302,12 +308,12 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
                           r="10"
                           stroke="currentColor"
                           strokeWidth="4"
-                        ></circle>
+                        />
                         <path
                           className="opacity-75"
                           fill="currentColor"
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
+                        />
                       </svg>
                       {t("review.similarModal.importing")}
                     </span>

@@ -21,6 +21,16 @@ export function ConversionModeSelector({
   onShowExample,
 }: ConversionModeSelectorProps) {
   const { t } = useTranslation();
+
+  const getButtonClass = (m: "ai" | "script") => {
+    if (mode !== m) {
+      return "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500";
+    }
+    return m === "ai"
+      ? "bg-blue-600 text-white dark:bg-blue-700"
+      : "bg-green-600 text-white dark:bg-green-700";
+  };
+
   return (
     <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
       <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
@@ -30,16 +40,9 @@ export function ConversionModeSelector({
         {(["ai", "script"] as const).map((m) => (
           <button
             key={m}
+            type="button"
             onClick={() => onModeChange(m)}
-            className={`px-4 py-2 rounded-md font-medium transition-colors flex-1 flex items-center justify-center gap-2
-              ${
-                mode === m
-                  ? m === "ai"
-                    ? "bg-blue-600 text-white dark:bg-blue-700"
-                    : "bg-green-600 text-white dark:bg-green-700"
-                  : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500"
-              }
-            `}
+            className={`px-4 py-2 rounded-md font-medium transition-colors flex-1 flex items-center justify-center gap-2 ${getButtonClass(m)}`}
           >
             {m === "ai" ? (
               <>
@@ -85,6 +88,7 @@ export function ConversionModeSelector({
             </select>
             {onShowExample && (
               <button
+                type="button"
                 onClick={onShowExample}
                 className="ml-2 px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:text-blue-300 dark:bg-blue-600 dark:hover:bg-blue-500 flex items-center"
               >

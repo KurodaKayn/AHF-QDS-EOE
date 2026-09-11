@@ -1,6 +1,6 @@
 "use client";
 
-import { Question } from "@/types/quiz";
+import type { Question } from "@/types/quiz";
 import { QuestionContent } from "./QuestionContent";
 import { Button } from "@/components/ui/button";
 import { FaLightbulb } from "react-icons/fa";

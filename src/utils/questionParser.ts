@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
-import { Question, QuestionOption, QuestionType } from "@/types/quiz";
+import type { Question, QuestionOption } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 import { isTauriRuntime } from "@/lib/runtime";
 
 /**

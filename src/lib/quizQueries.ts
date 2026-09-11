@@ -1,4 +1,4 @@
-import { Question } from "@/types/quiz";
+import type { Question } from "@/types/quiz";
 import { invoke } from "@tauri-apps/api/core";
 import { isTauriRuntime } from "@/lib/runtime";
 

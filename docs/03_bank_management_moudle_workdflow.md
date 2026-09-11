@@ -28,4 +28,3 @@
 - `src/app/quiz/banks/manage/page.tsx` 中的 `index.html` 兼容跳转和隐藏链接服务于静态导出，不要在未替代前删除。
 - 表单校验逻辑集中在 `useQuestionForm`，新增题型时应优先修改这里。
 - 搜索在 Tauri 下会叠加 `search_questions` 的后端结果，前端过滤和后端查询语义要保持一致。
-

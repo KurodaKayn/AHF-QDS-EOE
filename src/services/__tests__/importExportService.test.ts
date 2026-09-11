@@ -1,5 +1,6 @@
 import { exportQuestionBank, importQuestionBank } from "../importExportService";
-import { QuestionBank, QuestionType } from "@/types/quiz";
+import type { QuestionBank } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 
 const mockSave = vi.fn();
 const mockWriteFile = vi.fn();

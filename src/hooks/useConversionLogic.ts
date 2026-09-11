@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
-import { Question } from "@/types/quiz";
-import { parseTextByScript, ScriptTemplate } from "@/utils/scriptParser";
+import type { Question } from "@/types/quiz";
+import type { ScriptTemplate } from "@/utils/scriptParser";
+import { parseTextByScript } from "@/utils/scriptParser";
 import { getPrompts } from "@/constants/ai";
 import { parseQuestions } from "@/utils/questionParser";
 import { callAI } from "@/lib/ai";
@@ -88,7 +89,7 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
         setIsLoading(false);
       }
     },
-    [settings, setConversionState, t],
+    [settings, setConversionState, t, i18n.language],
   );
 
   /**

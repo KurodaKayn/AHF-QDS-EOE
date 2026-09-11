@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/types/quiz";
 import { FaEdit, FaRegTrashAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { QuestionListSection } from "./QuestionListSection";

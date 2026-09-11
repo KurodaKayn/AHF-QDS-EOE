@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MdSave } from "react-icons/md";
-import { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/types/quiz";
 import { useTranslation } from "react-i18next";
 
 interface SaveToBankFormProps {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Question } from "@/types/quiz";
+import type { Question } from "@/types/quiz";
 import { QuestionListItem } from "./QuestionListItem";
 import { useTranslation } from "react-i18next";
 

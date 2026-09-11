@@ -1,5 +1,6 @@
 import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from "@/utils/quiz";
-import { QuestionBank, QuestionType } from "@/types/quiz";
+import type { QuestionBank } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 
 const now = 1700000000000;
 

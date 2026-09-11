@@ -1,0 +1,75 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react", "react_perf", "import", "promise", "vitest"],
+  "ignorePatterns": [
+    "**/node_modules/**",
+    ".next/**",
+    "out/**",
+    "dist/**",
+    "coverage/**",
+    "src-tauri/target/**"
+  ],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-nested-ternary": "error",
+    "typescript/consistent-type-imports": [
+      "warn",
+      {
+        "disallowTypeAnnotations": false
+      }
+    ],
+    "typescript/prefer-as-const": "error",
+    "typescript/prefer-optional-chain": "warn",
+    "typescript/prefer-for-of": "warn",
+    "unicorn/prefer-at": "warn",
+    "unicorn/prefer-structured-clone": "warn",
+    "unicorn/prefer-object-from-entries": "warn",
+    "unicorn/prefer-optional-catch-binding": "warn",
+    "unicorn/prefer-node-protocol": "warn",
+    "unicorn/prefer-string-starts-ends-with": "warn",
+    "unicorn/no-useless-spread": "warn",
+    "unicorn/no-useless-promise-resolve-reject": "warn",
+    "react/jsx-no-useless-fragment": "warn",
+    "react/self-closing-comp": "warn",
+    "react/jsx-boolean-value": ["warn", "never"],
+    "react/jsx-curly-brace-presence": [
+      "warn",
+      {
+        "props": "never",
+        "children": "never"
+      }
+    ],
+    "react/button-has-type": "warn",
+    "react/no-array-index-key": "warn",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "promise/prefer-await-to-then": "warn",
+    "promise/catch-or-return": "warn",
+    "import/no-duplicates": "warn",
+    "import/no-self-import": "error",
+    "vitest/no-focused-tests": "error",
+    "vitest/no-identical-title": "error",
+    "vitest/no-conditional-expect": "warn",
+    "vitest/no-disabled-tests": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+      "rules": {
+        "jest/valid-expect": "off",
+        "vitest/require-mock-type-parameters": "off",
+        "vitest/no-standalone-expect": "off",
+        "vitest/require-to-throw-message": "off",
+        "react_perf/jsx-no-new-object-as-prop": "off",
+        "react_perf/jsx-no-new-array-as-prop": "off",
+        "react_perf/jsx-no-new-function-as-prop": "off",
+        "react_perf/jsx-no-jsx-as-prop": "off"
+      }
+    }
+  ],
+  "env": {
+    "builtin": true
+  }
+}

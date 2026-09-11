@@ -1,4 +1,4 @@
-import { QuestionBank, QuestionRecord } from "@/types/quiz";
+import type { QuestionBank, QuestionRecord } from "@/types/quiz";
 import { invoke } from "@tauri-apps/api/core";
 import { isTauriRuntime } from "@/lib/runtime";
 

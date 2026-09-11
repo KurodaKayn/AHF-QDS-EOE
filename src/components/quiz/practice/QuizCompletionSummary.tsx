@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaArrowLeft, FaRedo } from "react-icons/fa";
-import { Question, QuestionType } from "@/types/quiz";
-import { QuestionOption } from "@/types/quiz";
+import type { Question, QuestionOption } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 import { useTranslation } from "react-i18next";
 import { PracticeHandlers } from "@/utils/practiceHandlers";
 
@@ -56,11 +56,9 @@ export function QuizCompletionSummary({
             .join(", ")
         : t("practice.completion.notAnswered");
     } else if (question.type === QuestionType.TrueFalse) {
-      return userAnswer === "true"
-        ? t("aiExplanation.correct")
-        : userAnswer === "false"
-          ? t("aiExplanation.incorrect")
-          : t("practice.completion.notAnswered");
+      if (userAnswer === "true") return t("aiExplanation.correct");
+      if (userAnswer === "false") return t("aiExplanation.incorrect");
+      return t("practice.completion.notAnswered");
     } else if (question.options && question.options.length > 0) {
       return (
         (question.options || []).find((opt) => opt.id === userAnswer)?.content ||
@@ -137,11 +135,9 @@ export function QuizCompletionSummary({
           .join(", ") || "Not recorded"
       );
     } else if (question.type === QuestionType.TrueFalse) {
-      return originalAns === "true"
-        ? t("aiExplanation.correct")
-        : originalAns === "false"
-          ? t("aiExplanation.incorrect")
-          : originalAns || "Not recorded";
+      if (originalAns === "true") return t("aiExplanation.correct");
+      if (originalAns === "false") return t("aiExplanation.incorrect");
+      return originalAns || "Not recorded";
     } else {
       return originalAns || "Not recorded";
     }

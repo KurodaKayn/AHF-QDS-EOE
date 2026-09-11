@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import * as XLSX from "xlsx";
-import { Question, QuestionBank, QuestionType } from "@/types/quiz";
+import type { Question, QuestionBank } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 
 /**
  * Generates a unique ID

@@ -1,7 +1,8 @@
 "use client";
 
 import { FaCheck, FaTimes } from "react-icons/fa";
-import { QuestionType, QuestionOption, WrongQuestionDisplay } from "@/types/quiz";
+import type { QuestionOption, WrongQuestionDisplay } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 import { getTagColor } from "@/constants/quiz";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -224,11 +225,7 @@ export default function WrongQuestionItem({
           </div>
           <div className="p-2 rounded-md bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300">
             <span className="font-medium">{t("review.item.correctAnswer")}: </span>
-            {typeof q.answer === "string"
-              ? q.answer
-              : Array.isArray(q.answer)
-                ? q.answer.join(", ")
-                : ""}
+            {Array.isArray(q.answer) ? q.answer.join(", ") : (q.answer ?? "")}
           </div>
         </div>
       )}
@@ -254,7 +251,7 @@ export default function WrongQuestionItem({
       {isGeneratingExplanation && !markdownToDisplay && (
         <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-2">
-            <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+            <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent" />
             <p className="text-sm text-blue-600 dark:text-blue-400">
               {t("review.item.generatingAiExplanation")}
             </p>

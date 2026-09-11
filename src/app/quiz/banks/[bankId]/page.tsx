@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuizStore } from "@/store/quizStore";
-import { Question, QuestionType } from "@/types/quiz";
+import type { Question, QuestionType } from "@/types/quiz";
 import { BankDetailHeader } from "@/components/quiz/banks/BankDetailHeader";
 import { BankFilters } from "@/components/quiz/banks/BankFilters";
 import { QuestionList } from "@/components/quiz/banks/QuestionList";

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { FaPlay, FaBook, FaPlus } from "react-icons/fa";
 import { useQuizStore } from "@/store/quizStore";
-import { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/types/quiz";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import { Button } from "@/components/ui/button";

@@ -29,4 +29,3 @@
 - 设置默认值在 `initialSettings` 中，迁移逻辑也在 `quizStore.merge` 中。
 - 新增文案必须同时补 `zh.json` 和 `en.json`，翻译测试会检查 key 覆盖。
 - 主题是独立 store，不要混入题库 store。
-

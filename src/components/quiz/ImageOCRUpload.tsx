@@ -59,10 +59,10 @@ export function ImageOCRUpload({ onTextExtracted, onError }: ImageOCRUploadProps
     const items = e.clipboardData?.items;
     if (!items) return;
 
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith("image/")) {
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
         e.preventDefault();
-        const file = items[i].getAsFile();
+        const file = item.getAsFile();
         if (file) {
           await processImage(file);
         }

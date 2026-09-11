@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react";
 import { getPrompts } from "@/constants/ai";
-import { callAIStream, AiProviderConfig } from "@/lib/ai";
+import type { AiProviderConfig } from "@/lib/ai";
+import { callAIStream } from "@/lib/ai";
 import { getQuestionTypeName } from "@/constants/quiz";
 import { QuestionType } from "@/types/quiz";
-import { WrongQuestionDisplay } from "@/components/quiz/WrongQuestionItem";
+import type { WrongQuestionDisplay } from "@/components/quiz/WrongQuestionItem";
 import { useTranslation } from "react-i18next";
 
 export type AiConfig = AiProviderConfig | string;
@@ -35,28 +36,22 @@ export function useAiExplanation() {
         });
       }
 
-      const correctAnswerText = Array.isArray(questionInfo.answer)
-        ? questionInfo.answer
+      const formatAnswer = (ans: string | string[] | undefined) => {
+        if (Array.isArray(ans)) {
+          return ans
             .map((ansId) => questionInfo.options?.find((opt) => opt.id === ansId)?.content || ansId)
-            .join(", ")
-        : questionInfo.type === QuestionType.TrueFalse
-          ? questionInfo.answer === "true"
-            ? t("aiExplanation.correct")
-            : t("aiExplanation.incorrect")
-          : questionInfo.answer;
+            .join(", ");
+        }
+        if (questionInfo.type === QuestionType.TrueFalse) {
+          return ans === "true" ? t("aiExplanation.correct") : t("aiExplanation.incorrect");
+        }
+        return ans ?? "";
+      };
 
+      const correctAnswerText = formatAnswer(questionInfo.answer);
       problemInfo += `- **${t("aiExplanation.correctAnswer")}**: ${correctAnswerText}\n`;
 
-      const userAnswerText = Array.isArray(questionInfo.userAnswer)
-        ? questionInfo.userAnswer
-            .map((ansId) => questionInfo.options?.find((opt) => opt.id === ansId)?.content || ansId)
-            .join(", ")
-        : questionInfo.type === QuestionType.TrueFalse
-          ? questionInfo.userAnswer === "true"
-            ? t("aiExplanation.correct")
-            : t("aiExplanation.incorrect")
-          : questionInfo.userAnswer;
-
+      const userAnswerText = formatAnswer(questionInfo.userAnswer);
       problemInfo += `- **${t("aiExplanation.userAnswer")}**: ${userAnswerText}\n`;
 
       return `${problemInfo}\n${questionInfo.content}`;
@@ -125,7 +120,7 @@ export function useAiExplanation() {
         });
       }
     },
-    [generatingExplanations, completedExplanations, buildQuestionPrompt, t],
+    [generatingExplanations, completedExplanations, buildQuestionPrompt, t, i18n.language],
   );
 
   /**

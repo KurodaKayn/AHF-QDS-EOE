@@ -1,6 +1,6 @@
 "use client";
 
-import { Question, QuestionOption } from "@/types/quiz";
+import type { Question, QuestionOption } from "@/types/quiz";
 import { QuestionType } from "@/types/quiz";
 import { QuestionOptions } from "./QuestionOptions";
 import { TrueFalseOptions } from "./TrueFalseOptions";
@@ -62,13 +62,52 @@ export function QuestionContent({
           .join(", ") || t("practice.completion.notRecorded")
       );
     } else if (question.type === QuestionType.TrueFalse) {
-      return originalAns === "true"
-        ? t("aiExplanation.correct")
-        : originalAns === "false"
-          ? t("aiExplanation.incorrect")
-          : originalAns || t("practice.completion.notRecorded");
+      if (originalAns === "true") return t("aiExplanation.correct");
+      if (originalAns === "false") return t("aiExplanation.incorrect");
+      return originalAns || t("practice.completion.notRecorded");
     } else {
       return originalAns || t("practice.completion.notRecorded");
+    }
+  };
+
+  const renderQuestionInput = () => {
+    switch (question.type) {
+      case QuestionType.TrueFalse:
+        return (
+          <TrueFalseOptions
+            question={question}
+            userAnswer={userAnswer}
+            showAnswer={showAnswer}
+            onAnswerSelect={onAnswerSelect}
+          />
+        );
+      case QuestionType.ShortAnswer:
+        return (
+          <ShortAnswerInput
+            question={question}
+            userAnswer={userAnswer}
+            showAnswer={showAnswer}
+            onAnswerChange={onAnswerChange}
+          />
+        );
+      case QuestionType.FillInBlank:
+        return (
+          <FillInBlankInput
+            question={question}
+            userAnswer={userAnswer}
+            showAnswer={showAnswer}
+            onAnswerChange={onAnswerChange}
+          />
+        );
+      default:
+        return (
+          <QuestionOptions
+            question={question}
+            userAnswer={userAnswer}
+            showAnswer={showAnswer}
+            onAnswerSelect={onAnswerSelect}
+          />
+        );
     }
   };
 
@@ -78,35 +117,7 @@ export function QuestionContent({
         {question.content}
       </p>
 
-      {question.type === QuestionType.TrueFalse ? (
-        <TrueFalseOptions
-          question={question}
-          userAnswer={userAnswer}
-          showAnswer={showAnswer}
-          onAnswerSelect={onAnswerSelect}
-        />
-      ) : question.type === QuestionType.ShortAnswer ? (
-        <ShortAnswerInput
-          question={question}
-          userAnswer={userAnswer}
-          showAnswer={showAnswer}
-          onAnswerChange={onAnswerChange}
-        />
-      ) : question.type === QuestionType.FillInBlank ? (
-        <FillInBlankInput
-          question={question}
-          userAnswer={userAnswer}
-          showAnswer={showAnswer}
-          onAnswerChange={onAnswerChange}
-        />
-      ) : (
-        <QuestionOptions
-          question={question}
-          userAnswer={userAnswer}
-          showAnswer={showAnswer}
-          onAnswerSelect={onAnswerSelect}
-        />
-      )}
+      {renderQuestionInput()}
 
       {showAnswer && isReviewMode && question.originalUserAnswer && (
         <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/30 rounded-md border border-amber-200 dark:border-amber-700">

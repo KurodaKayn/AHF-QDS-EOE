@@ -31,4 +31,3 @@ Tauri 后端模块提供桌面应用外壳、插件、SQLite 初始化、Rust co
 - Tauri command 名称被前端字符串引用，改名需要全局同步。
 - `quiz.rs` 返回 snapshot 的约定支撑前端状态一致性。
 - `tauri.conf.json` 的 `frontendDist`、`devUrl` 和 `beforeBuildCommand` 与 Next 静态导出配置强绑定。
-

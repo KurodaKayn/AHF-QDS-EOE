@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { Question, QuestionType, QuestionOption } from "@/types/quiz";
+import type { Question, QuestionOption } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 import { v4 as uuidv4 } from "uuid";
 import { useTranslation } from "react-i18next";
 import { questionSchema } from "@/schemas/quiz";
@@ -31,6 +32,17 @@ export function useQuestionForm({ questionToEdit, isOpen }: UseQuestionFormProps
   const isEditMode = !!questionToEdit;
 
   /**
+   * Reset form to initial state
+   */
+  const resetForm = useCallback(() => {
+    setContent("");
+    setType(QuestionType.SingleChoice);
+    setOptions(defaultQuestionOptions.map((opt) => ({ ...opt, content: "" })));
+    setAnswer("");
+    setExplanation("");
+  }, []);
+
+  /**
    * Initialize or reset form
    */
   useEffect(() => {
@@ -49,18 +61,7 @@ export function useQuestionForm({ questionToEdit, isOpen }: UseQuestionFormProps
         resetForm();
       }
     }
-  }, [isOpen, isEditMode, questionToEdit]);
-
-  /**
-   * Reset form to initial state
-   */
-  const resetForm = useCallback(() => {
-    setContent("");
-    setType(QuestionType.SingleChoice);
-    setOptions(defaultQuestionOptions.map((opt) => ({ ...opt, content: "" })));
-    setAnswer("");
-    setExplanation("");
-  }, []);
+  }, [isOpen, isEditMode, questionToEdit, resetForm]);
 
   /**
    * Handle question type change

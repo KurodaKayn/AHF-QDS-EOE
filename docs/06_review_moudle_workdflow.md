@@ -30,4 +30,3 @@
 - 错题视图不是独立数据表，而是由 `records` 与 `questionBanks` 动态聚合出来。
 - AI 解析使用流式接口，Tauri 桌面态依赖 `ai-stream:chunk` 和 `ai-stream:done` event。
 - 相似题导入复用 `addQuestionToBank()`，会受到重复题检查设置影响。
-

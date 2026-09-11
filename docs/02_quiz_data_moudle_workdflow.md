@@ -28,4 +28,3 @@
 - 新增题库数据字段时要同时更新 TypeScript 类型、Rust 结构、SQLite 读写和导入导出格式。
 - 重复题判断依赖 `normalizeQuestionContent()` 与 Rust `normalize_content()`，两边规则要保持一致。
 - Tauri command 返回 snapshot 是状态一致性的关键，不要只返回局部实体后让前端自行猜测。
-

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { Question, QuestionBank, QuestionRecord, QuestionOption } from "@/types/quiz";
+import type { Question, QuestionBank, QuestionRecord, QuestionOption } from "@/types/quiz";
 import { nanoid } from "nanoid";
 import { getPrompts } from "@/constants/ai";
 import { createStorage } from "@/lib/storage";

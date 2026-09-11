@@ -8,15 +8,15 @@ AHF QDS EOE 是一个题库练习桌面应用。前端使用 Next.js 15、React 
 
 ## 顶层分层
 
-| 层级 | 主要文件 | 职责 |
-| --- | --- | --- |
-| 应用壳与路由 | `src/app/layout.tsx`, `src/components/Providers.tsx`, `src/app/quiz/layout.tsx` | 全局 Provider、主题、通知、i18n 初始化、侧边栏和移动导航 |
-| 页面与业务 UI | `src/app/quiz/**/page.tsx`, `src/components/quiz/**` | 题库首页、转换、练习、错题、导入导出、设置和题库管理 |
-| Hook 业务编排 | `src/hooks/*.ts` | 将页面事件拆成可复用业务流程，例如转换、练习会话、错题筛选、AI 解析 |
-| 状态层 | `src/store/quizStore.ts`, `src/store/themeStore.ts` | 题库、记录、设置、转换状态、练习会话和主题状态 |
-| 前端领域能力 | `src/lib/*.ts`, `src/utils/*.ts`, `src/services/*.ts`, `src/schemas/*.ts` | AI 调用适配、存储适配、导入导出服务、题目解析、校验和练习判分 |
-| Tauri 后端 | `src-tauri/src/*.rs` | Rust command、SQLite 表结构、AI 代理、CSV/XLSX 处理和脚本解析 |
-| 持久化与外部系统 | SQLite、localStorage、AI Provider、文件系统 | 运行时数据、设置、导入导出文件和大模型接口 |
+| 层级             | 主要文件                                                                        | 职责                                                                |
+| ---------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 应用壳与路由     | `src/app/layout.tsx`, `src/components/Providers.tsx`, `src/app/quiz/layout.tsx` | 全局 Provider、主题、通知、i18n 初始化、侧边栏和移动导航            |
+| 页面与业务 UI    | `src/app/quiz/**/page.tsx`, `src/components/quiz/**`                            | 题库首页、转换、练习、错题、导入导出、设置和题库管理                |
+| Hook 业务编排    | `src/hooks/*.ts`                                                                | 将页面事件拆成可复用业务流程，例如转换、练习会话、错题筛选、AI 解析 |
+| 状态层           | `src/store/quizStore.ts`, `src/store/themeStore.ts`                             | 题库、记录、设置、转换状态、练习会话和主题状态                      |
+| 前端领域能力     | `src/lib/*.ts`, `src/utils/*.ts`, `src/services/*.ts`, `src/schemas/*.ts`       | AI 调用适配、存储适配、导入导出服务、题目解析、校验和练习判分       |
+| Tauri 后端       | `src-tauri/src/*.rs`                                                            | Rust command、SQLite 表结构、AI 代理、CSV/XLSX 处理和脚本解析       |
+| 持久化与外部系统 | SQLite、localStorage、AI Provider、文件系统                                     | 运行时数据、设置、导入导出文件和大模型接口                          |
 
 ## 运行时分支
 
@@ -60,4 +60,3 @@ Rust 侧在 `src-tauri/src/quiz.rs` 使用同构结构，并拆成 SQLite 表：
 - `src-tauri/src/quiz.rs` 是桌面态题库数据的权威写入点；前端调用后使用返回的 snapshot 回填 Zustand。
 - 导入导出和题目解析都有前端实现与 Rust 实现，改格式时要同步测试两边行为。
 - AI 请求支持非流式转换和流式解析，流式场景依赖 Tauri event 名称 `ai-stream:chunk` 和 `ai-stream:done`。
-

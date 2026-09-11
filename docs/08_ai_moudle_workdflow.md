@@ -29,4 +29,3 @@ AI 模块统一管理 OpenAI-compatible provider 配置，并为题目转换、�
 - `baseUrl` 会自动补 `/chat/completions`，不要在 UI 侧重复拼接。
 - API key 在桌面态会进入 SQLite `ai_configs`，前端只同步必要配置。
 - 新增 AI 使用场景时应复用 `callAI()` 或 `callAIStream()`，避免页面直接请求 provider。
-

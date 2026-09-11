@@ -29,6 +29,11 @@ export function QuizControls({
 
   const nextButtonText = isLastQuestion ? t("practice.nav.finish") : t("practice.nav.next");
 
+  const getShowAnswerText = () => {
+    if (!showAnswer) return t("practice.showAnswer");
+    return isCurrentCorrect ? t("practice.status.correct") : t("practice.status.incorrect");
+  };
+
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t dark:border-gray-700">
       <Button
@@ -38,11 +43,7 @@ export function QuizControls({
         className="w-full sm:w-auto text-sm md:text-base disabled:opacity-60"
       >
         <FaLightbulb className="mr-2" />
-        {showAnswer
-          ? isCurrentCorrect
-            ? t("practice.status.correct")
-            : t("practice.status.incorrect")
-          : t("practice.showAnswer")}
+        {getShowAnswerText()}
       </Button>
 
       <div className="flex gap-3 w-full sm:w-auto">

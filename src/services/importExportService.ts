@@ -1,4 +1,4 @@
-import { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/types/quiz";
 import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from "@/utils/quiz";
 import { DEFAULT_EXPORT_FILENAME } from "@/constants/quiz";
 import { invoke } from "@tauri-apps/api/core";

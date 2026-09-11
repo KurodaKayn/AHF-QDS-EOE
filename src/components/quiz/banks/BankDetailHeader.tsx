@@ -1,7 +1,7 @@
 "use client";
 
 import { FaPlus, FaChevronLeft } from "react-icons/fa";
-import { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/types/quiz";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";

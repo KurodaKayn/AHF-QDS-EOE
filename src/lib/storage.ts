@@ -1,6 +1,6 @@
 // Storage adapter that uses SQLite in production (Tauri) and localStorage in development
 
-import { StateStorage } from "zustand/middleware";
+import type { StateStorage } from "zustand/middleware";
 import { isTauriRuntime } from "@/lib/runtime";
 
 const isDev = process.env.NODE_ENV === "development";

@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuizStore, QuizSettings, AIConfig } from "@/store/quizStore";
+import type { QuizSettings, AIConfig } from "@/store/quizStore";
+import { useQuizStore } from "@/store/quizStore";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Edit2, Plus, Trash2, Check, Server, Globe, Moon, Sun, Monitor } from "lucide-react";

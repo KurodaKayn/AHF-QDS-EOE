@@ -1,5 +1,6 @@
 import { PracticeHandlers } from "../practiceHandlers";
-import { Question, QuestionType } from "@/types/quiz";
+import type { Question } from "@/types/quiz";
+import { QuestionType } from "@/types/quiz";
 
 const makeQuestion = (
   type: QuestionType,

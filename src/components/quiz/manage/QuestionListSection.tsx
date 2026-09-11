@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Question } from "@/types/quiz";
+import type { Question } from "@/types/quiz";
 import {
   FaPlusCircle,
   FaEdit,
@@ -104,6 +104,17 @@ export function QuestionListSection({
     return t(`questionTypes.${typeKey}`, { defaultValue: type });
   };
 
+  const renderSortIcon = (
+    ascType: QuestionSortType,
+    descType: QuestionSortType,
+    AscIcon: typeof FaSortAlphaDown,
+    DescIcon: typeof FaSortAlphaUp,
+  ) => {
+    if (sortType === ascType) return <AscIcon className="ml-1" />;
+    if (sortType === descType) return <DescIcon className="ml-1" />;
+    return <FaSort className="ml-1" />;
+  };
+
   return (
     <>
       <div className="mb-4 flex justify-between items-center">
@@ -141,17 +152,17 @@ export function QuestionListSection({
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 w-full"
             />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                onClick={() => setSearchQuery("")}
+              >
+                <span className="sr-only">{t("bankManage.clear")}</span>×
+              </Button>
+            )}
           </div>
-          {searchQuery && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="ml-2"
-              onClick={() => setSearchQuery("")}
-            >
-              <span className="sr-only">{t("bankManage.clear")}</span>×
-            </Button>
-          )}
         </div>
 
         <div className="flex flex-wrap gap-2 mt-2">
@@ -175,12 +186,11 @@ export function QuestionListSection({
             className="text-xs"
           >
             {t("bankManage.sortByContent")}{" "}
-            {sortType === QuestionSortType.ContentAsc ? (
-              <FaSortAlphaDown className="ml-1" />
-            ) : sortType === QuestionSortType.ContentDesc ? (
-              <FaSortAlphaUp className="ml-1" />
-            ) : (
-              <FaSort className="ml-1" />
+            {renderSortIcon(
+              QuestionSortType.ContentAsc,
+              QuestionSortType.ContentDesc,
+              FaSortAlphaDown,
+              FaSortAlphaUp,
             )}
           </Button>
 
@@ -201,12 +211,11 @@ export function QuestionListSection({
             className="text-xs"
           >
             {t("bankManage.sortByType")}{" "}
-            {sortType === QuestionSortType.TypeAsc ? (
-              <FaSortAlphaDown className="ml-1" />
-            ) : sortType === QuestionSortType.TypeDesc ? (
-              <FaSortAlphaUp className="ml-1" />
-            ) : (
-              <FaSort className="ml-1" />
+            {renderSortIcon(
+              QuestionSortType.TypeAsc,
+              QuestionSortType.TypeDesc,
+              FaSortAlphaDown,
+              FaSortAlphaUp,
             )}
           </Button>
 
@@ -227,13 +236,7 @@ export function QuestionListSection({
             className="text-xs"
           >
             {t("bankManage.sortByAddTime")}{" "}
-            {sortType === QuestionSortType.DateAsc ? (
-              <FaClock className="ml-1" />
-            ) : sortType === QuestionSortType.DateDesc ? (
-              <FaClock className="ml-1" />
-            ) : (
-              <FaSort className="ml-1" />
-            )}
+            {renderSortIcon(QuestionSortType.DateAsc, QuestionSortType.DateDesc, FaClock, FaClock)}
           </Button>
         </div>
       </div>
