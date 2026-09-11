@@ -1,58 +1,12 @@
-import { nanoid } from "nanoid";
 import * as XLSX from "xlsx";
-import type { Question, QuestionBank } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
-
-/**
- * Generates a unique ID
- */
-export const generateId = (): string => nanoid();
-
-/**
- * Creates an empty question bank
- */
-export const createEmptyBank = (name: string, description?: string): QuestionBank => {
-  const now = Date.now();
-  return {
-    id: generateId(),
-    name,
-    description,
-    questions: [],
-    createdAt: now,
-    updatedAt: now,
-  };
-};
-
-/**
- * Creates a new question
- */
-export const createQuestion = (
-  type: QuestionType,
-  content: string,
-  options: { content: string }[] = [],
-  answer: string | string[] = "",
-  explanation?: string,
-  tags: string[] = [],
-): Question => {
-  const now = Date.now();
-  return {
-    id: generateId(),
-    type,
-    content,
-    options: options.map((opt) => ({ id: generateId(), content: opt.content })),
-    answer,
-    explanation,
-    tags,
-    createdAt: now,
-    updatedAt: now,
-  };
-};
+import type { Question, QuestionBank } from "../quiz/quiz.contract";
+import { QuestionType } from "../quiz/quiz.contract";
+import { generateId } from "@/lib/id";
 
 /**
  * Utility to convert question to export row format
  */
 const convertQuestionToExportFormat = (q: Question): Record<string, any> => {
-  // Format answer
   let formattedAnswer = q.answer;
   if (q.type === QuestionType.MultipleChoice && Array.isArray(q.answer)) {
     formattedAnswer = q.answer.join(",");
@@ -68,7 +22,6 @@ const convertQuestionToExportFormat = (q: Question): Record<string, any> => {
     tags: q.tags?.join(",") || "",
   };
 
-  // Add options for choice questions
   if (q.options && q.options.length > 0) {
     q.options.forEach((opt, index) => {
       const optKey = `option${String.fromCharCode(65 + index)}`;
@@ -110,7 +63,6 @@ const convertImportRowToQuestion = (row: any): Question => {
   const type = row.type as QuestionType;
   const content = row.content;
 
-  // Process answers based on type
   let answer: string | string[] = row.answer;
   if (type === QuestionType.MultipleChoice) {
     answer =
@@ -133,7 +85,6 @@ const convertImportRowToQuestion = (row: any): Question => {
     }
   }
 
-  // Find all option keys (optionA, optionB, etc.)
   const optionKeys = Object.keys(row).filter((key) => /^option[A-Z]$/.test(key));
   const options = optionKeys
     .filter((key) => {
@@ -141,7 +92,7 @@ const convertImportRowToQuestion = (row: any): Question => {
       return val !== null && val !== undefined && String(val).trim() !== "";
     })
     .map((key) => ({
-      id: key.replace("option", ""), // Use option letter as ID (A, B, C...)
+      id: key.replace("option", ""),
       content: String(row[key]),
     }));
 

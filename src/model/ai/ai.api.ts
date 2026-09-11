@@ -1,34 +1,15 @@
-import i18n from "@/i18n/config";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { nanoid } from "nanoid";
-
-export interface AiMessage {
-  role: string;
-  content: string;
-}
-
-export interface AiProviderConfig {
-  id: string;
-  name: string;
-  type: "preset" | "custom";
-  provider?: "deepseek" | "alibaba";
-  baseUrl: string;
-  apiKey: string;
-  model: string;
-}
-
-export interface AiCompleteRequest {
-  providerConfigId: string;
-  messages: AiMessage[];
-  stream?: boolean;
-  requestId?: string;
-  temperature?: number;
-}
-
-export interface AiCompleteResponse {
-  content: string;
-}
+import i18n from "@/i18n/config";
+import { isTauriRuntime } from "@/lib/runtime";
+import type {
+  AiCompleteRequest,
+  AiCompleteResponse,
+  AiMessage,
+  AiProviderConfig,
+  AiProviderConfigPayload,
+} from "./ai.contract";
 
 interface AiStreamChunkEvent {
   requestId: string;
@@ -40,7 +21,25 @@ interface AiStreamDoneEvent {
   content: string;
 }
 
-import { isTauriRuntime } from "@/lib/runtime";
+export async function saveAiConfig(config: AiProviderConfigPayload): Promise<void> {
+  if (!isTauriRuntime()) return;
+  await invoke("save_ai_config", { config });
+}
+
+export async function deleteAiConfig(id: string): Promise<void> {
+  if (!isTauriRuntime()) return;
+  await invoke("delete_ai_config", { id });
+}
+
+export async function getAiConfig(id: string): Promise<AiProviderConfigPayload | null> {
+  if (!isTauriRuntime()) return null;
+  return invoke<AiProviderConfigPayload | null>("get_ai_config", { id });
+}
+
+export async function listAiConfigs(): Promise<AiProviderConfigPayload[]> {
+  if (!isTauriRuntime()) return [];
+  return invoke<AiProviderConfigPayload[]>("list_ai_configs");
+}
 
 async function resolveProviderConfig(
   configOrId: AiProviderConfig | string,
@@ -50,9 +49,7 @@ async function resolveProviderConfig(
   }
 
   if (isTauriRuntime()) {
-    const config = await invoke<AiProviderConfig | null>("get_ai_config", {
-      id: configOrId,
-    });
+    const config = await getAiConfig(configOrId);
     if (!config) {
       throw new Error(
         i18n.t("common.aiCallFailed", {
@@ -239,3 +236,19 @@ export async function callAIStream(
 
   return callDirectAI(config, request, onChunk);
 }
+
+export const aiApi = {
+  saveConfig: saveAiConfig,
+  deleteConfig: deleteAiConfig,
+  getConfig: getAiConfig,
+  listConfigs: listAiConfigs,
+  complete: (request: AiCompleteRequest): Promise<AiCompleteResponse> =>
+    invoke<AiCompleteResponse>("ai_complete", { request }),
+  callAI,
+  callAIStream,
+};
+
+export const saveAiConfigOnBackend = saveAiConfig;
+export const deleteAiConfigOnBackend = deleteAiConfig;
+export const getAiConfigFromBackend = getAiConfig;
+export const listAiConfigsFromBackend = listAiConfigs;

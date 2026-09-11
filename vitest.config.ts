@@ -9,7 +9,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: "./src/utils/__tests__/setup.ts",
+    setupFiles: "./src/test/setup.ts",
     exclude: ["node_modules", ".next", "out", "src-tauri"],
   },
 });

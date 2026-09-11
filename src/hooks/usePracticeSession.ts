@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuizStore } from "@/store/quizStore";
 import type { Question } from "@/types/quiz";
 import { QuestionType } from "@/types/quiz";
-import { PracticeHandlers } from "@/utils/practiceHandlers";
+import { PracticeHandlers } from "@/model";
 
 /**
  * Custom Hook: Manages practice session state

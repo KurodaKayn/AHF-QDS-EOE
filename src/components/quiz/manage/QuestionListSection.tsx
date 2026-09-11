@@ -14,7 +14,7 @@ import {
   FaClone,
 } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import { searchQuestionIds } from "@/lib/quizQueries";
+import { searchQuestionIds } from "@/model";
 
 export enum QuestionSortType {
   ContentAsc = "contentAsc",

@@ -13,8 +13,8 @@ AHF QDS EOE 是一个题库练习桌面应用。前端使用 Next.js 15、React 
 | 应用壳与路由     | `src/app/layout.tsx`, `src/components/Providers.tsx`, `src/app/quiz/layout.tsx` | 全局 Provider、主题、通知、i18n 初始化、侧边栏和移动导航            |
 | 页面与业务 UI    | `src/app/quiz/**/page.tsx`, `src/components/quiz/**`                            | 题库首页、转换、练习、错题、导入导出、设置和题库管理                |
 | Hook 业务编排    | `src/hooks/*.ts`                                                                | 将页面事件拆成可复用业务流程，例如转换、练习会话、错题筛选、AI 解析 |
-| 状态层           | `src/store/quizStore.ts`, `src/store/themeStore.ts`                             | 题库、记录、设置、转换状态、练习会话和主题状态                      |
-| 前端领域能力     | `src/lib/*.ts`, `src/utils/*.ts`, `src/services/*.ts`, `src/schemas/*.ts`       | AI 调用适配、存储适配、导入导出服务、题目解析、校验和练习判分       |
+| 领域模型层 (Model)| `src/model/quiz/**`, `src/model/ai/**`, `src/model/import-export/**`, `src/model/theme/**` | 领域契约、IPC 数据交互、领域状态管理、序列化、解析与判分规则        |
+| 业务无关库 (Lib) | `src/lib/array.ts`, `src/lib/id.ts`, `src/lib/string.ts`, `src/lib/runtime.ts`等 | 纯工具函数、通用存储适配、运行时环境判断、Tailwind 样式工具         |
 | Tauri 后端       | `src-tauri/src/*.rs`                                                            | Rust command、SQLite 表结构、AI 代理、CSV/XLSX 处理和脚本解析       |
 | 持久化与外部系统 | SQLite、localStorage、AI Provider、文件系统                                     | 运行时数据、设置、导入导出文件和大模型接口                          |
 
@@ -53,10 +53,11 @@ Rust 侧在 `src-tauri/src/quiz.rs` 使用同构结构，并拆成 SQLite 表：
 - [设置/主题/i18n 模块](09_settings_theme_i18n_moudle_workdflow.md)
 - [Tauri 后端模块](10_tauri_backend_moudle_workdflow.md)
 
-## 维护边界
+## 维护边界与依赖方向
 
-- 页面组件负责渲染和用户事件，复杂业务流程优先放到 `src/hooks` 或 `src/lib`。
-- `useQuizStore` 是题库和记录的状态入口。涉及题库持久化时，需要同时理解浏览器分支和 Tauri 分支。
+- **单向依赖原则**：UI 逻辑保持在 `components/`，`components` 可以导入 `model`，但 `model` 严禁导入 `components`。
+- **纯粹的 Lib 层**：`src/lib` 保持纯粹业务无关（无题库、AI 等具体业务概念），废除原 `src/utils/`。
+- **自包含的 Model 架构**：各业务领域（`quiz`, `ai`, `import-export`, `theme`）在 `src/model/` 内部封装自己的 contract（契约）、api（后端 IPC 与网络通讯）、query/grader/parser 以及 store（状态）。模型之间可直接导入，无需 shared 中间层。
 - `src-tauri/src/quiz.rs` 是桌面态题库数据的权威写入点；前端调用后使用返回的 snapshot 回填 Zustand。
 - 导入导出和题目解析都有前端实现与 Rust 实现，改格式时要同步测试两边行为。
 - AI 请求支持非流式转换和流式解析，流式场景依赖 Tauri event 名称 `ai-stream:chunk` 和 `ai-stream:done`。

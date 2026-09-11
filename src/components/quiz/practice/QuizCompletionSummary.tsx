@@ -6,7 +6,7 @@ import { FaArrowLeft, FaRedo } from "react-icons/fa";
 import type { Question, QuestionOption } from "@/types/quiz";
 import { QuestionType } from "@/types/quiz";
 import { useTranslation } from "react-i18next";
-import { PracticeHandlers } from "@/utils/practiceHandlers";
+import { PracticeHandlers } from "@/model";
 
 interface QuizCompletionSummaryProps {
   practiceQuestions: (Question & { originalUserAnswer?: string | string[] })[];

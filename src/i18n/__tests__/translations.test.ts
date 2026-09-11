@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import en from "../locales/en.json";
 import zh from "../locales/zh.json";
 import { QUESTION_TYPE_I18N_KEYS } from "@/constants/quiz";
-import { ScriptTemplate } from "@/utils/scriptParser";
+import { ScriptTemplate } from "@/model";
 
 type TranslationTree = Record<string, unknown>;
 

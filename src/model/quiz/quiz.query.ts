@@ -1,17 +1,9 @@
-import type { Question } from "@/types/quiz";
-import { invoke } from "@tauri-apps/api/core";
+import type { Question } from "./quiz.contract";
 import { isTauriRuntime } from "@/lib/runtime";
+import { normalizeText } from "@/lib/string";
+import { quizApi } from "./quiz.api";
 
-interface DuplicateQuestionGroup {
-  normalizedContent: string;
-  questionIds: string[];
-}
-
-export const normalizeQuestionContent = (text: string): string =>
-  text
-    .toLowerCase()
-    .replace(/[()（）。.]/g, "")
-    .trim();
+export const normalizeQuestionContent = (text: string): string => normalizeText(text);
 
 const findDuplicateQuestions = (questions: Question[]): Map<string, Question[]> => {
   const grouped = new Map<string, Question[]>();
@@ -41,9 +33,7 @@ export async function findDuplicateQuestionsInBank(
     return findDuplicateQuestions(questions);
   }
 
-  const groups = await invoke<DuplicateQuestionGroup[]>("find_duplicate_question_groups", {
-    bankId,
-  });
+  const groups = await quizApi.findDuplicateQuestionGroups(bankId);
   const questionById = new Map(questions.map((question) => [question.id, question]));
   const duplicateMap = new Map<string, Question[]>();
 
@@ -67,8 +57,6 @@ export async function searchQuestionIds(query: string): Promise<Set<string> | nu
     return null;
   }
 
-  const ids = await invoke<string[]>("search_questions", {
-    request: { query: normalizeQuestionContent(trimmed) },
-  });
+  const ids = await quizApi.searchQuestions(normalizeQuestionContent(trimmed));
   return new Set(ids);
 }

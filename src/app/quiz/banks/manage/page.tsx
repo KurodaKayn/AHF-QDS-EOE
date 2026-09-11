@@ -20,7 +20,7 @@ import { DuplicateQuestionsModal } from "@/components/quiz/manage/DuplicateQuest
 import type { DeleteType } from "@/components/quiz/manage/DeleteConfirmDialog";
 import { DeleteConfirmDialog } from "@/components/quiz/manage/DeleteConfirmDialog";
 import { NoDuplicatesDialog } from "@/components/quiz/manage/NoDuplicatesDialog";
-import { findDuplicateQuestionsInBank } from "@/lib/quizQueries";
+import { findDuplicateQuestionsInBank } from "@/model";
 
 // Helper component for static export paths
 

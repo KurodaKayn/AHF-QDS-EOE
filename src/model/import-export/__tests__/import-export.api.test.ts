@@ -1,6 +1,6 @@
-import { exportQuestionBank, importQuestionBank } from "../importExportService";
-import type { QuestionBank } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import { exportQuestionBank, importQuestionBank } from "../import-export.api";
+import type { QuestionBank } from "../../quiz/quiz.contract";
+import { QuestionType } from "../../quiz/quiz.contract";
 
 const mockSave = vi.fn();
 const mockWriteFile = vi.fn();
@@ -97,7 +97,11 @@ single-choice,Which package manager?,B,Repo uses pnpm,tooling,npm,pnpm
   });
 
   it("imports Excel files and falls back to the file name as the bank name", async () => {
-    const excelBuffer = await (await import("@/model")).exportToExcel(bank).arrayBuffer();
+    const excelBuffer = await (
+      await import("../import-export.serializer")
+    )
+      .exportToExcel(bank)
+      .arrayBuffer();
     const file = new File([excelBuffer], "fallback-name.xlsx", {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });

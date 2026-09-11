@@ -1,4 +1,4 @@
-import { ScriptTemplate } from "@/utils/scriptParser";
+import { ScriptTemplate } from "@/model";
 
 /**
  * Script template example texts (Chinese)

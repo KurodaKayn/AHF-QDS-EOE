@@ -16,7 +16,7 @@ describe("quizQueries", () => {
   });
 
   it("falls back to local duplicate detection when Tauri is unavailable", async () => {
-    const { findDuplicateQuestionsInBank } = await import("../quizQueries");
+    const { findDuplicateQuestionsInBank } = await import("../quiz.query");
     const questions = [
       {
         id: "1",
@@ -52,7 +52,7 @@ describe("quizQueries", () => {
       return Promise.resolve([]);
     });
 
-    const { findDuplicateQuestionsInBank, searchQuestionIds } = await import("../quizQueries");
+    const { findDuplicateQuestionsInBank, searchQuestionIds } = await import("../quiz.query");
     const questions = [
       {
         id: "a",

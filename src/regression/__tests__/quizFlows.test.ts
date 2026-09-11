@@ -1,4 +1,4 @@
-import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from "@/utils/quiz";
+import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from "@/model";
 import type { QuestionBank } from "@/types/quiz";
 import { QuestionType } from "@/types/quiz";
 

@@ -1,9 +1,9 @@
-import type { Question } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import type { Question } from "./quiz.contract";
+import { QuestionType } from "./quiz.contract";
+import { shuffleArray } from "@/lib/array";
 
 /**
- * Practice business logic handler
- * Extracts business logic from components
+ * Grader and practice session business rules.
  */
 export class PracticeHandlers {
   /**
@@ -71,15 +71,10 @@ export class PracticeHandlers {
   }
 
   /**
-   * Shuffles an array
+   * Shuffles an array (pure utility delegation)
    */
   static shuffleArray<T>(array: T[]): T[] {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
+    return shuffleArray([...array]);
   }
 
   /**
@@ -102,7 +97,10 @@ export class PracticeHandlers {
       questionsToSet = questionsToSet.map((q) => {
         if (q.options && q.type !== QuestionType.TrueFalse && q.options.length > 1) {
           const shuffledOptions = this.shuffleArray([...q.options]);
-          return { ...q, options: shuffledOptions };
+          return {
+            ...q,
+            options: shuffledOptions,
+          };
         }
         return q;
       });
@@ -147,3 +145,7 @@ export class PracticeHandlers {
     };
   }
 }
+
+export const checkIsCorrect = PracticeHandlers.checkIsCorrect;
+export const preparePracticeQuestions = PracticeHandlers.preparePracticeQuestions;
+export const calculateStats = PracticeHandlers.calculateStats;

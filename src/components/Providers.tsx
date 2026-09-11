@@ -5,12 +5,12 @@ import "@/i18n/config"; // Import i18n config to ensure early initialization
 import { Toaster } from "sonner";
 import { ThemeRegistry } from "./ThemeRegistry";
 import { useQuizStore } from "@/store/quizStore";
-import { saveAiConfigOnBackend } from "@/lib/aiConfigSync";
+import { saveAiConfigOnBackend } from "@/model/ai";
 import {
   hasQuizSnapshotData,
   loadQuizSnapshotFromBackend,
   replaceQuizSnapshotOnBackend,
-} from "@/lib/quizSnapshotSync";
+} from "@/model/quiz";
 
 import { isTauriRuntime } from "@/lib/runtime";
 

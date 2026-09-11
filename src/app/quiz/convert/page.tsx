@@ -7,7 +7,7 @@ import { MdCode } from "react-icons/md";
 import { FiXCircle } from "react-icons/fi";
 import { useQuizStore } from "@/store/quizStore";
 import { EXAMPLE_QUESTION_TEXT } from "@/constants/quiz";
-import { ScriptTemplate } from "@/utils/scriptParser";
+import { ScriptTemplate } from "@/model";
 import { getScriptExampleContent, getScriptExampleTitle } from "@/constants/scriptExamples";
 import { ConversionModeSelector } from "@/components/quiz/ConversionModeSelector";
 import { AIProviderInfo } from "@/components/quiz/AIProviderInfo";

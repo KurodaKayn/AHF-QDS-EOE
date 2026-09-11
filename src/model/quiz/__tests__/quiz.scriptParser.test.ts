@@ -1,4 +1,4 @@
-import { QuestionType } from "@/types/quiz";
+import { QuestionType } from "../quiz.contract";
 
 const mockInvoke = vi.fn();
 
@@ -34,7 +34,7 @@ describe("parseTextByScript", () => {
       },
     ]);
 
-    const { parseTextByScript, ScriptTemplate } = await import("../scriptParser");
+    const { parseTextByScript, ScriptTemplate } = await import("../quiz.scriptParser");
     const questions = await parseTextByScript(
       "1. (填空题) 包管理器是____",
       ScriptTemplate.ChaoXing,
@@ -51,7 +51,7 @@ describe("parseTextByScript", () => {
   });
 
   it("falls back to browser parsing when Tauri IPC is unavailable", async () => {
-    const { parseTextByScript, ScriptTemplate } = await import("../scriptParser");
+    const { parseTextByScript, ScriptTemplate } = await import("../quiz.scriptParser");
     const [question] = await parseTextByScript(
       `1. Which tool runs the tests?
 A. npm
@@ -73,7 +73,7 @@ Correct Answer:B`,
   });
 
   it("falls back for ChaoXing multiple-choice and fill-in-blank parsing", async () => {
-    const { parseTextByScript, ScriptTemplate } = await import("../scriptParser");
+    const { parseTextByScript, ScriptTemplate } = await import("../quiz.scriptParser");
     const [multipleChoice, fillInBlank] = await parseTextByScript(
       `1. (多选题) 选择项目技术
 A. Next.js

@@ -1,8 +1,8 @@
-import { invoke } from "@tauri-apps/api/core";
-import type { Question, QuestionOption } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
-import { generateId } from "@/utils/quiz";
+import type { Question, QuestionOption } from "./quiz.contract";
+import { QuestionType } from "./quiz.contract";
+import { generateId } from "@/lib/id";
 import { isTauriRuntime } from "@/lib/runtime";
+import { quizApi } from "./quiz.api";
 
 interface ParsedOption extends QuestionOption {
   letter?: string;
@@ -22,7 +22,7 @@ export async function parseTextByScript(
   template: ScriptTemplate = ScriptTemplate.Other,
 ): Promise<Question[]> {
   if (isTauriRuntime()) {
-    return invoke<Question[]>("parse_text_by_script", { text, template });
+    return quizApi.parseTextByScript(text, template);
   }
 
   return parseTextByScriptInBrowser(text, template);
