@@ -1,11 +1,6 @@
 import { useEffect } from "react";
-import { useQuizStore } from "@/store/quizStore";
-import { saveAiConfigOnBackend } from "@/model/ai";
-import {
-  hasQuizSnapshotData,
-  loadQuizSnapshotFromBackend,
-  replaceQuizSnapshotOnBackend,
-} from "@/model/quiz";
+import { useQuizStore, quizApi } from "@/model/quiz";
+import { aiApi } from "@/model/ai";
 import { isTauriRuntime } from "@/lib/runtime";
 
 /**
@@ -23,24 +18,19 @@ export function useStartupSync() {
       const store = useQuizStore.getState();
 
       // 1. Sync AI configs to backend
-      const configs = store.settings.aiConfigs;
-      await Promise.all(configs.map((config) => saveAiConfigOnBackend(config)));
+      await aiApi.saveConfigs(store.settings.aiConfigs);
       if (cancelled) return;
 
       // 2. Sync Quiz snapshot between backend and local state
-      const backendSnapshot = await loadQuizSnapshotFromBackend();
-      if (cancelled) return;
-
       const currentStore = useQuizStore.getState();
       const localSnapshot = {
         questionBanks: currentStore.questionBanks,
         records: currentStore.records,
       };
 
-      if (backendSnapshot && hasQuizSnapshotData(backendSnapshot)) {
-        currentStore.replaceQuizData(backendSnapshot);
-      } else if (localSnapshot.questionBanks.length > 0 || localSnapshot.records.length > 0) {
-        await replaceQuizSnapshotOnBackend(localSnapshot);
+      const remoteSnapshot = await quizApi.syncSnapshot(localSnapshot);
+      if (remoteSnapshot && !cancelled) {
+        currentStore.replaceQuizData(remoteSnapshot);
       }
     };
 

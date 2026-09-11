@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { Question } from "@/types/quiz";
+import type { Question } from "@/model/quiz";
 import {
   FaPlusCircle,
   FaEdit,

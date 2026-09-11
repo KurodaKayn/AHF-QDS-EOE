@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { FaArrowLeft, FaCog } from "react-icons/fa";
-import type { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 
 interface QuizHeaderProps {

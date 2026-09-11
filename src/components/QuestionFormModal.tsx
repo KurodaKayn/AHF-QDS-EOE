@@ -18,8 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Question } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import type { Question } from "@/model/quiz";
+import { QuestionType } from "@/model/quiz";
 import { getQuestionTypeName, QUESTION_TYPE_I18N_KEYS } from "@/constants/quiz";
 import { useQuestionForm } from "./useQuestionForm";
 import { toast } from "sonner";

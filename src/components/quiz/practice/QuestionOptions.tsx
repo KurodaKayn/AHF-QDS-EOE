@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
-import type { Question } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import type { Question } from "@/model/quiz";
+import { QuestionType } from "@/model/quiz";
 
 interface QuestionOptionsProps {
   question: Question;

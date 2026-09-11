@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useQuizStore } from "@/store/quizStore";
-import { exportQuestionBank, importQuestionBank, type ImportResult } from "@/model";
+import { exportQuestionBank, importQuestionBank, type ImportResult } from "@/model/import-export";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 

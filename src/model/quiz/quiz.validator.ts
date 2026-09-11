@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { QuestionType } from "@/types/quiz";
+import { QuestionType } from "./quiz.contract";
 import i18n from "@/i18n/config";
 
 /**

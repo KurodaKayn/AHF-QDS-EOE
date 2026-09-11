@@ -239,6 +239,10 @@ export async function callAIStream(
 
 export const aiApi = {
   saveConfig: saveAiConfig,
+  saveConfigs: async (configs: AiProviderConfigPayload[]): Promise<void> => {
+    if (!isTauriRuntime()) return;
+    await Promise.all(configs.map((config) => saveAiConfig(config)));
+  },
   deleteConfig: deleteAiConfig,
   getConfig: getAiConfig,
   listConfigs: listAiConfigs,

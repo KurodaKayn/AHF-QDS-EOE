@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/model/quiz";
 
 interface UseBankDetailsCardProps {
   bank: QuestionBank;

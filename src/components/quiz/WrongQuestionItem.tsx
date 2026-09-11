@@ -1,8 +1,8 @@
 "use client";
 
 import { FaCheck, FaTimes } from "react-icons/fa";
-import type { QuestionOption, WrongQuestionDisplay } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import type { QuestionOption, WrongQuestionDisplay } from "@/model/quiz";
+import { QuestionType } from "@/model/quiz";
 import { getTagColor } from "@/constants/quiz";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";

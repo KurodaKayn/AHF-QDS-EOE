@@ -41,7 +41,7 @@ const bank: QuestionBank = {
   updatedAt: 1,
 };
 
-describe("importExportService", () => {
+describe("import-export api", () => {
   let originalCreateObjectURL: typeof URL.createObjectURL;
   let originalRevokeObjectURL: typeof URL.revokeObjectURL;
 

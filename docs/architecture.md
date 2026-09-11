@@ -29,7 +29,7 @@ AHF QDS EOE 是一个题库练习桌面应用。前端使用 Next.js 15、React 
 
 ## 核心数据模型
 
-核心类型定义在 `src/types/quiz.ts`（透明重导出自 `src/model/quiz/quiz.contract.ts`）：
+核心类型定义在 `src/model/quiz/quiz.contract.ts`（通过 `@/model/quiz` 统一导出）：
 
 - `QuestionType`：单选、多选、判断、简答、填空。
 - `Question`：题干、选项、答案、解析、标签、创建和更新时间。

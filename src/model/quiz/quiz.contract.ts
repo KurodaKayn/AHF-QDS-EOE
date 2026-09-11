@@ -58,13 +58,6 @@ export interface QuestionRecord {
 }
 
 /**
- * API Key configuration
- */
-export interface ApiKeyConfig {
-  deepseek: string;
-}
-
-/**
  * Wrong question display data structure
  */
 export interface WrongQuestionDisplay extends Question {

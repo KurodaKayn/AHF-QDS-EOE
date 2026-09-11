@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import type { Question } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import type { Question } from "@/model/quiz";
+import { QuestionType } from "@/model/quiz";
 import { QuestionPreview } from "./QuestionPreview";
 import { useTranslation } from "react-i18next";
 

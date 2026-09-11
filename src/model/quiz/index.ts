@@ -1,7 +1,34 @@
-export * from "./quiz.contract";
-export * from "./quiz.api";
-export * from "./quiz.grader";
-export * from "./quiz.parser";
-export * from "./quiz.scriptParser";
-export * from "./quiz.query";
-export * from "./quiz.store";
+// Public Contracts & Entity Types
+export { QuestionType } from "./quiz.contract";
+export type {
+  Question,
+  QuestionBank,
+  QuestionOption,
+  QuestionRecord,
+  WrongQuestionDisplay,
+} from "./quiz.contract";
+
+// Data Access API Facade
+export { quizApi } from "./quiz.api";
+
+// Store & State Hook
+export { useQuizStore } from "./quiz.store";
+export type { QuizSettings, QuizState } from "./quiz.store";
+
+// Business Handlers & Practice Rules
+export {
+  checkIsCorrect,
+  preparePracticeQuestions,
+  calculateStats,
+  PracticeHandlers,
+} from "./quiz.grader";
+
+// Parsing & Script Conversion
+export { parseQuestions } from "./quiz.parser";
+export { parseTextByScript, ScriptTemplate } from "./quiz.scriptParser";
+
+// Query & Duplication Checks
+export { findDuplicateQuestionsInBank, searchQuestionIds } from "./quiz.query";
+
+// Validation
+export { questionSchema } from "./quiz.validator";

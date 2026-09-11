@@ -1,8 +1,13 @@
 import { useState, useCallback } from "react";
-import type { Question } from "@/types/quiz";
 import { getPrompts } from "@/constants/ai";
-import { callAI, parseQuestions, parseTextByScript, type ScriptTemplate } from "@/model";
-import { useQuizStore } from "@/store/quizStore";
+import { callAI } from "@/model/ai";
+import {
+  parseQuestions,
+  parseTextByScript,
+  useQuizStore,
+  type Question,
+  type ScriptTemplate,
+} from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 
 interface UseConversionLogicProps {

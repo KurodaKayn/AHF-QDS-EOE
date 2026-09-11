@@ -1,6 +1,6 @@
-import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from "@/model";
-import type { QuestionBank } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import { exportToCSV, exportToExcel, importFromCSV, importFromExcel } from "@/model/import-export";
+import type { QuestionBank } from "@/model/quiz";
+import { QuestionType } from "@/model/quiz";
 
 const now = 1700000000000;
 

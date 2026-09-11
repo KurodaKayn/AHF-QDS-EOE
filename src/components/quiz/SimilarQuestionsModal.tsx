@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import type { Question, QuestionBank } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import type { Question, QuestionBank } from "@/model/quiz";
+import { QuestionType } from "@/model/quiz";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";

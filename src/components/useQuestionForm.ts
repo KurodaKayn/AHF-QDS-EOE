@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Question, QuestionOption } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import { QuestionType, questionSchema, type Question, type QuestionOption } from "@/model/quiz";
 import { v4 as uuidv4 } from "uuid";
 import { useTranslation } from "react-i18next";
-import { questionSchema } from "@/schemas/quiz";
 
 const defaultQuestionOptions: QuestionOption[] = [
   { id: uuidv4(), content: "" },

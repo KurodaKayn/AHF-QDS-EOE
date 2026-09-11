@@ -1,5 +1,5 @@
 import { useQuizStore } from "../quizStore";
-import { QuestionType } from "@/types/quiz";
+import { QuestionType } from "@/model/quiz";
 
 let nanoidCounter = 0;
 

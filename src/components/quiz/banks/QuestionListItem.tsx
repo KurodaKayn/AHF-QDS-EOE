@@ -1,8 +1,8 @@
 "use client";
 
 import { FaEdit, FaTrash } from "react-icons/fa";
-import type { Question } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import type { Question } from "@/model/quiz";
+import { QuestionType } from "@/model/quiz";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";

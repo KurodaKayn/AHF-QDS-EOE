@@ -1,6 +1,6 @@
 import { FaSearch } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import type { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/model/quiz";
 
 interface ReviewSearchBarProps {
   searchTerm: string;

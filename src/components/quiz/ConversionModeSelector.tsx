@@ -2,7 +2,7 @@
 
 import { FaEye, FaFileCode } from "react-icons/fa";
 import { Icon } from "@iconify/react";
-import { ScriptTemplate } from "@/model";
+import { ScriptTemplate } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 
 interface ConversionModeSelectorProps {

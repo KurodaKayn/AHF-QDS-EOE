@@ -1,7 +1,7 @@
 "use client";
 
 import { FaPlay, FaBook, FaPlus } from "react-icons/fa";
-import type { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/model/quiz";
 import { Button } from "@/components/ui/button";
 import { useQuizDashboard } from "./useQuizDashboard";
 

@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import type { Question } from "@/types/quiz";
-import { searchQuestionIds } from "@/model";
+import { searchQuestionIds, type Question } from "@/model/quiz";
 
 export enum QuestionSortType {
   ContentAsc = "contentAsc",

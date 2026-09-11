@@ -1,4 +1,4 @@
-import { ScriptTemplate } from "@/model";
+import { ScriptTemplate } from "@/model/quiz";
 
 /**
  * Script template example texts (Chinese)

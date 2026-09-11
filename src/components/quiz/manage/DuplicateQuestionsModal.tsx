@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { Question } from "@/types/quiz";
+import type { Question } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 
 interface DuplicateQuestionsModalProps {

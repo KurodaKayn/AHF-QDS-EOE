@@ -12,7 +12,7 @@
 - `src/lib/storage.ts`：Zustand persist 的存储适配器。
 - `src/lib/quizSnapshotSync.ts`：Tauri snapshot 加载和替换。
 - `src/lib/quizQueries.ts`：重复题和搜索查询。
-- `src/types/quiz.ts`：核心领域类型。
+- `src/model/quiz/quiz.contract.ts`：核心领域类型（通过 `@/model/quiz` 统一导出）。
 
 ## 数据流说明
 

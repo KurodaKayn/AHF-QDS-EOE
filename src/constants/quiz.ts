@@ -1,4 +1,4 @@
-import { QuestionType } from "@/types/quiz";
+import { QuestionType } from "@/model/quiz";
 
 /**
  * Question type display names (Keys for i18n)

@@ -1,11 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useQuizStore } from "@/store/quizStore";
-import type { Question } from "@/types/quiz";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { DeleteType } from "@/components/quiz/manage/DeleteConfirmDialog";
-import { findDuplicateQuestionsInBank } from "@/model";
+import { findDuplicateQuestionsInBank, useQuizStore, type Question } from "@/model/quiz";
 
 export function useManageBanksPage(initialTempBankId: string | null) {
   const router = useRouter();

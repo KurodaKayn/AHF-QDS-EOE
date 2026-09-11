@@ -52,7 +52,30 @@
     "vitest/no-focused-tests": "error",
     "vitest/no-identical-title": "error",
     "vitest/no-conditional-expect": "warn",
-    "vitest/no-disabled-tests": "warn"
+    "vitest/no-disabled-tests": "warn",
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["@/model", "@/model/*/*"],
+            "message": "Do not import from root @/model or internal files directly. Import from domain module boundaries (e.g. @/model/quiz, @/model/ai, @/model/import-export, @/model/theme)."
+          },
+          {
+            "group": ["@/types", "@/types/*"],
+            "message": "Do not import from @/types. Domain entities and contracts belong to their respective model modules (e.g. @/model/quiz)."
+          },
+          {
+            "group": ["@/services", "@/services/*"],
+            "message": "Do not import from @/services. Services have been consolidated into their respective model modules (e.g. @/model/import-export)."
+          },
+          {
+            "group": ["@/schemas", "@/schemas/*"],
+            "message": "Do not import from @/schemas. Validation schemas belong to their respective model modules (e.g. @/model/quiz)."
+          }
+        ]
+      }
+    ]
   },
   "overrides": [
     {

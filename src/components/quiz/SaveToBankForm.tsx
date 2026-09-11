@@ -1,7 +1,7 @@
 "use client";
 
 import { MdSave } from "react-icons/md";
-import type { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 import { useSaveToBankForm } from "./useSaveToBankForm";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { FaFilter, FaSearch, FaSortAmountDown, FaSortAmountUp } from "react-icons/fa";
-import { QuestionType } from "@/types/quiz";
+import { QuestionType } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 
 interface BankFiltersProps {

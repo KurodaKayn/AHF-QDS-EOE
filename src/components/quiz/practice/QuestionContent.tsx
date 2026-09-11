@@ -1,7 +1,7 @@
 "use client";
 
-import type { Question, QuestionOption } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
+import type { Question, QuestionOption } from "@/model/quiz";
+import { QuestionType } from "@/model/quiz";
 import { QuestionOptions } from "./QuestionOptions";
 import { TrueFalseOptions } from "./TrueFalseOptions";
 import { ShortAnswerInput } from "./ShortAnswerInput";

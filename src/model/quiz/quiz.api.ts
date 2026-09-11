@@ -89,6 +89,32 @@ export const quizApi = {
 
   parseTextByScript: (text: string, template: string): Promise<Question[]> =>
     invoke<Question[]>("parse_text_by_script", { text, template }),
+
+  /**
+   * Synchronizes snapshot between backend (SQLite) and local state.
+   * If backend has data, returns the remote snapshot to populate local store.
+   * If backend is empty but local store has data, populates backend snapshot.
+   */
+  syncSnapshot: async (localSnapshot: QuizSnapshot): Promise<QuizSnapshot | null> => {
+    const { isTauriRuntime } = await import("@/lib/runtime");
+    if (!isTauriRuntime()) return null;
+
+    const backendSnapshot = await quizApi.loadSnapshot();
+    const hasBackendData =
+      backendSnapshot &&
+      (backendSnapshot.questionBanks.length > 0 || backendSnapshot.records.length > 0);
+
+    if (hasBackendData) {
+      return backendSnapshot;
+    }
+
+    const hasLocalData = localSnapshot.questionBanks.length > 0 || localSnapshot.records.length > 0;
+    if (hasLocalData) {
+      await quizApi.replaceSnapshot(localSnapshot);
+    }
+
+    return null;
+  },
 };
 
 export async function loadQuizSnapshotFromBackend(): Promise<QuizSnapshot | null> {

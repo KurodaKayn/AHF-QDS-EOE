@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { QuestionBank } from "@/types/quiz";
+import type { QuestionBank } from "@/model/quiz";
 import { FaPlusCircle } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 

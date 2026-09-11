@@ -1,9 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuizStore } from "@/store/quizStore";
-import type { Question } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
-import { PracticeHandlers } from "@/model";
+import { PracticeHandlers, QuestionType, useQuizStore, type Question } from "@/model/quiz";
 
 /**
  * Custom Hook: Manages practice session state

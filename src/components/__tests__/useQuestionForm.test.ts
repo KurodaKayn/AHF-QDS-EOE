@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { useQuestionForm } from "../useQuestionForm";
-import { QuestionType } from "@/types/quiz";
+import { QuestionType } from "@/model/quiz";
 
 describe("useQuestionForm", () => {
   it("initializes with default single choice values when open", () => {

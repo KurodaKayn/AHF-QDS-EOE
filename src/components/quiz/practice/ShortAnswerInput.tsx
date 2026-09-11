@@ -1,6 +1,6 @@
 "use client";
 
-import type { Question } from "@/types/quiz";
+import type { Question } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 
 interface ShortAnswerInputProps {

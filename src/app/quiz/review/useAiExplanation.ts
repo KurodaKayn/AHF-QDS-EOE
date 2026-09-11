@@ -1,9 +1,8 @@
 import { useState, useCallback } from "react";
 import { getPrompts } from "@/constants/ai";
-import type { AiProviderConfig } from "@/model";
-import { callAIStream } from "@/model";
+import { callAIStream, type AiProviderConfig } from "@/model/ai";
 import { getQuestionTypeName } from "@/constants/quiz";
-import { QuestionType } from "@/types/quiz";
+import { QuestionType } from "@/model/quiz";
 import type { WrongQuestionDisplay } from "@/components/quiz/WrongQuestionItem";
 import { useTranslation } from "react-i18next";
 

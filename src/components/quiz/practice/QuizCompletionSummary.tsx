@@ -3,10 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaArrowLeft, FaRedo } from "react-icons/fa";
-import type { Question, QuestionOption } from "@/types/quiz";
-import { QuestionType } from "@/types/quiz";
 import { useTranslation } from "react-i18next";
-import { PracticeHandlers } from "@/model";
+import { PracticeHandlers, QuestionType, type Question, type QuestionOption } from "@/model/quiz";
 
 interface QuizCompletionSummaryProps {
   practiceQuestions: (Question & { originalUserAnswer?: string | string[] })[];
