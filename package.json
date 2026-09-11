@@ -20,7 +20,7 @@
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "build:tauri": "pnpm build && tauri build",
-    "prepare": "husky",
+    "prepare": "lefthook install",
     "\"test:unit\"": "vitest run \"src/**/__tests__\" --exclude \"src/regression/**\""
   },
   "dependencies": {
@@ -75,20 +75,13 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/ui": "^4.1.5",
     "dotenv-cli": "^11.0.0",
-    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
-    "lint-staged": "^16.4.0",
+    "lefthook": "^2.1.12",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.2.9",
     "typescript": "^5",
     "vitest": "^4.1.5"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx,mjs,cjs}": [
-      "oxlint",
-      "oxfmt --write"
-    ]
   }
 }
