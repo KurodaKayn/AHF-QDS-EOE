@@ -4,7 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaArrowLeft, FaRedo } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import { PracticeHandlers, QuestionType, type Question, type QuestionOption } from "@/model/quiz";
+import {
+  PracticeHandlers,
+  QuestionType,
+  resolveAnswerOptions,
+  splitFillInBlankAnswers,
+  type Question,
+} from "@/model/quiz";
 
 interface QuizCompletionSummaryProps {
   practiceQuestions: (Question & { originalUserAnswer?: string | string[] })[];
@@ -47,10 +53,8 @@ export function QuizCompletionSummary({
 
     if (question.type === QuestionType.MultipleChoice) {
       return Array.isArray(userAnswer) && userAnswer.length > 0 && question.options
-        ? userAnswer
-            .map(
-              (ansId) => (question.options || []).find((opt) => opt.id === ansId)?.content || ansId,
-            )
+        ? resolveAnswerOptions(question.options, userAnswer)
+            .map((option) => option.content)
             .join(", ")
         : t("practice.completion.notAnswered");
     } else if (question.type === QuestionType.TrueFalse) {
@@ -59,7 +63,7 @@ export function QuizCompletionSummary({
       return t("practice.completion.notAnswered");
     } else if (question.options && question.options.length > 0) {
       return (
-        (question.options || []).find((opt) => opt.id === userAnswer)?.content ||
+        resolveAnswerOptions(question.options, userAnswer)[0]?.content ||
         (userAnswer as string) ||
         t("practice.completion.notAnswered")
       );
@@ -71,17 +75,15 @@ export function QuizCompletionSummary({
   const renderCorrectAnswerDisplay = (question: Question) => {
     if (question.type === QuestionType.MultipleChoice) {
       return Array.isArray(question.answer) && question.options
-        ? question.answer
-            .map(
-              (ansId) => (question.options || []).find((opt) => opt.id === ansId)?.content || ansId,
-            )
+        ? resolveAnswerOptions(question.options, question.answer)
+            .map((option) => option.content)
             .join(", ")
         : "N/A";
     } else if (question.type === QuestionType.TrueFalse) {
       return question.answer === "true" ? t("aiExplanation.correct") : t("aiExplanation.incorrect");
     } else if (question.options && question.options.length > 0) {
       return (
-        (question.options || []).find((opt) => opt.id === question.answer)?.content ||
+        resolveAnswerOptions(question.options, question.answer)[0]?.content ||
         (question.answer as string) ||
         "N/A"
       );
@@ -90,10 +92,7 @@ export function QuizCompletionSummary({
       (question.answer as string).includes(";")
     ) {
       // Handle fill-in-the-blank multi-answer display
-      const correctAns = question.answer as string;
-      const acceptableAnswers = correctAns.split(/;(?!;)/).map((ans) => {
-        return ans.replace(/;;/g, ";").trim();
-      });
+      const acceptableAnswers = splitFillInBlankAnswers(question.answer as string);
       return acceptableAnswers
         .map((ans, i) => `${t("convert.preview.answer")}${i + 1}: ${ans}`)
         .join(" | ");
@@ -113,31 +112,27 @@ export function QuizCompletionSummary({
       question.type === QuestionType.MultipleChoice
     ) {
       const currentQOptions = question.options;
-      if (!currentQOptions || currentQOptions.length === 0) return "Missing options";
+      if (!currentQOptions || currentQOptions.length === 0)
+        return t("practice.completion.missingOptions");
 
       const originalAnswerArray = Array.isArray(originalAns)
         ? originalAns
         : [originalAns].filter(Boolean);
+      const resolvedOptions = resolveAnswerOptions(currentQOptions, originalAnswerArray);
       return (
-        originalAnswerArray
-          .map((ansId: string) => {
-            const option = currentQOptions.find((opt: QuestionOption) => opt.id === ansId);
-            if (option) {
-              const optionIndex = currentQOptions.findIndex(
-                (opt: QuestionOption) => opt.id === ansId,
-              );
-              return `${String.fromCharCode(65 + (optionIndex ?? 0))}. ${option.content}`;
-            }
-            return `Unknown ID: ${ansId}`;
+        resolvedOptions
+          .map((option) => {
+            const optionIndex = currentQOptions.indexOf(option);
+            return `${String.fromCharCode(65 + optionIndex)}. ${option.content}`;
           })
-          .join(", ") || "Not recorded"
+          .join(", ") || t("practice.completion.notRecorded")
       );
     } else if (question.type === QuestionType.TrueFalse) {
       if (originalAns === "true") return t("aiExplanation.correct");
       if (originalAns === "false") return t("aiExplanation.incorrect");
-      return originalAns || "Not recorded";
+      return originalAns || t("practice.completion.notRecorded");
     } else {
-      return originalAns || "Not recorded";
+      return originalAns || t("practice.completion.notRecorded");
     }
   };
 

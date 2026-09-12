@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PracticeHandlers, QuestionType, useQuizStore, type Question } from "@/model/quiz";
+import { useTranslation } from "react-i18next";
+import { persistPracticeResults } from "./persistPracticeResults";
 
 /**
  * Custom Hook: Manages practice session state
@@ -8,6 +10,7 @@ import { PracticeHandlers, QuestionType, useQuizStore, type Question } from "@/m
  */
 export function usePracticeSession() {
   const router = useRouter();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const bankId = searchParams.get("bankId");
   const mode = searchParams.get("mode");
@@ -27,6 +30,8 @@ export function usePracticeSession() {
   const [isLoading, setIsLoading] = useState(true);
   const [isNumQuestionsModalOpen, setIsNumQuestionsModalOpen] = useState(false);
   const [allBankQuestions, setAllBankQuestions] = useState<Question[]>([]);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [completionError, setCompletionError] = useState<string | null>(null);
 
   // Restore state from store
   const currentBank = bankId ? getQuestionBankById(bankId) : null;
@@ -198,16 +203,6 @@ export function usePracticeSession() {
   ]);
 
   /**
-   * Helper function to update practice session state
-   */
-  const updateSession = useCallback(
-    (updates: Partial<typeof practiceSession>) => {
-      setPracticeSession(updates);
-    },
-    [setPracticeSession],
-  );
-
-  /**
    * Start a normal practice session with selected question count
    */
   const handleNumQuestionsSubmit = useCallback(
@@ -311,25 +306,25 @@ export function usePracticeSession() {
   );
 
   const handleCompleteQuiz = useCallback(async () => {
-    if (!startTime) return;
+    if (!startTime || isCompleting || quizCompleted) return;
 
-    for (const question of practiceQuestions) {
-      const userAnswer = userAnswers[question.id];
-      const isCorrect = PracticeHandlers.checkIsCorrect(question, userAnswer);
-
-      await addRecord({
-        questionId: question.id,
-        userAnswer: userAnswer || "",
-        isCorrect,
-        answeredAt: Date.now(),
+    setIsCompleting(true);
+    setCompletionError(null);
+    try {
+      await persistPracticeResults({
+        questions: practiceQuestions,
+        userAnswers,
+        isReviewMode,
+        removeCorrectedMistakes: settings.markMistakeAsCorrectedOnReviewSuccess,
+        addRecord,
+        removeWrongRecordsByQuestionId,
       });
-
-      if (isReviewMode && isCorrect && settings.markMistakeAsCorrectedOnReviewSuccess) {
-        await removeWrongRecordsByQuestionId(question.id);
-      }
+      setPracticeSession({ quizCompleted: true });
+    } catch {
+      setCompletionError(t("practice.saveFailed"));
+    } finally {
+      setIsCompleting(false);
     }
-
-    setPracticeSession({ quizCompleted: true });
   }, [
     startTime,
     practiceQuestions,
@@ -339,6 +334,9 @@ export function usePracticeSession() {
     settings.markMistakeAsCorrectedOnReviewSuccess,
     removeWrongRecordsByQuestionId,
     setPracticeSession,
+    isCompleting,
+    quizCompleted,
+    t,
   ]);
 
   const handleReturnToQuizList = useCallback(() => {
@@ -415,6 +413,8 @@ export function usePracticeSession() {
     isLoading,
     isNumQuestionsModalOpen,
     isReviewMode,
+    isCompleting,
+    completionError,
 
     // Derived State
     isCurrentQuestionAnswered,
@@ -436,13 +436,5 @@ export function usePracticeSession() {
     handleManageBankClick,
     handleRetryQuiz,
     handleReload,
-
-    // Store & compatibility
-    updateSession,
-    clearPracticeSession,
-    setAllBankQuestions,
-    addRecord,
-    removeWrongRecordsByQuestionId,
-    settings,
   };
 }

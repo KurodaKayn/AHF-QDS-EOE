@@ -3,7 +3,7 @@
 import { BankDetailHeader } from "@/components/quiz/banks/BankDetailHeader";
 import { BankFilters } from "@/components/quiz/banks/BankFilters";
 import { QuestionList } from "@/components/quiz/banks/QuestionList";
-import QuestionFormModal from "@/components/QuestionFormModal";
+import { QuestionFormModal } from "@/components/quiz/question-editor";
 import { FaArrowLeft } from "react-icons/fa";
 import { useBankDetailPage } from "./useBankDetailPage";
 
@@ -31,8 +31,7 @@ export default function BankDetailPage() {
     handleCloseModal,
     handleDeleteQuestion,
     handleClearFilters,
-    updateQuestionInBank,
-    addQuestionToBank,
+    handleSaveQuestion,
   } = useBankDetailPage();
 
   if (!bank) {
@@ -83,14 +82,7 @@ export default function BankDetailPage() {
         bankId={bankId}
         questionToEdit={editingQuestion}
         onClose={handleCloseModal}
-        onSave={async (_, questionData, questionId) => {
-          if (questionId) {
-            await updateQuestionInBank(bankId, questionId, questionData);
-          } else {
-            await addQuestionToBank(bankId, questionData);
-          }
-          handleCloseModal();
-        }}
+        onSave={handleSaveQuestion}
       />
     </div>
   );

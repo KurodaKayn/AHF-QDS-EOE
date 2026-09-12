@@ -1,7 +1,6 @@
 "use client";
 
-import type { Question, QuestionOption } from "@/model/quiz";
-import { QuestionType } from "@/model/quiz";
+import { QuestionType, resolveAnswerOptions, type Question } from "@/model/quiz";
 import { QuestionOptions } from "./QuestionOptions";
 import { TrueFalseOptions } from "./TrueFalseOptions";
 import { ShortAnswerInput } from "./ShortAnswerInput";
@@ -47,17 +46,12 @@ export function QuestionContent({
       const originalAnswerArray = Array.isArray(originalAns)
         ? originalAns
         : [originalAns].filter(Boolean);
+      const resolvedOptions = resolveAnswerOptions(currentQOptions, originalAnswerArray);
       return (
-        originalAnswerArray
-          .map((ansId: string) => {
-            const option = currentQOptions.find((opt: QuestionOption) => opt.id === ansId);
-            if (option) {
-              const optionIndex = currentQOptions.findIndex(
-                (opt: QuestionOption) => opt.id === ansId,
-              );
-              return `${String.fromCharCode(65 + (optionIndex ?? 0))}. ${option.content}`;
-            }
-            return `${t("practice.completion.unknownOption")}: ${ansId}`;
+        resolvedOptions
+          .map((option) => {
+            const optionIndex = currentQOptions.indexOf(option);
+            return `${String.fromCharCode(65 + optionIndex)}. ${option.content}`;
           })
           .join(", ") || t("practice.completion.notRecorded")
       );

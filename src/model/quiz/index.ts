@@ -30,5 +30,8 @@ export { parseTextByScript, ScriptTemplate } from "./quiz.scriptParser";
 // Query & Duplication Checks
 export { findDuplicateQuestionsInBank, searchQuestionIds } from "./quiz.query";
 
+// Answer normalization and display support
+export { hasSelectedOption, resolveAnswerOptions, splitFillInBlankAnswers } from "./quiz.answer";
+
 // Validation
 export { questionSchema } from "./quiz.validator";

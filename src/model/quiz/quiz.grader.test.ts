@@ -58,6 +58,17 @@ describe("PracticeHandlers", () => {
         "A",
       ]),
     ).toBe(true);
+    expect(
+      PracticeHandlers.checkIsCorrect(
+        makeQuestion(QuestionType.SingleChoice, "A", {
+          options: [
+            { id: "option-1", content: "Alpha" },
+            { id: "option-2", content: "Beta" },
+          ],
+        }),
+        "option-1",
+      ),
+    ).toBe(true);
   });
 
   it("prepares practice questions without mutating the originals", () => {

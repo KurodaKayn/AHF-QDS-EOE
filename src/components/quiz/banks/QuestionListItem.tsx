@@ -1,8 +1,7 @@
 "use client";
 
 import { FaEdit, FaTrash } from "react-icons/fa";
-import type { Question } from "@/model/quiz";
-import { QuestionType } from "@/model/quiz";
+import { hasSelectedOption, QuestionType, type Question } from "@/model/quiz";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
@@ -32,22 +31,7 @@ export function QuestionListItem({ question, onEdit, onDelete }: QuestionListIte
           {question.options.map((option, index) => {
             const optionLetter = getOptionLetter(index);
 
-            let isCorrect = false;
-
-            if (question.type === QuestionType.SingleChoice) {
-              isCorrect =
-                question.answer === option.id ||
-                (typeof question.answer === "string" &&
-                  question.answer.toUpperCase() === optionLetter);
-            } else if (question.type === QuestionType.MultipleChoice) {
-              if (Array.isArray(question.answer)) {
-                isCorrect =
-                  question.answer.includes(option.id) ||
-                  question.answer.some(
-                    (ans) => typeof ans === "string" && ans.toUpperCase() === optionLetter,
-                  );
-              }
-            }
+            const isCorrect = hasSelectedOption(question, question.answer, option.id);
 
             return (
               <div

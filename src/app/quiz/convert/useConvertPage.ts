@@ -23,6 +23,7 @@ export function useConvertPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [savedBankId, setSavedBankId] = useState("");
   const [savedBankName, setSavedBankName] = useState("");
+  const [savedQuestionCount, setSavedQuestionCount] = useState(0);
 
   const isUpdatingFromStore = useRef(false);
 
@@ -42,6 +43,7 @@ export function useConvertPage() {
     onSuccess: (questions, bankId, bankName) => {
       setSavedBankId(bankId);
       setSavedBankName(bankName);
+      setSavedQuestionCount(questions.length);
       setIsSuccess(true);
       setInputText("");
       clearResults();
@@ -114,6 +116,7 @@ export function useConvertPage() {
     setInputText("");
     setSavedBankId("");
     setSavedBankName("");
+    setSavedQuestionCount(0);
   };
 
   const activeConfig = settings.aiConfigs.find((c) => c.id === settings.activeAiConfigId);
@@ -137,6 +140,7 @@ export function useConvertPage() {
     isSuccess,
     savedBankId,
     savedBankName,
+    savedQuestionCount,
     isLoading,
     isLoadingScript,
     error,

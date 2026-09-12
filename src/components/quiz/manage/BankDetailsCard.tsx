@@ -5,28 +5,15 @@ import { Textarea } from "@/components/ui/textarea";
 import type { QuestionBank } from "@/model/quiz";
 import { FaEdit, FaRegTrashAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import { QuestionListSection } from "./QuestionListSection";
 import { useBankDetailsCard } from "./useBankDetailsCard";
 
 interface BankDetailsCardProps {
   bank: QuestionBank;
-  onUpdate: (name: string, description: string) => void;
+  onUpdate: (name: string, description: string) => Promise<void>;
   onDelete: () => void;
-  onAddQuestion: () => void;
-  onEditQuestion: (questionId: string) => void;
-  onDeleteQuestion: (questionId: string, questionContent: string) => void;
-  onFindDuplicates: () => void;
 }
 
-export function BankDetailsCard({
-  bank,
-  onUpdate,
-  onDelete,
-  onAddQuestion,
-  onEditQuestion,
-  onDeleteQuestion,
-  onFindDuplicates,
-}: BankDetailsCardProps) {
+export function BankDetailsCard({ bank, onUpdate, onDelete }: BankDetailsCardProps) {
   const { t } = useTranslation();
   const {
     isEditing,
@@ -35,6 +22,7 @@ export function BankDetailsCard({
     setEditName,
     editDescription,
     setEditDescription,
+    isSaving,
     handleSave,
   } = useBankDetailsCard({ bank, onUpdate });
 
@@ -92,10 +80,15 @@ export function BankDetailsCard({
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsEditing(false)} size="sm">
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(false)}
+                size="sm"
+                disabled={isSaving}
+              >
                 {t("bankManage.cancel")}
               </Button>
-              <Button onClick={handleSave} size="sm">
+              <Button onClick={handleSave} size="sm" disabled={isSaving}>
                 {t("bankManage.saveChanges")}
               </Button>
             </div>
@@ -122,14 +115,6 @@ export function BankDetailsCard({
             </p>
           </div>
         )}
-
-        <QuestionListSection
-          questions={bank.questions || []}
-          onAddQuestion={onAddQuestion}
-          onEditQuestion={onEditQuestion}
-          onDeleteQuestion={onDeleteQuestion}
-          onFindDuplicates={onFindDuplicates}
-        />
       </CardContent>
     </Card>
   );

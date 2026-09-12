@@ -10,10 +10,11 @@ import { useThemeStore } from "@/model/theme";
 import { useTranslation } from "react-i18next";
 import { BankSelector } from "@/components/quiz/manage/BankSelector";
 import { BankDetailsCard } from "@/components/quiz/manage/BankDetailsCard";
+import { QuestionListSection } from "@/components/quiz/manage/QuestionListSection";
 import { DuplicateQuestionsModal } from "@/components/quiz/manage/DuplicateQuestionsModal";
 import { DeleteConfirmDialog } from "@/components/quiz/manage/DeleteConfirmDialog";
 import { NoDuplicatesDialog } from "@/components/quiz/manage/NoDuplicatesDialog";
-import QuestionFormModal from "@/components/QuestionFormModal";
+import { QuestionFormModal } from "@/components/quiz/question-editor";
 import CreateBankModal from "@/components/CreateBankModal";
 import { useManageBanksPage } from "./useManageBanksPage";
 
@@ -91,6 +92,12 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
               bank={selectedBank}
               onUpdate={handleSaveBankDetails}
               onDelete={handleDeleteCurrentBank}
+            />
+          )}
+
+          {selectedBank && (
+            <QuestionListSection
+              questions={selectedBank.questions || []}
               onAddQuestion={handleOpenAddQuestionModal}
               onEditQuestion={handleOpenEditQuestionModal}
               onDeleteQuestion={handleDeleteQuestion}
@@ -156,12 +163,7 @@ function ManageBanksPageContent({ initialTempBankId }: { initialTempBankId: stri
           onClose={handleQuestionModalClose}
           bankId={selectedBankId}
           questionToEdit={editingQuestion}
-          onSubmitSuccess={() => {
-            handleQuestionModalClose();
-          }}
-          onSave={async (bankId, questionData, questionId) => {
-            return await handleSaveQuestion(bankId, questionData, questionId);
-          }}
+          onSave={handleSaveQuestion}
         />
       )}
     </div>

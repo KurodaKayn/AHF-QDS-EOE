@@ -480,6 +480,7 @@
     "manageBank": "Manage Bank",
     "submit": "Submit",
     "submitAndFinish": "Submit and Finish",
+    "saveFailed": "Unable to save this practice session. Please try again.",
     "showAnswer": "Show Answer",
     "answerShown": "Answer shown",
     "reviewMode": "Review Mode",

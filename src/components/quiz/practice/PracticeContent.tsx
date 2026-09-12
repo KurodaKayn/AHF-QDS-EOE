@@ -1,7 +1,6 @@
 "use client";
 
 import { usePracticeSession } from "./usePracticeSession";
-import { useThemeStore } from "@/model/theme";
 import { QuizCompletionSummary } from "@/components/quiz/practice/QuizCompletionSummary";
 import { QuestionDisplay } from "@/components/quiz/practice/QuestionDisplay";
 import { QuestionNavigation } from "@/components/quiz/practice/QuestionNavigation";
@@ -15,7 +14,6 @@ import { useTranslation } from "react-i18next";
  * Uses persistent state, supports session recovery
  */
 export function PracticeContent() {
-  const { theme } = useThemeStore();
   const { t } = useTranslation();
 
   const {
@@ -31,6 +29,8 @@ export function PracticeContent() {
     isLoading,
     isNumQuestionsModalOpen,
     isReviewMode,
+    isCompleting,
+    completionError,
     isLastQuestion,
     canPressNext,
     setIsNumQuestionsModalOpen,
@@ -110,10 +110,16 @@ export function PracticeContent() {
 
   return (
     <div className="flex h-full flex-col absolute inset-0">
+      {completionError && (
+        <p className="absolute top-4 left-4 z-10 rounded bg-red-100 px-3 py-2 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-200">
+          {completionError}
+        </p>
+      )}
       {/* Top-right submit button */}
       <div className="absolute top-4 right-4 z-10">
         <Button
           onClick={handleCompleteQuiz}
+          disabled={isCompleting}
           className="flex items-center gap-2 bg-green-600 hover:bg-green-700 shadow-lg"
           title={t("practice.submitAndFinish")}
         >
@@ -131,7 +137,6 @@ export function PracticeContent() {
           onAnswerSelect={handleAnswerSelect}
           onAnswerChange={handleAnswerChange}
           onShowAnswer={handleShowAnswer}
-          theme={theme}
         />
       </div>
 
@@ -147,6 +152,7 @@ export function PracticeContent() {
           onJumpTo={handleJumpToQuestion}
           onReturnToBank={handleReturnToBank}
           onReload={handleReload}
+          isCompleting={isCompleting}
         />
       </div>
     </div>

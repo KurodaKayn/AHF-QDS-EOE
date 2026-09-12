@@ -1,5 +1,6 @@
 import type { Question } from "./quiz.contract";
 import { QuestionType } from "./quiz.contract";
+import { resolveAnswerOptions, splitFillInBlankAnswers } from "./quiz.answer";
 import { shuffleArray } from "@/lib/array";
 
 /**
@@ -18,6 +19,12 @@ export class PracticeHandlers {
       case QuestionType.SingleChoice:
       case QuestionType.TrueFalse:
         if (typeof userAnswer !== "string" || typeof correctAnswer !== "string") return false;
+        if (question.type === QuestionType.SingleChoice && question.options?.length) {
+          const selected = resolveAnswerOptions(question.options, userAnswer)[0]?.id || userAnswer;
+          const correct =
+            resolveAnswerOptions(question.options, correctAnswer)[0]?.id || correctAnswer;
+          return selected.trim().toLowerCase() === correct.trim().toLowerCase();
+        }
         return userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
 
       case QuestionType.MultipleChoice: {
@@ -27,8 +34,16 @@ export class PracticeHandlers {
         if (userAnswer.length !== correctAnswer.length) {
           return false;
         }
-        const userSet = new Set(userAnswer.map((a) => String(a).trim().toLowerCase()));
-        const correctSet = new Set(correctAnswer.map((a) => String(a).trim().toLowerCase()));
+        const resolve = (answer: string[]) => {
+          const resolved = resolveAnswerOptions(question.options, answer).map(
+            (option) => option.id,
+          );
+          return resolved.length === answer.length ? resolved : answer;
+        };
+        const userSet = new Set(resolve(userAnswer).map((answer) => answer.trim().toLowerCase()));
+        const correctSet = new Set(
+          resolve(correctAnswer).map((answer) => answer.trim().toLowerCase()),
+        );
         if (userSet.size !== correctSet.size) return false;
         for (const item of correctSet) {
           if (!userSet.has(item)) return false;
@@ -47,14 +62,9 @@ export class PracticeHandlers {
         const userAns = rawUserAns.trim().toLowerCase();
         if (!userAns) return false;
 
-        let acceptableAnswers: string[];
-        if (correctAnswer.includes(";")) {
-          acceptableAnswers = correctAnswer
-            .split(/(?<!;);(?!;)/)
-            .map((ans) => ans.replace(/;;/g, ";").trim().toLowerCase());
-        } else {
-          acceptableAnswers = [correctAnswer.trim().toLowerCase()];
-        }
+        const acceptableAnswers = splitFillInBlankAnswers(correctAnswer).map((answer) =>
+          answer.toLowerCase(),
+        );
         return acceptableAnswers.some((ans) => ans === userAns);
       }
 

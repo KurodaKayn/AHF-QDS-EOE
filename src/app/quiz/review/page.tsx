@@ -181,6 +181,7 @@ export default function ReviewPage() {
           } else {
             toast.error(t("review.import.failed", { error: result.error }));
           }
+          return result;
         }}
       />
     </div>

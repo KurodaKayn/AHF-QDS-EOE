@@ -14,7 +14,6 @@ interface QuestionDisplayProps {
   onAnswerSelect: (optionId: string) => void;
   onAnswerChange: (answer: string) => void;
   onShowAnswer: () => void;
-  theme: string;
 }
 
 /**

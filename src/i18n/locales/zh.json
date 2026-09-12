@@ -480,6 +480,7 @@
     "manageBank": "管理题库",
     "submit": "提交",
     "submitAndFinish": "提交并结算",
+    "saveFailed": "保存本次练习失败，请重试。",
     "showAnswer": "查看答案",
     "answerShown": "已显示答案",
     "reviewMode": "错题回顾模式",

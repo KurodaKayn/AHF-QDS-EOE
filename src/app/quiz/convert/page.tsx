@@ -34,6 +34,7 @@ export default function ConvertPage() {
     isSuccess,
     savedBankId,
     savedBankName,
+    savedQuestionCount,
     isLoading,
     isLoadingScript,
     error,
@@ -126,7 +127,7 @@ export default function ConvertPage() {
 
         {isSuccess && (
           <ConversionSuccess
-            questionCount={convertedQuestions.length}
+            questionCount={savedQuestionCount}
             bankName={savedBankName}
             onContinue={handleContinue}
             onStartPractice={() => router.push(`/quiz/practice?bankId=${savedBankId}`)}

@@ -20,8 +20,7 @@ interface UseConversionLogicProps {
  */
 export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) {
   const { t, i18n } = useTranslation();
-  const { settings, addQuestionBank, addQuestionsToBank, getQuestionBankById, setConversionState } =
-    useQuizStore();
+  const { settings, addQuestionBank, addQuestionsToBank, getQuestionBankById } = useQuizStore();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingScript, setIsLoadingScript] = useState(false);
@@ -43,19 +42,11 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
       setError(null);
       setConvertedQuestions([]);
       setIsLoading(true);
-      setConversionState({
-        isConverting: true,
-        generatedQuestions: [],
-      });
-
       const { aiConfigs, activeAiConfigId } = settings;
       const activeConfig = aiConfigs.find((c) => c.id === activeAiConfigId);
 
       if (!activeConfig) {
         setError(t("convert.errors.noAIConfig"));
-        setConversionState({
-          isConverting: false,
-        });
         setIsLoading(false);
         return;
       }
@@ -73,10 +64,6 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
           setError(t("convert.errors.aiParseFailed"));
         } else {
           setConvertedQuestions(parsed);
-          setConversionState({
-            generatedQuestions: parsed,
-            isConverting: false,
-          });
         }
       } catch (e: any) {
         if (e.message && e.message.includes("message channel closed")) {
@@ -85,13 +72,10 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
           setError(e.message || t("convert.errors.noText"));
         }
       } finally {
-        setConversionState({
-          isConverting: false,
-        });
         setIsLoading(false);
       }
     },
-    [settings, setConversionState, t, i18n.language],
+    [settings, t, i18n.language],
   );
 
   /**
@@ -114,14 +98,13 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
           setError(t("convert.errors.scriptFailed"));
         }
         setConvertedQuestions(parsed);
-        setConversionState({ generatedQuestions: parsed });
       } catch (e: any) {
         setError(t("convert.errors.scriptError", { error: e.message }));
       } finally {
         setIsLoadingScript(false);
       }
     },
-    [setConversionState, t],
+    [t],
   );
 
   /**
@@ -172,9 +155,8 @@ export function useConversionLogic({ onSuccess }: UseConversionLogicProps = {}) 
    */
   const clearResults = useCallback(() => {
     setConvertedQuestions([]);
-    setConversionState({ generatedQuestions: [] });
     setError(null);
-  }, [setConversionState]);
+  }, []);
 
   return {
     isLoading,

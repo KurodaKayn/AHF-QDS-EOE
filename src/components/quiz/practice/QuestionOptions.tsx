@@ -2,8 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
-import type { Question } from "@/model/quiz";
-import { QuestionType } from "@/model/quiz";
+import { hasSelectedOption, type Question } from "@/model/quiz";
 
 interface QuestionOptionsProps {
   question: Question;
@@ -21,22 +20,16 @@ export function QuestionOptions({
   if (!question.options) return null;
 
   const getOptionLetter = (index: number) => String.fromCharCode(65 + index);
-  const isMcq = question.type === QuestionType.MultipleChoice;
-
   return question.options.map((option, index) => {
     const optionLetter = getOptionLetter(index);
-    const isSelected = isMcq
-      ? ((userAnswer as string[]) || []).includes(option.id)
-      : userAnswer === option.id;
+    const isSelected = hasSelectedOption(question, userAnswer, option.id);
 
     let buttonClass =
       "border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700";
     let indicator = null;
 
     if (showAnswer) {
-      const isCorrectAnswer = isMcq
-        ? (question.answer as string[]).includes(option.id)
-        : question.answer === option.id;
+      const isCorrectAnswer = hasSelectedOption(question, question.answer, option.id);
 
       if (isCorrectAnswer) {
         buttonClass =

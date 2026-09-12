@@ -25,18 +25,15 @@ import { useQuestionForm } from "./useQuestionForm";
 import { toast } from "sonner";
 import { FaTrash, FaPlus } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import type { SaveQuestion } from "@/components/quiz/question-editor/contract";
 
 interface QuestionFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   bankId: string;
   questionToEdit?: Question | null;
-  onSubmitSuccess?: () => void;
-  onSave: (
-    bankId: string,
-    questionData: Omit<Question, "id">,
-    questionId?: string,
-  ) => boolean | void | Promise<boolean | void>;
+  onSave: SaveQuestion;
 }
 
 /**
@@ -48,7 +45,6 @@ export default function QuestionFormModal({
   onClose,
   bankId,
   questionToEdit,
-  onSubmitSuccess,
   onSave,
 }: QuestionFormModalProps) {
   const { t } = useTranslation();
@@ -70,6 +66,7 @@ export default function QuestionFormModal({
     validate,
     buildQuestionData,
   } = useQuestionForm({ questionToEdit, isOpen });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     const validation = validate();
@@ -78,14 +75,19 @@ export default function QuestionFormModal({
       return;
     }
 
-    const questionData = buildQuestionData();
-    const result = await onSave(bankId, questionData, questionToEdit?.id);
-    if (result === false) {
-      return;
+    setIsSubmitting(true);
+    try {
+      const result = await onSave(bankId, buildQuestionData(), questionToEdit?.id);
+      if (!result.success) {
+        toast.error(result.message || t("bankManage.alerts.addQuestionFailed"));
+        return;
+      }
+      onClose();
+    } catch {
+      toast.error(t("bankManage.alerts.addQuestionFailed"));
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (onSubmitSuccess) onSubmitSuccess();
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -277,11 +279,11 @@ export default function QuestionFormModal({
 
         <DialogFooter className="pt-3 border-t dark:border-gray-700">
           <DialogClose asChild>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               {t("questionForm.cancel")}
             </Button>
           </DialogClose>
-          <Button type="submit" onClick={handleSubmit}>
+          <Button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
             {isEditMode ? t("questionForm.saveChanges") : t("questionForm.addQuestion")}
           </Button>
         </DialogFooter>

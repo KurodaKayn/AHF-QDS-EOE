@@ -12,7 +12,10 @@ interface SimilarQuestionsModalProps {
   generatedQuestions: Question[];
   isLoading: boolean;
   availableBanks: QuestionBank[];
-  onImport: (selectedQuestions: Question[], targetBankId: string) => Promise<void>;
+  onImport: (
+    selectedQuestions: Question[],
+    targetBankId: string,
+  ) => Promise<{ success: boolean; error?: string }>;
 }
 
 /**
@@ -33,23 +36,16 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
   const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
-    // Select the first available bank by default when the list changes
-    if (availableBanks && availableBanks.length > 0) {
-      setTargetBankId(availableBanks[0].id);
-    } else {
-      setTargetBankId("");
-    }
-  }, [availableBanks]);
-
-  useEffect(() => {
-    // Clear selection when modal opens
     if (isOpen) {
       setSelectedQuestionsMap({});
-      if (availableBanks && availableBanks.length > 0 && !targetBankId) {
-        setTargetBankId(availableBanks[0].id);
-      }
     }
-  }, [isOpen, availableBanks, targetBankId]);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!availableBanks.some((bank) => bank.id === targetBankId)) {
+      setTargetBankId(availableBanks[0]?.id || "");
+    }
+  }, [availableBanks, targetBankId]);
 
   const handleToggleSelectQuestion = (questionId: string) => {
     setSelectedQuestionsMap((prev) => ({
@@ -73,7 +69,11 @@ const SimilarQuestionsModal: React.FC<SimilarQuestionsModalProps> = ({
 
     setIsImporting(true);
     try {
-      await onImport(questionsToImport, targetBankId);
+      const result = await onImport(questionsToImport, targetBankId);
+      if (!result.success) {
+        toast.error(result.error || t("review.similarModal.importFailed"));
+        return;
+      }
       onClose();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("review.similarModal.importFailed"));

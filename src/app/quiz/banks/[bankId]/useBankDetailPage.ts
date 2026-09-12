@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuizStore, type Question, type QuestionType } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
+import type { QuestionSaveResult } from "@/components/quiz/question-editor";
 
 export function useBankDetailPage() {
   const router = useRouter();
@@ -49,6 +50,20 @@ export function useBankDetailPage() {
     setFilterType("all");
   };
 
+  const handleSaveQuestion = async (
+    _: string,
+    questionData: Omit<Question, "id">,
+    questionId?: string,
+  ): Promise<QuestionSaveResult> => {
+    if (questionId) {
+      const updated = await updateQuestionInBank(bankId, questionId, questionData);
+      return updated ? { success: true } : { success: false };
+    }
+
+    const added = await addQuestionToBank(bankId, questionData);
+    return added.question && !added.isDuplicate ? { success: true } : { success: false };
+  };
+
   const filteredQuestions = bank
     ? bank.questions
         .filter((q) => {
@@ -86,7 +101,6 @@ export function useBankDetailPage() {
     handleCloseModal,
     handleDeleteQuestion,
     handleClearFilters,
-    updateQuestionInBank,
-    addQuestionToBank,
+    handleSaveQuestion,
   };
 }

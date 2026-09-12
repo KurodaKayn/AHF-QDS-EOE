@@ -1,6 +1,6 @@
 "use client";
 
-import type { Question } from "@/model/quiz";
+import { splitFillInBlankAnswers, type Question } from "@/model/quiz";
 import { useTranslation } from "react-i18next";
 
 interface FillInBlankInputProps {
@@ -34,11 +34,11 @@ export function FillInBlankInput({
           <p className="text-sm font-semibold text-green-700 dark:text-green-300 mb-1">
             {t("practice.completion.referenceAnswer")}
           </p>
-          {(question.answer as string).includes(";") ? (
+          {splitFillInBlankAnswers(question.answer as string).length > 1 ? (
             <div>
-              {(question.answer as string).split(/;(?!;)/).map((ans, i) => (
-                <p key={i} className="text-gray-800 dark:text-gray-100 whitespace-pre-wrap">
-                  {i + 1}. {ans.replace(/;;/g, ";").trim()}
+              {splitFillInBlankAnswers(question.answer as string).map((ans, i) => (
+                <p key={ans} className="text-gray-800 dark:text-gray-100 whitespace-pre-wrap">
+                  {i + 1}. {ans}
                 </p>
               ))}
             </div>

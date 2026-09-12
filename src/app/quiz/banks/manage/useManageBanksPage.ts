@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { DeleteType } from "@/components/quiz/manage/DeleteConfirmDialog";
+import type { QuestionSaveResult } from "@/components/quiz/question-editor";
 import { findDuplicateQuestionsInBank, useQuizStore, type Question } from "@/model/quiz";
 
 export function useManageBanksPage(initialTempBankId: string | null) {
@@ -168,29 +169,29 @@ export function useManageBanksPage(initialTempBankId: string | null) {
 
   const handleSaveQuestion = async (
     bankId: string,
-    questionData: any,
-    questionId?: string | null,
-  ) => {
+    questionData: Omit<Question, "id">,
+    questionId?: string,
+  ): Promise<QuestionSaveResult> => {
     if (questionId) {
       const updated = await updateQuestionInBank(bankId, questionId, questionData);
       if (updated) {
         toast.success(t("bankManage.alerts.questionUpdated"));
-        return true;
+        return { success: true };
       } else {
         toast.error(t("bankManage.alerts.addQuestionFailed"));
-        return false;
+        return { success: false };
       }
     } else {
       const result = await addQuestionToBank(bankId, questionData);
       if (result.isDuplicate) {
         toast.error(t("bankManage.alerts.duplicateError"));
-        return false;
+        return { success: false };
       } else if (result.question) {
         toast.success(t("bankManage.alerts.questionAdded"));
-        return true;
+        return { success: true };
       } else {
         toast.error(t("bankManage.alerts.addQuestionFailed"));
-        return false;
+        return { success: false };
       }
     }
   };

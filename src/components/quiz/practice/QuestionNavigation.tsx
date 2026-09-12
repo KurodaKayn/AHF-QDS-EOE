@@ -17,6 +17,7 @@ interface QuestionNavigationProps {
   onJumpTo: (index: number) => void;
   onReturnToBank: () => void;
   onReload: () => void;
+  isCompleting: boolean;
 }
 
 /**
@@ -34,6 +35,7 @@ export function QuestionNavigation({
   onJumpTo,
   onReturnToBank,
   onReload,
+  isCompleting,
 }: QuestionNavigationProps) {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");
@@ -77,6 +79,7 @@ export function QuestionNavigation({
         <div className="flex items-center gap-2">
           <Button
             onClick={onReload}
+            disabled={isCompleting}
             variant="outline"
             className="flex items-center gap-2"
             title={t("practice.nav.reload")}
@@ -86,7 +89,7 @@ export function QuestionNavigation({
 
           <Button
             onClick={onPrevious}
-            disabled={currentIndex === 0}
+            disabled={currentIndex === 0 || isCompleting}
             variant="outline"
             className="flex items-center gap-2"
           >
@@ -122,14 +125,18 @@ export function QuestionNavigation({
           {isLastQuestion ? (
             <Button
               onClick={onComplete}
-              disabled={!canPressNext}
+              disabled={!canPressNext || isCompleting}
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
             >
               <FaCheck />
               {t("practice.nav.finish")}
             </Button>
           ) : (
-            <Button onClick={onNext} disabled={!canPressNext} className="flex items-center gap-2">
+            <Button
+              onClick={onNext}
+              disabled={!canPressNext || isCompleting}
+              className="flex items-center gap-2"
+            >
               {t("practice.nav.next")}
               <FaArrowRight />
             </Button>
@@ -137,6 +144,7 @@ export function QuestionNavigation({
 
           <Button
             onClick={onReturnToBank}
+            disabled={isCompleting}
             variant="outline"
             className="flex items-center gap-2"
             title={t("practice.nav.returnToBank")}
