@@ -1,31 +1,31 @@
-# 题目转换模块 Workflow
+# Question Conversion Module Workflow
 
-![题目转换模块数据流图](assets/04_conversion_moudle_workdflow.svg)
+![Question Conversion Data Flow](assets/04_conversion_moudle_workdflow.svg)
 
-## 模块职责
+## Module Responsibilities
 
-题目转换模块把用户粘贴文本、图片 OCR 文本、AI 转换结果或固定脚本格式转换为标准 `Question[]`，再保存到新题库或已有题库。
+The Question Conversion module converts raw text—sourced from clipboard pasting, client-side OCR extraction, LLM generation, or structured script formats—into standardized `Question[]` domain collections ready to be saved into new or existing question banks.
 
-## 关键入口
+## Key Entry Points
 
-- `src/app/quiz/convert/page.tsx` 与 `useConvertPage.ts`：转换页面 UI 组织及页面伴生 Hook。
-- `src/app/quiz/convert/useConversionLogic.ts`：同级业务 Hook，负责 AI 转换、脚本转换和保存到题库。
-- `src/components/quiz/ImageOCRUpload.tsx` 与 `useImageOCRUpload.ts`：Tesseract OCR 组件与处理 Hook。
-- `src/model/quiz/quiz.parser.ts`：AI 输出格式解析。
-- `src/model/quiz/quiz.scriptParser.ts`：脚本模板解析。
-- `src/constants/ai.ts` 和 `src/constants/scriptExamples.ts`：提示词和示例模板。
+- `src/app/quiz/convert/page.tsx` & `useConvertPage.ts`: Conversion workbench UI and co-located companion hook.
+- `src/app/quiz/convert/useConversionLogic.ts`: Co-located companion business hook orchestrating AI parsing, script template parsing, and bank persistence workflows.
+- `src/components/quiz/ImageOCRUpload.tsx` & `useImageOCRUpload.ts`: Tesseract.js OCR integration component and extraction hook.
+- `src/model/quiz/quiz.parser.ts`: Heuristic and regex parser for unstructured AI generation outputs (exposed via `@/model/quiz`).
+- `src/model/quiz/quiz.scriptParser.ts`: Deterministic parser for structured question scripts (ChaoXing, General, Single Choice formats).
+- `src/constants/ai.ts` & `src/constants/scriptExamples.ts`: Conversion system prompts, user templates, and format syntax examples.
 
-## 数据流说明
+## Data Flow
 
-1. 用户输入文本，或通过 OCR 上传/粘贴图片得到文本。
-2. `ConvertPage` 保存转换草稿到 `conversionState`，避免页面切换丢失。
-3. AI 模式下，`useConversionLogic` 使用当前 AI 配置调用 `callAI()`，再把 AI 返回文本交给 `parseQuestions()`。
-4. 脚本模式下，输入文本直接交给 `parseTextByScript()`，按超星、通用或单选模板解析。
-5. Tauri 运行时解析可以下沉到 Rust `question_parsing.rs`；浏览器态使用 TypeScript parser。
-6. 用户确认后，`SaveToBankForm` 选择新建或已有题库，最终调用 store 的题库写入方法。
+1. The user inputs raw text manually or extracts text from an uploaded image or clipboard screenshot via Tesseract OCR.
+2. `ConvertPage` saves working drafts to `conversionState` in the store to safeguard against accidental route departures.
+3. **AI Conversion Path**: `useConversionLogic` dispatches `callAI()` from `@/model/ai`, then passes the raw text output into `parseQuestions()` from `@/model/quiz`.
+4. **Script Template Path**: The input text is processed deterministically by `parseTextByScript()` matching the chosen script grammar.
+5. In the Tauri desktop runtime, parsing routines can be offloaded to `src-tauri/src/question_parsing.rs`; browser mode runs the TypeScript implementation.
+6. The user previews, verifies, and edits the converted questions. `SaveToBankForm` then commits the collection to a designated bank using domain actions from `@/model/quiz`.
 
-## 维护注意
+## Maintenance Notes
 
-- AI 输出 parser 对格式敏感，修改 `constants/ai.ts` 提示词时要同步跑解析测试。
-- 脚本模板在 TypeScript 和 Rust 中都有实现，新增模板要同步两端。
-- OCR 只产出文本，不直接创建题目；后续仍走 AI 或脚本转换流程。
+- **AI Parser Sensitivity**: Parsing heuristics depend closely on markdown code fencing and prompt formatting. Any prompt modifications in `src/constants/ai.ts` must be validated against `quiz.parser.test.ts`.
+- **Dual Script Parser Synchronization**: Script parsing logic is implemented in both TypeScript and Rust. Adding or altering template syntax requires updating and testing both engines.
+- **Separation of OCR Pipeline**: OCR exclusively outputs raw extracted strings; it must never produce domain entities directly. All extracted text flows through either the AI or script parsing pipeline.

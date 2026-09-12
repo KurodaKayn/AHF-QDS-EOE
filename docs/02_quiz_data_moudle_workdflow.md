@@ -1,30 +1,30 @@
-# 题库数据模块 Workflow
+# Quiz Data Module Workflow
 
-![题库数据模块数据流图](assets/02_quiz_data_moudle_workdflow.svg)
+![Quiz Data Flow](assets/02_quiz_data_moudle_workdflow.svg)
 
-## 模块职责
+## Module Responsibilities
 
-题库数据模块维护题库、题目、答题记录、设置、转换草稿和练习会话。它是业务页面和持久化后端之间的主要边界。
+The Quiz Data module manages question banks, questions, practice history records, user settings, conversion drafts, and active practice sessions. It serves as the primary domain boundary between UI components and persistence mechanisms.
 
-## 关键入口
+## Key Entry Points
 
-- `src/model/quiz/quiz.store.ts`：题库、记录、设置、转换状态、练习会话（通过 `@/model/quiz` 统一导出）。
-- `src/lib/storage.ts`：Zustand persist 的存储适配器。
-- `src/lib/quizSnapshotSync.ts`：Tauri snapshot 加载和替换。
-- `src/lib/quizQueries.ts`：重复题和搜索查询。
-- `src/model/quiz/quiz.contract.ts`：核心领域类型（通过 `@/model/quiz` 统一导出）。
+- `src/model/quiz/quiz.store.ts`: Zustand store managing question banks, records, settings, conversion state, and practice sessions (exposed via `@/model/quiz`).
+- `src/model/quiz/quiz.contract.ts`: Core domain entities, contracts, and type definitions (exposed via `@/model/quiz`).
+- `src/model/quiz/quiz.api.ts`: Tauri IPC bridge responsible for executing Rust backend commands and retrieving `QuizSnapshot` objects.
+- `src/model/quiz/quiz.query.ts`: Query utilities for duplicate question detection and search indexing.
+- `src/lib/storage.ts`: Generic storage adapter used by Zustand persist middleware.
 
-## 数据流说明
+## Data Flow
 
-1. 页面和 hook 通过 `useQuizStore` 发起题库或记录操作。
-2. `quizStore` 判断运行时环境。
-3. 浏览器/开发态直接在 Zustand 状态中修改题库和记录，并由 persist 写入 `localStorage`。
-4. Tauri 桌面态通过 `invoke()` 调用 Rust command，Rust 写入 SQLite 后返回完整 `QuizSnapshot`。
-5. 前端用返回的 snapshot 覆盖 `questionBanks` 和 `records`，保持前后端状态一致。
-6. 设置、转换状态和练习会话仍通过 Zustand persist 保存；桌面态下题库实体不再走 persist 的 partialized 数据。
+1. Presentation components and companion hooks trigger bank or record operations through `useQuizStore` (or domain actions exported from `@/model/quiz`).
+2. The store action evaluates the current execution environment (`isTauriRuntime()`).
+3. **Browser / Development Mode**: Modifications update the in-memory Zustand state directly and are serialized to `localStorage` via the persist middleware.
+4. **Tauri Desktop Mode**: Actions invoke Rust backend commands through `quiz.api.ts`. The Rust layer commits changes to SQLite and returns an updated, authoritative `QuizSnapshot`.
+5. The frontend hydrates its `questionBanks` and `records` state with the returned snapshot, ensuring strict parity between UI state and the SQLite database.
+6. Settings, conversion drafts, and active practice sessions persist via Zustand's storage adapter; in desktop mode, large bank entities are excluded from localStorage to optimize performance.
 
-## 维护注意
+## Maintenance Notes
 
-- 新增题库数据字段时要同时更新 TypeScript 类型、Rust 结构、SQLite 读写和导入导出格式。
-- 重复题判断依赖 `normalizeQuestionContent()` 与 Rust `normalize_content()`，两边规则要保持一致。
-- Tauri command 返回 snapshot 是状态一致性的关键，不要只返回局部实体后让前端自行猜测。
+- **Schema Parity**: When introducing new domain fields to questions or banks, simultaneously update TypeScript contracts (`quiz.contract.ts`), Rust data structures (`src-tauri/src/quiz.rs`), SQLite migration routines, and import/export serializers.
+- **Normalization Parity**: Duplicate question detection depends on `normalizeQuestionContent()` in TypeScript and `normalize_content()` in Rust. Deduplication rules across both sides must remain strictly aligned.
+- **Authoritative Snapshots**: Returning full `QuizSnapshot` structures from backend mutations is foundational to UI state consistency. Avoid returning fragmented entities that require client-side extrapolation.

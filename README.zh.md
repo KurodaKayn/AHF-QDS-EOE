@@ -109,15 +109,33 @@ pnpm dev          # 启动 Next.js 开发服务器
 cargo tauri dev   # 启动 Tauri 开发模式
 ```
 
-## 测试
-
+## 测试与代码质量
+ 
 ```bash
-# 运行完整 Vitest 测试
+# 运行 Vitest 测试套件
 pnpm test
 
-# 运行解析与导入/导出的回归烟雾测试
-pnpm test:regression
+# 运行完整 CI 质量校验 (lint + test + typecheck)
+pnpm ci:verify
 ```
+
+## 架构文档
+
+技术架构设计与各子系统模块数据流详细文档（英文）：
+
+- [System Architecture](docs/architecture.md)
+- [Application Shell Workflow](docs/01_app_shell_moudle_workdflow.md)
+- [Quiz Data Workflow](docs/02_quiz_data_moudle_workdflow.md)
+- [Bank Management Workflow](docs/03_bank_management_moudle_workdflow.md)
+- [Question Conversion Workflow](docs/04_conversion_moudle_workdflow.md)
+- [Practice Session Workflow](docs/05_practice_moudle_workdflow.md)
+- [Wrong Question Review Workflow](docs/06_review_moudle_workdflow.md)
+- [Import / Export Workflow](docs/07_import_export_moudle_workdflow.md)
+- [AI Module Workflow](docs/08_ai_moudle_workdflow.md)
+- [Settings, Theme & i18n Workflow](docs/09_settings_theme_i18n_moudle_workdflow.md)
+- [Tauri Backend Workflow](docs/10_tauri_backend_moudle_workdflow.md)
+- [CI Pipeline Architecture](docs/ci.md)
+
 
 ## 构建和打包
 

@@ -1,31 +1,31 @@
-# AI 模块 Workflow
+# AI Module Workflow
 
-![AI 模块数据流图](assets/08_ai_moudle_workdflow.svg)
+![AI Data Flow](assets/08_ai_moudle_workdflow.svg)
 
-## 模块职责
+## Module Responsibilities
 
-AI 模块统一管理 OpenAI-compatible provider 配置，并为题目转换、错题解析和相似题生成提供非流式与流式调用能力。
+The AI module manages OpenAI-compatible provider configurations and provides unified streaming and non-streaming inference capabilities for question conversion, error explanations, and similar-question synthesis.
 
-## 关键入口
+## Key Entry Points
 
-- `src/lib/ai.ts`：`callAI()` 和 `callAIStream()`。
-- `src/lib/aiConfigSync.ts`：AI 配置与 Rust 后端同步。
-- `src/model/quiz/quiz.store.ts`：AI 配置状态、默认 provider 和相似题生成。
-- `src/app/quiz/settings/page.tsx`：AI 配置管理 UI。
-- `src-tauri/src/ai.rs`：AI 配置 SQLite 存储和代理请求。
-- `src/constants/ai.ts`：转换、解析、相似题提示词。
+- `src/model/ai/ai.api.ts`: Core client functions `callAI()` and `callAIStream()`, along with backend synchronization bridges `syncAiConfigsToBackend()`, `saveAiConfigOnBackend()`, and `deleteAiConfigOnBackend()` (exposed via `@/model/ai`).
+- `src/model/ai/ai.contract.ts`: Domain types and interfaces for `AIConfig` (exposed via `@/model/ai`).
+- `src/model/quiz/quiz.store.ts`: Store state managing active provider selection and invoking `generateSimilarQuestions()`.
+- `src/app/quiz/settings/page.tsx` & `src/components/settings/AiConfigForm.tsx`: AI provider settings interfaces and validation forms.
+- `src-tauri/src/ai.rs`: Rust backend SQLite table `ai_configs` and outbound `reqwest` HTTP proxy engine.
+- `src/constants/ai.ts`: Domain-tuned system prompts for conversion, explanation generation, and similar question generation.
 
-## 数据流说明
+## Data Flow
 
-1. 用户在设置页新增、编辑、选择或删除 AI 配置。
-2. `quizStore` 更新 `settings.aiConfigs`，并在 Tauri 运行时调用 `saveAiConfigOnBackend()` 或 `deleteAiConfigOnBackend()`。
-3. AI 调用发起时，`callAI()` 或 `callAIStream()` 解析当前 provider 配置。
-4. 浏览器态直接 `fetch(baseUrl/chat/completions)`。
-5. Tauri 态调用 Rust `ai_complete`，Rust 从 `ai_configs` 表读取配置，用 `reqwest` 请求 provider。
-6. 非流式请求返回完整内容；流式请求通过 Tauri window event 向前端推送 chunk。
+1. The user registers, tests, edits, or deletes an AI provider in the Settings page.
+2. `quizStore` updates `settings.aiConfigs`. In the Tauri desktop runtime, it triggers `saveAiConfigOnBackend()` or `deleteAiConfigOnBackend()` to synchronize SQLite.
+3. When an AI capability is triggered, `callAI()` or `callAIStream()` resolves the active provider configuration.
+4. **Browser Mode**: The frontend executes a direct `fetch` POST to `<baseUrl>/chat/completions`.
+5. **Tauri Desktop Mode**: The client invokes the Rust command `ai_complete`. Rust retrieves the matching configuration from `ai_configs` and executes the request through `reqwest`.
+6. Non-streaming invocations resolve with the complete LLM response string. Streaming calls push incremental tokens to the frontend via window events (`ai-stream:chunk`, `ai-stream:done`).
 
-## 维护注意
+## Maintenance Notes
 
-- `baseUrl` 会自动补 `/chat/completions`，不要在 UI 侧重复拼接。
-- API key 在桌面态会进入 SQLite `ai_configs`，前端只同步必要配置。
-- 新增 AI 使用场景时应复用 `callAI()` 或 `callAIStream()`，避免页面直接请求 provider。
+- **Endpoint Normalization**: The AI invocation layer automatically appends `/chat/completions` if omitted from the `baseUrl`. Do not append this path manually in UI input fields.
+- **Credential Storage**: In desktop mode, API keys are saved directly into the local SQLite `ai_configs` table, preventing exposure in web storage caches.
+- **Unified Invocation Gateway**: All LLM interactions must flow exclusively through `callAI()` or `callAIStream()` to preserve unified logging, timeout policies, and desktop proxying.

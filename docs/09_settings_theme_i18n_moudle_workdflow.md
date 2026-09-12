@@ -1,32 +1,32 @@
-# 设置/主题/i18n 模块 Workflow
+# Settings, Theme & i18n Module Workflow
 
-![设置主题 i18n 模块数据流图](assets/09_settings_theme_i18n_moudle_workdflow.svg)
+![Settings, Theme & i18n Data Flow](assets/09_settings_theme_i18n_moudle_workdflow.svg)
 
-## 模块职责
+## Module Responsibilities
 
-设置/主题/i18n 模块负责练习偏好、重复题检查、AI 配置入口、语言切换和深浅色主题。
+The Settings, Theme & i18n module manages user practice preferences, duplicate question detection settings, AI provider configuration entries, localization switching (English / Simplified Chinese), and color theme preferences (Light / Dark / System).
 
-## 关键入口
+## Key Entry Points
 
-- `src/app/quiz/settings/page.tsx` 与 `useSettingsPage.ts`：设置页面及同级伴生 Hook。
-- `src/components/settings/AiConfigForm.tsx` 与 `useAiConfigForm.ts`：AI 配置表单及同级伴生 Hook。
-- `src/model/quiz/quiz.store.ts`：练习、复习、导入和 AI 设置（通过 `@/model/quiz` 统一导出）。
-- `src/model/theme/theme.store.ts`：主题偏好（通过 `@/model/theme` 统一导出）。
-- `src/components/ThemeRegistry.tsx`：把主题状态应用到 DOM。
-- `src/i18n/config.ts`：i18next 初始化、语言检测和本地缓存。
-- `src/i18n/locales/*.json`：中英文文案。
+- `src/app/quiz/settings/page.tsx` & `useSettingsPage.ts`: Main settings interface and co-located companion hook.
+- `src/components/settings/AiConfigForm.tsx` & `useAiConfigForm.ts`: Modal form and companion validation hook for AI provider management.
+- `src/model/quiz/quiz.store.ts`: Store state for practice, review, import, and AI settings (exposed via `@/model/quiz`).
+- `src/model/theme/theme.store.ts`: Store state for visual theme mode (exposed via `@/model/theme`).
+- `src/components/ThemeRegistry.tsx`: DOM synchronizer mapping theme state to root `<html>` classes and attributes.
+- `src/i18n/config.ts`: i18next initialization, language detection, and storage persistence.
+- `src/i18n/locales/*.json`: English and Chinese localization dictionaries.
 
-## 数据流说明
+## Data Flow
 
-1. 设置页读取 `settings`、`theme` 和当前 i18n language。
-2. 用户切换练习/复习偏好时，`setQuizSetting()` 更新 `quizStore.settings`，由 persist 保存。
-3. 用户切换主题时，`themeStore` 写入 `theme-storage`，`ThemeRegistry` 同步 DOM class。
-4. 用户切换语言时，`i18n.changeLanguage()` 更新 i18next，语言检测器写入 localStorage。
-5. AI 配置编辑复用 AI 模块的配置写入流程。
-6. 业务模块读取这些设置来决定洗牌、错题自动移除、重复题检查和 AI provider。
+1. The settings view queries `settings` from `@/model/quiz`, `theme` from `@/model/theme`, and active locale from `useTranslation()`.
+2. When the user updates practice or review options, `setQuizSetting()` updates `quizStore.settings`, serializing changes via Zustand persist.
+3. Toggling theme preference updates `themeStore`, and `ThemeRegistry` synchronizes the `dark` class on the root document element.
+4. Switching language invokes `i18n.changeLanguage()`, updating UI text instantly and persisting the preference in localStorage.
+5. AI provider configurations leverage the synchronization bridge in `@/model/ai` to keep SQLite updated in desktop mode.
+6. Downstream modules query these settings to determine question shuffling, automatic removal of resolved errors, and duplicate question thresholds.
 
-## 维护注意
+## Maintenance Notes
 
-- 设置默认值在 `initialSettings` 中，迁移逻辑也在 `quizStore.merge` 中。
-- 新增文案必须同时补 `zh.json` 和 `en.json`，翻译测试会检查 key 覆盖。
-- 主题是独立 store，不要混入题库 store。
+- **Settings Defaults and Migration**: Baseline defaults are defined in `initialSettings` within `quiz.store.ts`. Schema migrations are governed in `quizStore.merge`.
+- **Localization Key Parity**: New UI text must be added to both `zh.json` and `en.json`. Automated CI checks (`translations.test.ts`) statically verify that every referenced translation key exists in both locales.
+- **Store Isolation**: Theme preferences are housed in an independent store (`@/model/theme`) to avoid unnecessary re-renders in quiz data consumers.

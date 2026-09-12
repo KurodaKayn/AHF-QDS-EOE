@@ -1,28 +1,29 @@
-# 应用壳模块 Workflow
+# Application Shell Module Workflow
 
-![应用壳模块数据流图](assets/01_app_shell_moudle_workdflow.svg)
+![Application Shell Data Flow](assets/01_app_shell_moudle_workdflow.svg)
 
-## 模块职责
+## Module Responsibilities
 
-应用壳模块负责把 Next.js 路由、全局 Provider、主题、国际化、通知和 quiz 区域导航组装起来。它不直接处理题库业务，而是提供所有业务页面运行所需的上下文。
+The Application Shell module integrates Next.js routing, global context providers, theme registry, internationalization, notification toasts, and the quiz workspace navigation shell. It does not manipulate quiz business logic directly; instead, it establishes the operational runtime and shared context required by all downstream pages.
 
-## 关键入口
+## Key Entry Points
 
-- `src/app/page.tsx`：根路径重定向到 `/quiz`。
-- `src/app/layout.tsx`：加载字体、全局 CSS，并挂载 `Providers`。
-- `src/components/Providers.tsx` 与 `useStartupSync.ts`：初始化 i18n、主题、Toaster，并在 Tauri 中同步 AI 配置和题库 snapshot。
-- `src/app/quiz/layout.tsx` 与 `useQuizLayout.ts`：提供桌面侧边栏、移动端抽屉和响应式导航。
+- `src/app/page.tsx`: Root path redirecting immediately to `/quiz`.
+- `src/app/layout.tsx`: Root HTML layout loading typography, global styles, and mounting `Providers`.
+- `src/components/Providers.tsx` & `useStartupSync.ts`: Initializes i18n, themes, and `sonner` toast notifications, orchestrating desktop startup sync (AI configurations and SQLite quiz snapshot) under Tauri runtime.
+- `src/app/quiz/layout.tsx` & `useQuizLayout.ts`: Provides the persistent desktop sidebar, mobile navigation drawer, and responsive layout shell.
 
-## 数据流说明
+## Data Flow
 
-1. 用户进入应用后，根路由跳转到 `/quiz`。
-2. `RootLayout` 挂载 `Providers`，等待客户端 mounted，避免 hydration mismatch。
-3. `Providers` 初始化 `ThemeRegistry`、`sonner` Toaster，并在 Tauri 运行时执行两类同步：AI 配置同步到 Rust 后端、题库 snapshot 从后端加载或回写。
-4. `/quiz` 下的页面通过 `QuizLayout` 获得统一导航和响应式布局。
-5. 业务页面再读取 `useQuizStore`、`useThemeStore` 和 i18n 文案完成具体功能。
+1. When the user opens the application, the root path `/` redirects to `/quiz`.
+2. `RootLayout` renders the client-side `Providers`, deferring execution until client hydration finishes to eliminate SSR/CSR hydration mismatches.
+3. `Providers` initializes `ThemeRegistry`, the notification `Toaster`, and triggers `useStartupSync`:
+   - Under the Tauri desktop runtime, AI configuration entries are synchronized to the Rust SQLite database, and the latest quiz database snapshot is loaded (or initialized) into Zustand.
+4. Pages located under `/quiz/*` receive consistent visual structure, top-level branding, and responsive navigation controls via `QuizLayout`.
+5. Individual feature pages consume `@/model/quiz`, `@/model/theme`, and i18n hooks to render content.
 
-## 维护注意
+## Maintenance Notes
 
-- `Providers` 的 Tauri snapshot 同步会影响题库数据来源，修改时要确认不会覆盖本地已有题库。
-- `QuizLayout` 里存在移动端与桌面端两套导航状态，新增路由时需要同时更新 `navItems`。
-- 静态导出场景下不能默认依赖服务端动态能力。
+- **Tauri Snapshot Sync Safety**: The startup sync executed in `useStartupSync` directly controls quiz data initialization. Any modifications to this logic must verify that existing user data in SQLite is never unintentionally overwritten.
+- **Dual Navigation State**: `QuizLayout` manages separate states for desktop sidebar links and mobile drawer overlays. Any added routes must be registered in `navItems`.
+- **Static Export Constraints**: Next.js operates in full static export mode (`output: "export"`). Shell layouts must not rely on runtime Node.js server APIs or dynamic server-rendered headers.

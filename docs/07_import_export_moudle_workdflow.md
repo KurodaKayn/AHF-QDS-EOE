@@ -1,30 +1,30 @@
-# 导入导出模块 Workflow
+# Import / Export Module Workflow
 
-![导入导出模块数据流图](assets/07_import_export_moudle_workdflow.svg)
+![Import / Export Data Flow](assets/07_import_export_moudle_workdflow.svg)
 
-## 模块职责
+## Module Responsibilities
 
-导入导出模块支持 CSV 和 Excel 题库文件的导入、导出，既能新建题库，也能导入到已有题库并复用重复题检测。
+The Import / Export module manages bidirectional file conversions for question banks in CSV and Excel (`.xlsx`) formats. It supports instantiating new question banks, merging questions into existing banks, and tracking duplicate question exclusions.
 
-## 关键入口
+## Key Entry Points
 
-- `src/app/quiz/import-export/page.tsx`：导入导出 UI。
-- `src/app/quiz/import-export/useImportExport.ts`：同级业务 Hook，负责页面状态和导入导出业务编排。
-- `src/model/import-export/import-export.api.ts`：运行时适配和文件读写（通过 `@/model/import-export` 统一导出）。
-- `src/model/import-export/import-export.serializer.ts`：浏览器态 CSV/XLSX 转换与反序列化。
-- `src-tauri/src/file_io.rs`：Tauri 桌面态 CSV/XLSX bytes 转换。
+- `src/app/quiz/import-export/page.tsx`: Import and export workbench UI.
+- `src/app/quiz/import-export/useImportExport.ts`: Co-located companion business hook orchestrating file selection, mode toggling, progress feedback, and model execution.
+- `src/model/import-export/import-export.api.ts`: Runtime adapter bridging file IO across browser and desktop environments (exposed via `@/model/import-export`).
+- `src/model/import-export/import-export.serializer.ts`: Client-side CSV/XLSX serialization, deserialization, and tabular column mapping.
+- `src-tauri/src/file_io.rs`: Desktop native Rust module handling CSV and XLSX byte streams.
 
-## 数据流说明
+## Data Flow
 
-1. 导入时，用户选择 CSV/XLSX 文件和导入模式。
-2. `useImportExport` 调用 `importQuestionBank()`。
-3. 浏览器态通过 FileReader 和 `xlsx` 解析；Tauri 态把文件 bytes 传给 Rust command。
-4. 服务层返回临时 `QuestionBank`，hook 根据模式新建题库或使用已有题库。
-5. 每道题最终通过 `addQuestionToBank()` 写入，重复题会统计为 skipped。
-6. 导出时，用户选择题库和格式；浏览器态生成 Blob 下载，Tauri 态通过保存对话框和 `writeFile()` 写入 Rust 生成的 bytes。
+1. **Importing Files**: The user selects a `.csv` or `.xlsx` file and chooses an ingestion strategy (create a new bank or merge into an existing bank).
+2. `useImportExport` invokes `importQuestionBank()` from `@/model/import-export`.
+3. In browser mode, file data is read via `FileReader` and parsed via tabular libraries; in Tauri mode, binary file bytes are dispatched to the Rust backend command.
+4. The service returns a transient `QuestionBank` instance. The companion hook creates a new bank or merges items into the chosen target bank.
+5. Questions are persisted sequentially via `addQuestionToBank()`, allowing duplicate detection logic to tally skipped questions.
+6. **Exporting Files**: The user selects a question bank and export format. In browser mode, an in-memory Blob triggers a browser download. In Tauri mode, the application invokes a native save file dialog and writes the bytes returned from the backend.
 
-## 维护注意
+## Maintenance Notes
 
-- CSV/Excel 字段顺序由导入导出实现共同约定：`type`、`content`、`answer`、`explanation`、`tags`、`optionA...`。
-- 桌面态和浏览器态各有一套解析/导出实现，格式变更要同步更新并补测试。
-- 导入到已有题库会触发重复题检测，导入到新题库也逐题走 store 写入，不是直接替换状态。
+- **Column Contract**: The tabular column layout is fixed across serializers: `type`, `content`, `answer`, `explanation`, `tags`, followed by `optionA`, `optionB`, etc.
+- **Dual Engine Parity**: Both TypeScript and Rust implement export and import serialization. Format enhancements must be reflected in both engines and verified using `import-export.serializer.test.ts`.
+- **Granular Bank Insertion**: Importing records routes each question through `addQuestionToBank()`. This ensures consistent ID allocation, content normalization, and duplicate detection rather than performing an unverified bulk overwrite.

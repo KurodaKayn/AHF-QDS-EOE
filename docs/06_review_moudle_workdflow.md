@@ -1,32 +1,32 @@
-# 错题复习模块 Workflow
+# Wrong Question Review Module Workflow
 
-![错题复习模块数据流图](assets/06_review_moudle_workdflow.svg)
+![Wrong Question Review Data Flow](assets/06_review_moudle_workdflow.svg)
 
-## 模块职责
+## Module Responsibilities
 
-错题复习模块把答题记录中的错误记录聚合为可复习列表，支持筛选搜索、批量选择、AI 解析、生成相似题、导入相似题和进入错题练习。
+The Wrong Question Review module aggregates incorrect answers from practice history records into an actionable review workspace. It supports multi-criteria filtering, keyword search, batch selection, real-time streaming AI explanation generation, AI similar-question synthesis, target bank importation, and quick launches into review practice sessions.
 
-## 关键入口
+## Key Entry Points
 
-- `src/app/quiz/review/page.tsx` 与 `useReviewPage.ts`：错题页主流程 UI 及伴生 Hook。
-- `src/app/quiz/review/useReviewLogic.ts`：同级业务 Hook，负责筛选、搜索和选择状态。
-- `src/app/quiz/review/useAiExplanation.ts`：同级业务 Hook，负责 AI 流式解析生成。
-- `src/components/quiz/WrongQuestionItem.tsx`：错题展示。
-- `src/components/quiz/SimilarQuestionsModal.tsx`：相似题导入。
-- `src/app/quiz/review/practice/page.tsx` 与 `useReviewPracticeRedirect.ts`：错题练习重定向页及伴生 Hook。
+- `src/app/quiz/review/page.tsx` & `useReviewPage.ts`: Review dashboard view and co-located companion hook.
+- `src/app/quiz/review/useReviewLogic.ts`: Co-located companion business hook managing question bank filtering, keyword searching, and batch selection state.
+- `src/app/quiz/review/useAiExplanation.ts`: Co-located companion business hook driving streaming AI explanation generation.
+- `src/components/quiz/WrongQuestionItem.tsx`: Presentational component displaying question details, past wrong answers, and explanations.
+- `src/components/quiz/SimilarQuestionsModal.tsx`: Dialog component for previewing and importing AI-generated similar questions.
+- `src/app/quiz/review/practice/page.tsx` & `useReviewPracticeRedirect.ts`: Target redirect route and companion hook bridging into review practice sessions.
 
-## 数据流说明
+## Data Flow
 
-1. 页面读取 `questionBanks` 和 `records`。
-2. 错题页筛选 `isCorrect === false` 的记录，再按 `questionId` 回查题库题目，生成带题库名和用户答案的错题视图。
-3. `useReviewLogic` 根据题库过滤、搜索词和解释缓存输出 `filteredQuestions`。
-4. 用户选择题目后，可以进入错题练习、批量生成 AI 解析或生成相似题。
-5. AI 解析使用 `callAIStream()`，流式 chunk 更新页面展示；完成后回写题目的 `explanation`。
-6. 生成相似题调用 store 中的 `generateSimilarQuestions()`，解析 AI JSON 后在弹窗中选择导入目标题库。
-7. 清空错题调用 `clearRecords()`，按运行时分支清理记录。
+1. The page retrieves `questionBanks` and `records` from `@/model/quiz`.
+2. The review pipeline filters for records where `isCorrect === false`, joining on `questionId` to build enriched view models containing bank titles, user answers, and question prompts.
+3. `useReviewLogic` evaluates bank filters and search keywords, producing the reactive `filteredQuestions` list.
+4. Users can select items to trigger review practice sessions, generate AI explanations in batch, or synthesize similar questions.
+5. AI explanation generation invokes `callAIStream()` from `@/model/ai`. Tokens stream reactively to the card UI and write back to the question's `explanation` property upon stream completion.
+6. Similar question generation triggers `generateSimilarQuestions()` in `@/model/quiz`, parses the structured JSON payload, and allows users to import selected questions into any bank.
+7. Record clearing dispatches `clearRecords()` through `@/model/quiz`, synchronizing across SQLite or `localStorage`.
 
-## 维护注意
+## Maintenance Notes
 
-- 错题视图不是独立数据表，而是由 `records` 与 `questionBanks` 动态聚合出来。
-- AI 解析使用流式接口，Tauri 桌面态依赖 `ai-stream:chunk` 和 `ai-stream:done` event。
-- 相似题导入复用 `addQuestionToBank()`，会受到重复题检查设置影响。
+- **Dynamic Materialization**: The review view is not a separate persisted database entity; it is derived at runtime by joining `records` with `questionBanks`.
+- **Tauri Streaming Events**: Under desktop runtime, streaming AI explanations depend on the Tauri window events `ai-stream:chunk` and `ai-stream:done`.
+- **Import Deduplication**: Importing generated similar questions routes through `addQuestionToBank()`, honoring user-configured duplicate question thresholds.

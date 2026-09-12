@@ -1,29 +1,29 @@
-# 题库管理模块 Workflow
+# Bank Management Module Workflow
 
-![题库管理模块数据流图](assets/03_bank_management_moudle_workdflow.svg)
+![Bank Management Data Flow](assets/03_bank_management_moudle_workdflow.svg)
 
-## 模块职责
+## Module Responsibilities
 
-题库管理模块提供题库创建、选择、编辑、删除，题目增删改查，题目排序搜索，以及重复题检测和批量删除。
+The Bank Management module handles the lifecycle of question banks (creation, selection, editing, deletion), question CRUD operations, sorting, filtering, duplicate question detection, and batch deletion.
 
-## 关键入口
+## Key Entry Points
 
-- `src/app/quiz/banks/manage/page.tsx` 与 `useManageBanksPage.ts`：主管理页及同级伴生 Hook，包含静态导出兼容逻辑。
-- `src/app/quiz/banks/[bankId]/page.tsx` 与 `useBankDetailPage.ts`：单个题库查看编辑及同级伴生 Hook。
-- `src/components/QuestionFormModal.tsx` 与 `src/components/useQuestionForm.ts`：统一新增/编辑题目弹窗及同级题目表单 Hook。
-- `src/components/quiz/manage/*`：题库选择、题目列表及伴生 Hook (`useBankDetailsCard.ts`, `useQuestionListSection.ts`)、重复题弹窗、删除确认弹窗。
+- `src/app/quiz/banks/manage/page.tsx` & `useManageBanksPage.ts`: Primary bank management view and co-located companion hook, containing routing compatibility logic for static exports.
+- `src/app/quiz/banks/[bankId]/page.tsx` & `useBankDetailPage.ts`: Bank detail view and co-located companion hook for inspecting and modifying specific banks.
+- `src/components/QuestionFormModal.tsx` & `src/components/useQuestionForm.ts`: Reusable question creation/editing modal and its companion form-state hook.
+- `src/components/quiz/manage/*`: Modular management UI elements and companion hooks (`useBankDetailsCard.ts`, `useQuestionListSection.ts`, duplicate detection modal, deletion dialogs).
 
-## 数据流说明
+## Data Flow
 
-1. 管理页读取 `questionBanks` 并通过 URL 参数恢复选中的 `bankId`。
-2. 用户选择题库后，页面加载题库元数据和题目列表。
-3. 新增或编辑题目时，`QuestionFormModal` 调用 `useQuestionForm` 管理字段、题型切换、选项和答案校验。
-4. 表单提交后调用 `addQuestionToBank()` 或 `updateQuestionInBank()`。
-5. Tauri 运行时由 Rust 写 SQLite 并返回 snapshot；浏览器开发态直接更新 Zustand。
-6. 重复题检测走 `findDuplicateQuestionsInBank()`，Tauri 运行时使用后端 normalized index，浏览器态用前端 Map 聚合。
+1. The management page retrieves `questionBanks` from `@/model/quiz` and restores any active `bankId` from URL query parameters.
+2. Upon selecting a bank, the view renders bank metadata alongside its paginated/filtered question collection.
+3. When creating or editing a question, `QuestionFormModal` delegates input state, question type transitions, option list management, and validation logic to `useQuestionForm`.
+4. Submitting the form dispatches `addQuestionToBank()` or `updateQuestionInBank()`.
+5. Under Tauri desktop runtime, the Rust backend writes to SQLite and emits a refreshed snapshot back to Zustand; in browser mode, the Zustand store updates directly.
+6. Duplicate question detection utilizes `findDuplicateQuestionsInBank()`, leveraging Rust's normalized SQLite index in desktop mode and in-memory Maps in browser mode.
 
-## 维护注意
+## Maintenance Notes
 
-- `src/app/quiz/banks/manage/page.tsx` 中的 `index.html` 兼容跳转和隐藏链接服务于静态导出，不要在未替代前删除。
-- 表单校验逻辑集中在 `useQuestionForm`，新增题型时应优先修改这里。
-- 搜索在 Tauri 下会叠加 `search_questions` 的后端结果，前端过滤和后端查询语义要保持一致。
+- **Static Export Routing Compatibility**: The `index.html` fallback redirection and hidden navigation anchors in `src/app/quiz/banks/manage/page.tsx` are crucial for desktop webview static page navigation. Do not remove them without an alternative routing architecture.
+- **Centralized Form Validation**: Validation logic for question options, correct answers, and required fields is concentrated in `useQuestionForm`. When supporting new question types, update this hook first.
+- **Search Semantics Parity**: Desktop search queries leverage the Rust backend command `search_questions`. Query sanitization, case folding, and fuzzy matching behavior must match frontend client-side filtering.

@@ -20,11 +20,11 @@ The source diagram is maintained at `docs/assets/ci-architecture.svg`, with an e
 
 The `verify` job is intentionally fast and runs first. It blocks the heavier build checks until the code has already passed linting, tests, and TypeScript validation. The `web-build` job confirms that Next.js static export still builds. The `rust-check` job confirms that the Tauri backend compiles without producing platform release artifacts.
 
-## Test Layers
+## Test Architecture
 
-- `pnpm test:regression` covers high-value product flows that should not regress, currently quiz parsing and CSV/Excel import-export round trips.
-- `pnpm test:unit` covers focused utility-level tests.
-- `pnpm test` remains available for running the full Vitest suite locally.
+- `pnpm test` executes the complete Vitest test suite across all co-located tests (including domain parsers, serializers, grading logic, stores, components, and utility libraries).
+- `pnpm ci:verify` executes all quality gates sequentially: linting (`oxlint`), testing (`vitest`), and TypeScript type checking (`tsc`).
+
 
 ## Release Pipeline
 
