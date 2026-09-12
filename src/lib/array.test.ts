@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { shuffleArray } from "../array";
+import { shuffleArray } from "./array";
 
 describe("lib/array", () => {
   it("should shuffle an array without losing elements", () => {

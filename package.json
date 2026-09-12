@@ -11,17 +11,14 @@
     "lint": "oxlint",
     "format": "oxfmt --write .",
     "test": "vitest run",
-    "test:unit": "vitest run --exclude \"src/regression/**\"",
-    "test:regression": "vitest run src/regression/__tests__",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit --pretty false",
-    "ci:verify": "pnpm lint && pnpm test:regression && pnpm test:unit && pnpm typecheck",
+    "ci:verify": "pnpm lint && pnpm test && pnpm typecheck",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "build:tauri": "pnpm build && tauri build",
-    "prepare": "lefthook install",
-    "\"test:unit\"": "vitest run \"src/**/__tests__\" --exclude \"src/regression/**\""
+    "prepare": "lefthook install"
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",

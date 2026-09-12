@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateId } from "../id";
+import { generateId } from "./id";
 
 describe("lib/id", () => {
   it("should generate a valid non-empty string id", () => {

@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react";
-import { useQuestionForm } from "../useQuestionForm";
+import { useQuestionForm } from "./useQuestionForm";
 import { QuestionType } from "@/model/quiz";
 
 describe("useQuestionForm", () => {

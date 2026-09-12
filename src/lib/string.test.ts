@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeText } from "../string";
+import { normalizeText } from "./string";
 
 describe("lib/string", () => {
   it("should normalize punctuation and whitespace", () => {

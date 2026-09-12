@@ -1,6 +1,5 @@
-import { exportQuestionBank, importQuestionBank } from "../import-export.api";
-import type { QuestionBank } from "../../quiz/quiz.contract";
-import { QuestionType } from "../../quiz/quiz.contract";
+import { exportQuestionBank, importQuestionBank } from "./import-export.api";
+import { type QuestionBank, QuestionType } from "@/model/quiz";
 
 const mockSave = vi.fn();
 const mockWriteFile = vi.fn();
@@ -98,7 +97,7 @@ single-choice,Which package manager?,B,Repo uses pnpm,tooling,npm,pnpm
 
   it("imports Excel files and falls back to the file name as the bank name", async () => {
     const excelBuffer = await (
-      await import("../import-export.serializer")
+      await import("./import-export.serializer")
     )
       .exportToExcel(bank)
       .arrayBuffer();

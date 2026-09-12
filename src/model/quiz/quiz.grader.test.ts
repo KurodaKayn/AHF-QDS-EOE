@@ -1,6 +1,6 @@
-import { PracticeHandlers } from "../quiz.grader";
-import type { Question } from "../quiz.contract";
-import { QuestionType } from "../quiz.contract";
+import { PracticeHandlers } from "./quiz.grader";
+import type { Question } from "./quiz.contract";
+import { QuestionType } from "./quiz.contract";
 
 const makeQuestion = (
   type: QuestionType,

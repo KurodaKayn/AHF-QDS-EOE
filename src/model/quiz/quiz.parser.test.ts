@@ -1,4 +1,4 @@
-import { QuestionType } from "../quiz.contract";
+import { QuestionType } from "./quiz.contract";
 
 const mockInvoke = vi.fn();
 
@@ -37,7 +37,7 @@ describe("parseQuestions", () => {
       },
     ]);
 
-    const { parseQuestions } = await import("../quiz.parser");
+    const { parseQuestions } = await import("./quiz.parser");
     const questions = await parseQuestions("Single choice: Which option is correct?");
 
     expect(mockInvoke).toHaveBeenCalledWith("parse_questions", {
@@ -50,7 +50,7 @@ describe("parseQuestions", () => {
   });
 
   it("falls back to browser parsing when Tauri IPC is unavailable", async () => {
-    const { parseQuestions } = await import("../quiz.parser");
+    const { parseQuestions } = await import("./quiz.parser");
     const [question] = await parseQuestions(`Single choice: Which option is correct?
 A. Alpha
 B. Beta
@@ -73,7 +73,7 @@ Explanation: Beta is the expected answer.`);
   });
 
   it("parses multiple choice answers across contiguous, delimiter-separated, and full-width formats", async () => {
-    const { parseQuestions } = await import("../quiz.parser");
+    const { parseQuestions } = await import("./quiz.parser");
 
     // Case 1: Contiguous letters "AB"
     const [q1] = await parseQuestions(`Multiple choice: Select prime numbers

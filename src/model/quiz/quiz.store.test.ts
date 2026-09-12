@@ -1,5 +1,5 @@
-import { useQuizStore } from "../quiz.store";
-import { QuestionType } from "../quiz.contract";
+import { useQuizStore } from "./quiz.store";
+import { QuestionType } from "./quiz.contract";
 
 let nanoidCounter = 0;
 

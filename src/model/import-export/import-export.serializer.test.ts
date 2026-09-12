@@ -3,8 +3,14 @@ import {
   exportToExcel,
   importFromCSV,
   importFromExcel,
-} from "../import-export.serializer";
-import { createEmptyBank, createQuestion, QuestionType } from "../../quiz/quiz.contract";
+} from "./import-export.serializer";
+import {
+  createEmptyBank,
+  createQuestion,
+  QuestionType,
+  type Question,
+  type QuestionBank,
+} from "@/model/quiz";
 import { generateId } from "@/lib/id";
 
 vi.mock("nanoid", () => {
@@ -137,5 +143,84 @@ single-choice,Choose one,A,,tag-one,,Beta,
     expect(bank.questions).toHaveLength(1);
     expect(bank.questions[0].options).toEqual([{ id: "B", content: "Beta" }]);
     expect(bank.questions[0].tags).toEqual(["tag-one"]);
+  });
+
+  it("round-trips question banks with all question types through CSV and Excel exports", async () => {
+    const bank: QuestionBank = {
+      id: "bank-regression",
+      name: "Regression Bank",
+      description: "Covers all question types",
+      questions: [
+        {
+          id: "q-1",
+          type: QuestionType.SingleChoice,
+          content: "Which platform does Tauri target?",
+          options: [
+            { id: "A", content: "Desktop apps" },
+            { id: "B", content: "Mobile apps" },
+          ],
+          answer: "A",
+          explanation: "Tauri packages desktop applications.",
+          tags: ["tauri", "desktop"],
+          createdAt: 1700000000000,
+          updatedAt: 1700000000000,
+        },
+        {
+          id: "q-2",
+          type: QuestionType.MultipleChoice,
+          content: "Select the technologies used in this project.",
+          options: [
+            { id: "A", content: "Next.js" },
+            { id: "B", content: "Tauri" },
+            { id: "C", content: "Photoshop" },
+          ],
+          answer: ["A", "B"],
+          explanation: "The app uses Next.js and Tauri.",
+          tags: ["stack"],
+          createdAt: 1700000000000,
+          updatedAt: 1700000000000,
+        },
+        {
+          id: "q-3",
+          type: QuestionType.TrueFalse,
+          content: "Tauri packages desktop apps.",
+          answer: "true",
+          explanation: "That is the core packaging model.",
+          tags: ["platform"],
+          createdAt: 1700000000000,
+          updatedAt: 1700000000000,
+        },
+        {
+          id: "q-4",
+          type: QuestionType.FillInBlank,
+          content: "The package manager used here is ____.",
+          answer: "pnpm",
+          explanation: "The repo standard is pnpm.",
+          tags: ["tooling"],
+          createdAt: 1700000000000,
+          updatedAt: 1700000000000,
+        },
+      ],
+      createdAt: 1700000000000,
+      updatedAt: 1700000000000,
+    };
+
+    const stripQuestion = (q: Question) => ({
+      type: q.type,
+      content: q.content,
+      options: q.options?.map((opt) => ({ id: opt.id, content: opt.content })),
+      answer: q.answer,
+      explanation: q.explanation,
+      tags: q.tags,
+    });
+
+    const csvRoundTrip = importFromCSV(exportToCSV(bank), bank.name);
+    const excelRoundTrip = importFromExcel(await exportToExcel(bank).arrayBuffer(), bank.name);
+
+    for (const importedBank of [csvRoundTrip, excelRoundTrip]) {
+      expect(importedBank.name).toBe(bank.name);
+      expect(importedBank.questions).toHaveLength(bank.questions.length);
+      expect(importedBank.questions.map(stripQuestion)).toEqual(bank.questions.map(stripQuestion));
+    }
   });
 });

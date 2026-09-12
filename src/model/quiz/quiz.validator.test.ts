@@ -4,8 +4,8 @@ import {
   questionOptionSchema,
   questionRecordSchema,
   questionSchema,
-} from "../quiz.validator";
-import { QuestionType } from "../quiz.contract";
+} from "./quiz.validator";
+import { QuestionType } from "./quiz.contract";
 
 describe("quiz schemas", () => {
   it("accepts a valid single-choice question", () => {

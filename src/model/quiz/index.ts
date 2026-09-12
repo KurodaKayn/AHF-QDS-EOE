@@ -1,5 +1,5 @@
 // Public Contracts & Entity Types
-export { QuestionType } from "./quiz.contract";
+export { QuestionType, createEmptyBank, createQuestion } from "./quiz.contract";
 export type {
   Question,
   QuestionBank,
